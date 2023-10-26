@@ -1,4 +1,5 @@
 import urllib.request as request
+import streamlit as st
 
 def read_file_contents(file_name):
     ''''
@@ -36,3 +37,27 @@ def read_file_contents_web(path):
     """
     response = request.urlopen(path)
     return response.read().decode("utf-8")
+
+def add_logo():
+    '''
+    Add a logo at the top of the page navigation sidebar
+
+    Approach written by blackary on
+    https://discuss.streamlit.io/t/put-logo-and-title-above-on-top-of-page-navigation-in-sidebar-of-multipage-app/28213/5
+    
+    '''
+    st.markdown(
+        """
+        <style>
+            [data-testid="stSidebarNav"] {
+                background-image: url(https://raw.githubusercontent.com/Bergam0t/Teaching_DES_Concepts_Streamlit/main/resources/hsma_logo.png?token=GHSAT0AAAAAACIZWPJYMNHWSZXSAPXCSTA6ZJ2LSBQ);
+                background-repeat: no-repeat;
+                padding-top: 150px;
+                background-position: 70px 30px;
+            }
+
+            }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )

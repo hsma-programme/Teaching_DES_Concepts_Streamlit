@@ -17,9 +17,10 @@ st.set_page_config(
  )
 
 ## We add in a title for our web app's page
-st.title("Treatment Centre Simulation Playground")
+st.title("Discrete Event Simulation Playground")
+st.subheader("Simulating Patients Arriving at the Centre")
 
-st.markdown(read_file_contents('resources/model_info.md'))
+st.markdown(read_file_contents('resources/simulating_arrivals_text.md'))
 
 tab1, tab2, tab3 = st.tabs(["Generating Patients", 
                             "Allocating Patients to A Nurse", 
