@@ -1,5 +1,6 @@
 import urllib.request as request
 import streamlit as st
+import streamlit.components.v1 as components
 
 def read_file_contents(file_name):
     ''''
@@ -51,7 +52,7 @@ def add_logo():
         """
         <style>
             [data-testid="stSidebarNav"] {
-                background-image: url(https://raw.githubusercontent.com/Bergam0t/Teaching_DES_Concepts_Streamlit/main/resources/hsma_logo.png);
+                background-image: url(https://raw.githubusercontent.com/Bergam0t/Teaching_DES_Concepts_Streamlit/main/resources/hsma_logo_transparent_background_small.png);
                 background-repeat: no-repeat;
                 padding-top: 150px;
                 background-position: 70px 30px;
@@ -68,4 +69,20 @@ def add_logo():
         </style>
         """,
         unsafe_allow_html=True,
+    )
+
+# From https://discuss.streamlit.io/t/st-markdown-does-not-render-mermaid-graphs/25576/3
+def mermaid(code: str, height=600) -> None:
+    components.html(
+        f"""
+        <pre class="mermaid">
+            {code}
+        </pre>
+
+        <script type="module">
+            import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+            mermaid.initialize({{ startOnLoad: true }});
+        </script>
+        """,
+        height=height
     )

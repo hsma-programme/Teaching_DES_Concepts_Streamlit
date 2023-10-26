@@ -6,7 +6,7 @@ Allows users to interact with an increasingly more complex treatment simulation
 import time
 import streamlit as st
 
-from helper_functions import read_file_contents, add_logo
+from helper_functions import read_file_contents, add_logo, mermaid
 from model_classes import *
 
 
@@ -21,6 +21,46 @@ add_logo()
 ## We add in a title for our web app's page
 st.title("Discrete Event Simulation Playground")
 st.subheader("Simulating Patients Arriving at the Centre")
+
+st.markdown("Let's start with just having some patients arriving into our treatment centre.")
+
+mermaid(height=450, code=
+"""
+        flowchart LR
+        A[Arrival]:::highlight --> B{Trauma or non-trauma} 
+        B --> C[Stabilisation]
+        C --> E[Treatment]
+        E --> F[Discharge]
+        B --> D[Registration]
+        D --> G[Examination]
+
+        G --> H[Treat?]
+        H --> F 
+        H --> I[Non-Trauma Treatment]
+        I --> F 
+
+        C --> Z([Trauma Room])
+        Z --> C
+
+        E --> Y([Cubicle - 1])
+        Y --> E
+
+        D --> X([Clerks])
+        X --> D
+
+        G --> W([Exam Room])
+        W --> G
+
+        I --> V([Cubicle - 2])
+        V --> I
+
+        classDef highlight fill:#02CD55,stroke:#E8AD02,stroke-width:4px,color:#0C0D11,font-size:12pt;;
+        classDef unlight fill:#b4b4b4,stroke:#787878,stroke-width:2px,color:#787878,font-size:6pt;;
+
+        class A highlight;
+        class B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z unlight;
+    """
+)
 
 st.markdown(read_file_contents('resources/simulating_arrivals_text.md'))
 
