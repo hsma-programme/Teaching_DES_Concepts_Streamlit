@@ -17,6 +17,7 @@ def read_file_contents(file_name):
     with open(file_name) as f:
         return f.read()
     
+
 def read_file_contents_web(path):
     """
     Download the content of a file from the GitHub Repo and return as a utf-8 string
@@ -50,13 +51,20 @@ def add_logo():
         """
         <style>
             [data-testid="stSidebarNav"] {
-                background-image: url(https://raw.githubusercontent.com/Bergam0t/Teaching_DES_Concepts_Streamlit/main/resources/hsma_logo.png?token=GHSAT0AAAAAACIZWPJYMNHWSZXSAPXCSTA6ZJ2LSBQ);
+                background-image: url(https://raw.githubusercontent.com/Bergam0t/Teaching_DES_Concepts_Streamlit/main/resources/hsma_logo.png);
                 background-repeat: no-repeat;
                 padding-top: 150px;
                 background-position: 70px 30px;
             }
-
+            [data-testid="stSidebarNav"]::before {
+                content: "The DES Playground";
+                padding-left: 20px;
+                margin-top: 20px;
+                font-size: 30px;
+                position: relative;
+                top: 100px;
             }
+
         </style>
         """,
         unsafe_allow_html=True,
