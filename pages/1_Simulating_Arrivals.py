@@ -18,6 +18,9 @@ st.set_page_config(
 
 add_logo()
 
+with open("style.css") as css:
+    st.markdown( f'<style>{css.read()}</style>' , unsafe_allow_html= True)
+
 ## We add in a title for our web app's page
 st.title("Discrete Event Simulation Playground")
 st.subheader("Simulating Patients Arriving at the Centre")
@@ -26,6 +29,7 @@ st.markdown("Let's start with just having some patients arriving into our treatm
 
 mermaid(height=450, code=
 """
+        %%{ init: { 'flowchart': { 'curve': 'step', "defaultRenderer": "elk" } } }%%
         flowchart LR
         A[Arrival]:::highlight --> B{Trauma or non-trauma} 
         B --> C[Stabilisation]

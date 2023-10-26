@@ -6,6 +6,5 @@ By working through the pages on the left in order, you will
 
 The treatment centre we want to build a model of looks like this:
 
-<!-- ![image](https://health-data-science-or.github.io/simpy-streamlit-tutorial/_images/process_flow_img.jpg) -->
 
 

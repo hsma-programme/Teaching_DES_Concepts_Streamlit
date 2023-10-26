@@ -10,6 +10,9 @@ st.set_page_config(
 
 add_logo()
 
+with open("style.css") as css:
+    st.markdown( f'<style>{css.read()}</style>' , unsafe_allow_html= True)
+
 st.title("Welcome to the Discrete Event Simulation Playground! 👋")
 
 st.markdown(read_file_contents('resources/introduction_text.md'))
@@ -17,16 +20,20 @@ st.markdown(read_file_contents('resources/introduction_text.md'))
 
 mermaid(height=450, code=
 """
+    %%{ init: { 'flowchart': { 'curve': 'step', "defaultRenderer": "elk" } } }%%
     flowchart LR
         A[Arrival] --> B{Trauma or non-trauma}
         B --> C[Stabilisation]
         C --> E[Treatment]
-        E --> F[Discharge]
+        
+
+        
         B --> D[Registration]
         D --> G[Examination]
 
         G --> H[Treat?]
         H --> F 
+
         H --> I[Non-Trauma Treatment]
         I --> F 
 
@@ -44,6 +51,22 @@ mermaid(height=450, code=
 
         I --> V([Cubicle - 2])
         V --> I
+
+        E --> F[Discharge]
+
+        classDef ZZ1 fill:#47D7FF
+        classDef ZZ2 fill:#5DFDA0
+        classDef ZZ2a fill:#02CD55
+        classDef ZZ3 fill: #D45E5E
+        classDef ZZ3a fill: #932727
+        classDef ZZ4 fill: #611D67
+
+        class A,B ZZ1
+        class C,E ZZ2
+        class D,G ZZ3
+        class X,W ZZ3a
+        class Z,Y ZZ2a
+        class I,V ZZ4;
     """
 )
 

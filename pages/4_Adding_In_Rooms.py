@@ -17,6 +17,9 @@ st.set_page_config(
 
 add_logo()
 
+with open("style.css") as css:
+    st.markdown( f'<style>{css.read()}</style>' , unsafe_allow_html= True)
+
 ## We add in a title for our web app's page
 st.title("Discrete Event Simulation Playground")
 st.subheader("Where are they treating these people?")
