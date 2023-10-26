@@ -18,6 +18,7 @@ st.set_page_config(
 
 add_logo()
 
+
 with open("style.css") as css:
     st.markdown( f'<style>{css.read()}</style>' , unsafe_allow_html= True)
 
@@ -27,7 +28,7 @@ st.subheader("Simulating Patients Arriving at the Centre")
 
 st.markdown("Let's start with just having some patients arriving into our treatment centre.")
 
-mermaid(height=450, code=
+mermaid(height=250, code=
 """
         %%{ init: { 'flowchart': { 'curve': 'step', "defaultRenderer": "elk" } } }%%
         flowchart LR
@@ -58,8 +59,8 @@ mermaid(height=450, code=
         I --> V([Cubicle - 2])
         V --> I
 
-        classDef highlight fill:#02CD55,stroke:#E8AD02,stroke-width:4px,color:#0C0D11,font-size:12pt;;
-        classDef unlight fill:#b4b4b4,stroke:#787878,stroke-width:2px,color:#787878,font-size:6pt;;
+        classDef highlight fill:#02CD55,stroke:#E8AD02,stroke-width:4px,color:#0C0D11,font-size:12pt,font-family:lexend;
+        classDef unlight fill:#b4b4b4,stroke:#787878,stroke-width:2px,color:#787878,font-size:6pt,font-family:lexend;
 
         class A highlight;
         class B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z unlight;

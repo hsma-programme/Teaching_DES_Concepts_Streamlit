@@ -54,12 +54,12 @@ mermaid(height=450, code=
 
         E --> F[Discharge]
 
-        classDef ZZ1 fill:#47D7FF
-        classDef ZZ2 fill:#5DFDA0
-        classDef ZZ2a fill:#02CD55
-        classDef ZZ3 fill: #D45E5E
-        classDef ZZ3a fill: #932727
-        classDef ZZ4 fill: #611D67
+        classDef ZZ1 fill:#47D7FF,font-family:lexend
+        classDef ZZ2 fill:#5DFDA0,font-family:lexend
+        classDef ZZ2a fill:#02CD55,font-family:lexend
+        classDef ZZ3 fill: #D45E5E,font-family:lexend
+        classDef ZZ3a fill: #932727,font-family:lexend
+        classDef ZZ4 fill: #611D67,font-family:lexend
 
         class A,B ZZ1
         class C,E ZZ2
