@@ -8,7 +8,8 @@ import streamlit as st
 import plotly.express as px
 
 from helper_functions import read_file_contents, add_logo, mermaid
-from model_classes import *
+from model_classes import Scenario, multiple_replications
+from distribution_classes import Exponential
 
 
 st.set_page_config(
@@ -30,6 +31,7 @@ st.subheader("Simulating Patients Arriving at the Centre")
 tab1, tab2 = st.tabs(["Introduction", "Exercise"])
 
 with tab1:
+
     st.markdown(
         "Let's start with just having some patients arriving into our treatment centre.")
 
@@ -75,40 +77,64 @@ with tab1:
             
         """
             )
+    
+    st.markdown(
+    """
+    To start with, we need to create some simulated patients who will turn up to our centre. 
+
+    To simulate patient arrivals, we will use the exponential distribution. 
+
+    """
+    )
+    
+    exp_dist = Exponential(mean=5)
+    st.plotly_chart(px.histogram(exp_dist.sample(size=2500), 
+                                 width=600, height=300))
 
     st.markdown(read_file_contents('resources/simulating_arrivals_text.md'))
 
     st.divider()
+
+
+
+
 with tab2:
-    col1_1, col1_2, col1_3, col1_4 = st.columns([2, 2, 2, 1])
+    col1_1, col1_2= st.columns([0.5, 1.5])
     # set number of resources
     with col1_1:
-        mean_arrivals_per_day = st.slider("How many patients should arrive per day on average?",
-                                          10, 1000,
-                                          step=5, value=300)
-        # Will need to convert mean arrivals per day into interarrival time and share that
-
-    with col1_2:
-        # set number of replications
+        seed = st.number_input("Set a random number for the computer to start from",
+                        1, 100000,
+                        step=1, value=42)
+        
         n_reps = st.slider("How many times should the simulation run?",
                            1, 50,
                            step=1, value=10)
-
-    with col1_3:
-        # set days to include
         run_time_days = st.slider("How many days should we run the simulation for each time?",
                                   1, 100,
                                   step=1, value=15)
 
-    with col1_4:
-        # set days to include
-        seed = st.number_input("Set a random number for the computer to start from",
-                               1, 100000,
-                               step=1, value=42)
+     
+        mean_arrivals_per_day = st.slider("How many patients should arrive per day on average?",
+                                          10, 1000,
+                                          step=5, value=300)
+        # Will need to convert mean arrivals per day into interarrival time and share that
+        exp_dist = Exponential(mean=60/(mean_arrivals_per_day/24), random_seed=seed)
+        st.plotly_chart(px.histogram(exp_dist.sample(size=2500), 
+                                width=500, height=250,
+                                labels={
+                     "value": "Inter-Arrival Time (Minutes)",
+                     "count": " "
+                 }))
 
-    st.divider()
-
-    args = Scenario(random_number_set=seed)
+        # set number of replication
+with col1_2:     
+    args = Scenario(random_number_set=seed, 
+                    # We want to pass the interarrival time here
+                    # To get from daily arrivals to average interarrival time,
+                    # divide the number of arrivals by 24 to get arrivals per hour,
+                    # then divide 60 by this value to get the number of minutes
+                    manual_arrival_lambda=60/(mean_arrivals_per_day/24),
+                    override_arrival_lambda=True)
 
     # A user must press a streamlit button to run the model
     if st.button("Run simulation"):
@@ -122,7 +148,7 @@ with tab2:
                 rc_period=run_time_days*60*24
             )
 
-        st.success('Done!')
+        #st.success('Done!')
 
         st.subheader(
             "Difference between average daily patients generated in first simulation run and subsequent simulation runs"
@@ -143,7 +169,7 @@ with tab2:
         status_text_string = 'The first simulation generated a total of {} patients (an average of {} patients per day)'.format(
             results[['00_arrivals']].iloc[0]['00_arrivals'].astype(int),
             (results[['00_arrivals']].iloc[0]
-             ['00_arrivals']/run_time_days).round(1)
+            ['00_arrivals']/run_time_days).round(1)
         )
         status_text = st.text(status_text_string)
 
@@ -158,15 +184,14 @@ with tab2:
             # chart_mean_daily.add_rows(new_rows/run_time_days)
             chart_mean_daily.add_rows(
                 ((results[['00_arrivals']].iloc[[i+1]]['00_arrivals']/run_time_days) -
-                 (results[['00_arrivals']].iloc[0]['00_arrivals']/run_time_days)).round(1)
+                (results[['00_arrivals']].iloc[0]['00_arrivals']/run_time_days)).round(1)
             )
 
-            status_text_string = status_text_string + "\n" + \
-                'The next simulation generated a total of {} patients (an average of {} patients per day)'.format(
+            status_text_string = 'Simulation {} generated a total of {} patients (an average of {} patients per day)'.format(
+                    i+2,
                     new_rows.iloc[0]['00_arrivals'].astype(int),
                     (new_rows.iloc[0]['00_arrivals']/run_time_days).round(1)
-                )
-
+                ) + "\n" + status_text_string 
             # Update status text.
             status_text.text(status_text_string)
 
@@ -191,7 +216,7 @@ with tab2:
             
         with col_a_2:
             st.subheader(
-                 "Histogram: Average Daily Patients per Run"
+                    "Histogram: Average Daily Patients per Run"
             )
 
             st.plotly_chart(
@@ -199,3 +224,9 @@ with tab2:
                     (results[['00_arrivals']]/run_time_days).round(1)
                     )
             )
+
+
+    # st.print(
+    #     results[['10_full_patient_df']]
+    # )
+

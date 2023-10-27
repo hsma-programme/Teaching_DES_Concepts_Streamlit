@@ -68,12 +68,16 @@ DEFAULT_NON_TRAUMA_TREAT_P = 0.60
 DEFAULT_PROB_TRAUMA = 0.12
 
 
+
 # Time dependent arrival rates data
 # The data for arrival rates varies between clinic opening at 6am and closure at
 # 12am.
 
 NSPP_PATH = 'https://raw.githubusercontent.com/TomMonks/' \
     + 'open-science-for-sim/main/src/notebooks/01_foss_sim/data/ed_arrivals.csv'
+
+OVERRIDE_ARRIVAL_LAMBDA = False
+MANUAL_ARRIVAL_LAMBDA_VALUE = 1
 
 # Resource counts
 
@@ -185,7 +189,11 @@ class Scenario:
                  non_trauma_treat_mean=DEFAULT_NON_TRAUMA_TREAT_MEAN,
                  non_trauma_treat_var=DEFAULT_NON_TRAUMA_TREAT_VAR,
                  non_trauma_treat_p=DEFAULT_NON_TRAUMA_TREAT_P,
-                 prob_trauma=DEFAULT_PROB_TRAUMA):
+                 prob_trauma=DEFAULT_PROB_TRAUMA,
+                 arrival_df=NSPP_PATH,
+                 override_arrival_lambda=OVERRIDE_ARRIVAL_LAMBDA,
+                 manual_arrival_lambda=MANUAL_ARRIVAL_LAMBDA_VALUE
+                 ):
         '''
         Create a scenario to parameterise the simulation model
 
@@ -265,6 +273,9 @@ class Scenario:
         self.non_trauma_treat_var = non_trauma_treat_var
         self.non_trauma_treat_p = non_trauma_treat_p
         self.prob_trauma = prob_trauma
+        self.manual_arrival_lambda = manual_arrival_lambda
+        self.arrival_df = arrival_df
+        self.override_arrival_lambda = override_arrival_lambda
 
         self.init_sampling()
 
@@ -358,8 +369,13 @@ class Scenario:
         self.lambda_max = self.arrivals['arrival_rate'].max()
 
         # thinning exponential
-        self.arrival_dist = Exponential(60.0 / self.lambda_max,
-                                        random_seed=self.seeds[8])
+        if self.override_arrival_lambda is True:
+
+            self.arrival_dist = Exponential(self.manual_arrival_lambda,
+                    random_seed=self.seeds[8])
+        else:
+            self.arrival_dist = Exponential(60.0 / self.lambda_max,
+                    random_seed=self.seeds[8])
 
         # thinning uniform rng
         self.thinning_rng = Uniform(low=0.0, high=1.0,
@@ -883,7 +899,9 @@ class SimulationSummary:
                         '07a_treatment_wait(trauma)': mean_treat_wait2,
                         '07b_treatment_util(trauma)': treat_util2,
                         '08_total_time(trauma)': mean_total2,
-                        '09_throughput': self.get_throughput(patients)}
+                        '09_throughput': self.get_throughput(patients)
+                        }
+        
 
     def get_mean_metric(self, metric, patients):
         '''
