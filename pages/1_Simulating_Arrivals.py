@@ -121,7 +121,7 @@ if st.button("Run simulation"):
 
     st.success('Done!')
 
-    st.subheader("Total Number of Patients Generated per Simulation Run")
+    st.subheader("Difference between average daily patients generated in first simulation run and subsequent simulation runs")
 
     progress_bar = st.progress(0)
     status_text = st.text(
@@ -131,14 +131,15 @@ if st.button("Run simulation"):
                 )
                 )
     
-    chart_mean_daily = st.bar_chart(results[['00_arrivals']].iloc[[0]]/run_time_days)
+    # chart_mean_daily = st.bar_chart(results[['00_arrivals']].iloc[[0]]/run_time_days)
+    chart_mean_daily = st.bar_chart(results[['00_arrivals']].iloc[[0]]/run_time_days - results[['00_arrivals']].iloc[[0]]/run_time_days)
     #chart_total = st.bar_chart(results[['00_arrivals']].iloc[[0]])
     
 
     for i in range(n_reps-1):
     # Update progress bar.
         #progress_bar.progress(n_reps/(i+1))
-        time.sleep(1)
+        time.sleep(0.5)
         new_rows = results[['00_arrivals']].iloc[[i+1]]
 
         #Update status text.
@@ -151,11 +152,11 @@ if st.button("Run simulation"):
 
         # Append data to the chart.
         #chart_total.add_rows(new_rows)
-        chart_mean_daily.add_rows(new_rows/run_time_days)
-
-        # Pretend we're doing some computation that takes time.
-        #time.sleep(0.5)
-
+        #chart_mean_daily.add_rows(new_rows/run_time_days)
+        chart_mean_daily.add_rows(
+            ((results[['00_arrivals']].iloc[[i+1]]['00_arrivals']/run_time_days) - 
+            (results[['00_arrivals']].iloc[0]['00_arrivals']/run_time_days)).round(1)
+            )
 
     st.table(pd.concat([
             results[['00_arrivals']].astype('int'),
