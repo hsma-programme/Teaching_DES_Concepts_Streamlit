@@ -19,9 +19,13 @@ h1, h2, h3, h4 {
 
 .st-emotion-cache-z5fcl4 {
 	width: 100%;
-	padding: 1rem 3rem 3rem;
+	padding: 0.25em 3rem 3rem;
 	min-width: auto;
 	max-width: initial;
+}
+
+h1 {
+	padding: 0.25rem 0px 1rem;
 }
 
 
