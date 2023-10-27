@@ -55,10 +55,10 @@ mermaid(height=450, code=
 
         classDef ZZ1 fill:#47D7FF,font-family:lexend
         classDef ZZ2 fill:#5DFDA0,font-family:lexend
-        classDef ZZ2a fill:#02CD55,font-family:lexend
+        classDef ZZ2a fill:#02CD55,font-family:lexend, color:#FFF
         classDef ZZ3 fill: #D45E5E,font-family:lexend
-        classDef ZZ3a fill: #932727,font-family:lexend
-        classDef ZZ4 fill: #611D67,font-family:lexend
+        classDef ZZ3a fill: #932727,font-family:lexend, color:#FFF
+        classDef ZZ4 fill: #611D67,font-family:lexend, color:#FFF
 
         class A,B ZZ1
         class C,E ZZ2
