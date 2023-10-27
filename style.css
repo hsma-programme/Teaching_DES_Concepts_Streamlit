@@ -23,3 +23,37 @@ h1, h2, h3, h4 {
 	min-width: auto;
 	max-width: initial;
 }
+
+
+
+
+/* None of these work! */
+
+/* [id^='mermaid'] [id$='pointEnd'] .marker .flowchart {
+	fill: #FFF !important;
+	stroke: #FFF !important;
+} */
+
+/* [class$="flowchart-pointEnd"]  {
+	fill: #FFF !important;
+	stroke: #FFF !important;
+} */
+
+/* #mermaid-1698413512501 .marker {
+	fill: #FFF;
+	stroke: #FFF;
+} */
+
+/* #arrowhead {
+    fill: #FFF !important;
+  }
+
+.loopLine {
+stroke-width: 2;
+stroke-dasharray: "2 2";
+marker-end: "url(#arrowhead)";
+stroke: #CCCCFF;
+} */
+
+/* https://github.com/mermaid-js/mermaid/issues/1236 */
+/* #flowchart-pointEnd { stroke:#0f0 !important; fill:#f00 !important; stroke-width:3px !important; } */

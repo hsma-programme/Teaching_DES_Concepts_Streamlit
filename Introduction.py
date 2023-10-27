@@ -21,13 +21,12 @@ st.markdown(read_file_contents('resources/introduction_text.md'))
 mermaid(height=450, code=
 """
     %%{ init: { 'flowchart': { 'curve': 'step', "defaultRenderer": "elk" } } }%%
+    %%{ init: {  'theme': 'base', 'themeVariables': {'lineColor': '#b4b4b4'} } }%%
     flowchart LR
         A[Arrival] --> B{Trauma or non-trauma}
         B --> C[Stabilisation]
         C --> E[Treatment]
-        
-
-        
+      
         B --> D[Registration]
         D --> G[Examination]
 

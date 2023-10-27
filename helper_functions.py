@@ -75,7 +75,7 @@ def add_logo():
 def mermaid(code: str, height=600) -> None:
     components.html(
         f"""
-<link href='http://fonts.googleapis.com/css?family=Lexend' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Lexend' rel='stylesheet' type='text/css'>
 
         <pre class="mermaid">
             {code}

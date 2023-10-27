@@ -30,8 +30,11 @@ st.markdown("Let's start with just having some patients arriving into our treatm
 
 mermaid(height=250, code=
 """
-        %%{ init: { 'flowchart': { 'curve': 'step', "defaultRenderer": "elk" } } }%%
+        %%{ init: {  'flowchart': { 'curve': 'step', "defaultRenderer": "elk" } } }%%
+
+        %%{ init: {  'theme': 'base', 'themeVariables': {'lineColor': '#b4b4b4'} } }%%
         flowchart LR
+
         A[Arrival]:::highlight --> B{Trauma or non-trauma} 
         B --> C[Stabilisation]
         C --> E[Treatment]
@@ -64,6 +67,8 @@ mermaid(height=250, code=
 
         class A highlight;
         class B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z unlight;
+
+        
     """
 )
 
