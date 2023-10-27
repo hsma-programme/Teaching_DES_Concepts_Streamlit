@@ -24,18 +24,29 @@ with open("style.css") as css:
 st.title("Discrete Event Simulation Playground")
 st.subheader("Using a Simple Resource: Sending Patients to a Nurse")
 
-mermaid(height=75, code=
-"""
-        %%{ init: { 'flowchart': { 'curve': 'step' } } }%%
-        %%{ init: {  'theme': 'base', 'themeVariables': {'lineColor': '#b4b4b4'} } }%%
-        flowchart LR
-        A[Arrival]--> E[Treatment - Nurse]
-        E --> F[Discharge]
+tab1, tab2, tab3 = st.tabs(["Introduction", "Exercise", "Playground"])
 
-        classDef default font-size:18pt,font-family:lexend;
-        linkStyle default stroke:white;
+with tab1:
+
+    mermaid(height=75, code=
     """
-)
+            %%{ init: { 'flowchart': { 'curve': 'step' } } }%%
+            %%{ init: {  'theme': 'base', 'themeVariables': {'lineColor': '#b4b4b4'} } }%%
+            flowchart LR
+            A[Arrival]--> E[Treatment - Nurse]
+            E --> F[Discharge]
 
-st.markdown(read_file_contents('resources/first_simple_resource.md'))
+            classDef default font-size:18pt,font-family:lexend;
+            linkStyle default stroke:white;
+        """
+    )
+
+    st.markdown(read_file_contents('resources/first_simple_resource.md'))
+
+with tab2:
+     st.markdown(read_file_contents('resources/first_simple_resource_exercise.md'))
+
+
+with tab3:
+    st.markdown("placeholder")
 
