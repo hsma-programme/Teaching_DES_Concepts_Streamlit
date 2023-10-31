@@ -29,10 +29,13 @@ mermaid(height=450, code=
     %%{ init: {  'theme': 'base', 'themeVariables': {'lineColor': '#b4b4b4'} } }%%
     flowchart LR
         A[Arrival] --> B{Trauma or non-trauma}
-        B --> C[Stabilisation]
+        B --> B1{Trauma Pathway} 
+        B --> B2{Non-Trauma Pathway}
+        
+        B1 --> C[Stabilisation]
         C --> E[Treatment]
       
-        B --> D[Registration]
+        B2 --> D[Registration]
         D --> G[Examination]
 
         G --> H[Treat?]
