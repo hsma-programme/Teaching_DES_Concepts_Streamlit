@@ -139,19 +139,19 @@ with tab3:
 
     with col1:
         st.subheader("Registration and Triage")
-        n_triage = st.slider("Number of Triage Cubicles", 1, 10, step=1, value=5)
-        n_reg = st.slider("Number of Registration Clerks", 1, 10, step=1, value=3)
+        n_triage = st.slider("Number of Triage Cubicles", 1, 10, step=1, value=3)
+        n_reg = st.slider("Number of Registration Clerks", 1, 10, step=1, value=2)
 
 
     with col2:
         st.subheader("Trauma Pathway")
-        n_trauma = st.slider("Number of Trauma Bays for Stabilisation", 1, 10, step=1, value=5)
-        n_cubicles_2 = st.slider("Number of Treatment Cubicles for Trauma", 1, 10, step=1, value=8)
+        n_trauma = st.slider("Number of Trauma Bays for Stabilisation", 1, 10, step=1, value=6)
+        n_cubicles_2 = st.slider("Number of Treatment Cubicles for Trauma", 1, 10, step=1, value=6)
 
     with col3:
         st.subheader("Non-Trauma Pathway")
-        n_exam = st.slider("Number of Examination Rooms for non-trauma patients", 1, 10, step=1, value=6)
-        n_cubicles_1 = st.slider("Number of Treatment Cubicles for Non-Trauma", 1, 10, step=1, value=3)
+        n_exam = st.slider("Number of Examination Rooms for non-trauma patients", 1, 10, step=1, value=3)
+        n_cubicles_1 = st.slider("Number of Treatment Cubicles for Non-Trauma", 1, 10, step=1, value=2)
 
     with col4: 
         st.subheader("Pathway Probabilities")
@@ -188,7 +188,8 @@ with tab3:
             patient_log = multiple_replications(
                 args,
                 n_reps=10,
-                rc_period=30*60*24
+                rc_period=30*60*24,
+                return_event_log=True
             )
 
         # st.write(results.reset_index())
@@ -218,3 +219,5 @@ with tab3:
             )
 
         st.write(results)
+
+
