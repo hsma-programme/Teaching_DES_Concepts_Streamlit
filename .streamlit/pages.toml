@@ -1,0 +1,43 @@
+# NOT IN USE
+# To bring back into use, add the following back in to each page
+# from st_pages import show_pages_from_config, add_page_title
+# show_pages_from_config()
+# And, optionally
+# add_page_title()
+# Found it to be a bit buggy when interacting with custom theming
+# Slowed loading down significantly so 
+# Indentation of subgroups didn't work consistently
+
+[[pages]]
+path = "Introduction.py"
+name = "Introduction"
+icon = "🏠"
+
+[[pages]]
+path = "pages/1_Simulating_Arrivals.py"
+name = "Simulating Arrivals"
+icon = ":books:"
+
+[[pages]]
+path = "pages/2_Using_A_Simple_Resource.py"
+icon = ":health_worker:"
+
+[[pages]]
+path = "pages/3_Adding_an_Optional_Step.py"
+icon = :point_right::point_left:"
+
+[[pages]]
+path = "pages/4_Adding_In_Rooms.py"
+icon = ":hospital:"
+
+[[pages]]
+path = "pages/5_The_Full_Model.py"
+icon = "🎈️"
+
+[[pages]]
+path = "pages/6_The_Code.py"
+icon = ":technologist:"
+
+[[pages]]
+path = "pages/7_Find_Out_More.py"
+icon = "🎈️"

@@ -11,7 +11,7 @@ import plotly.express as px
 from helper_functions import read_file_contents, add_logo, mermaid
 from model_classes import Scenario, multiple_replications
 from distribution_classes import Exponential
-
+# from st_pages import show_pages_from_config, add_page_title
 
 st.set_page_config(
     page_title="Simulating Arrivals",
@@ -19,8 +19,11 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-add_logo()
+# add_page_title()
 
+# show_pages_from_config()
+
+add_logo()
 
 with open("style.css") as css:
     st.markdown(f'<style>{css.read()}</style>', unsafe_allow_html=True)

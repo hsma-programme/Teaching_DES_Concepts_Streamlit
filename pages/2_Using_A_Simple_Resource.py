@@ -7,6 +7,7 @@ import streamlit as st
 
 from helper_functions import read_file_contents, add_logo, mermaid
 from model_classes import *
+# from st_pages import show_pages_from_config, add_page_title
 
 # Set page parameters
 st.set_page_config(
@@ -15,11 +16,16 @@ st.set_page_config(
      initial_sidebar_state="expanded",
  )
 
+# add_page_title()
+
+# show_pages_from_config()
+
 # Add the logo
 add_logo()
 # Import the stylesheet
 with open("style.css") as css:
     st.markdown( f'<style>{css.read()}</style>' , unsafe_allow_html= True)
+
 
 st.title("Discrete Event Simulation Playground")
 st.subheader("Using a Simple Resource: Sending Patients to a Nurse")

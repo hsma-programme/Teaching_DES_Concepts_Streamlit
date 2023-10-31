@@ -7,13 +7,17 @@ import streamlit as st
 
 from helper_functions import read_file_contents, add_logo
 from model_classes import *
-
+# from st_pages import show_pages_from_config, add_page_title
 
 st.set_page_config(
      page_title="Adding another Resource Type",
      layout="wide",
      initial_sidebar_state="expanded",
  )
+
+# add_page_title()
+
+# show_pages_from_config()
 
 add_logo()
 

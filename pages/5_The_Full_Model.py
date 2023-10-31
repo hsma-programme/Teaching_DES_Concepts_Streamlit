@@ -1,13 +1,19 @@
+'''
+A Streamlit application based on Monks and 
+
+Allows users to interact with an increasingly more complex treatment simulation 
+'''
 import streamlit as st
+
 from helper_functions import read_file_contents, add_logo, mermaid
+from model_classes import *
 # from st_pages import show_pages_from_config, add_page_title
 
 st.set_page_config(
-    page_title="Introduction",
-    page_icon="👋",
-    layout="wide",
-    initial_sidebar_state="expanded",
-)
+     page_title="The Full Model",
+     layout="wide",
+     initial_sidebar_state="expanded",
+ )
 
 # add_page_title()
 
@@ -18,13 +24,24 @@ add_logo()
 with open("style.css") as css:
     st.markdown( f'<style>{css.read()}</style>' , unsafe_allow_html= True)
 
-st.title("Welcome to the Discrete Event Simulation Playground! 👋")
+## We add in a title for our web app's page
+st.title("Discrete Event Simulation Playground")
+st.subheader("How can we optimise the full system?")
 
-st.markdown(read_file_contents('resources/introduction_text.md'))
-
-
-mermaid(height=450, code=
-"""
+tab1, tab2, tab3 = st.tabs(["Introduction", "Exercises", "Playground"])
+with tab1:
+    st.markdown("""
+                So now we have explored every component of the model:
+                - Generating arrivals
+                - Generating and using resources
+                - Sending people down different paths 
+                
+                It's time to bring it all together into the final version of the treatment centre model we saw at the beginning.
+                """
+                )
+    
+    mermaid(height=450, code=
+    """
     %%{ init: { 'flowchart': { 'curve': 'step', "defaultRenderer": "elk" } } }%%
     %%{ init: {  'theme': 'base', 'themeVariables': {'lineColor': '#b4b4b4'} } }%%
     flowchart LR
@@ -73,15 +90,3 @@ mermaid(height=450, code=
         class I,V ZZ4;
     """
 )
-
-st.markdown(
-"""
-## References
-
-1. *Monks.T, Harper.A, Anagnoustou. A, Allen.M, Taylor.S. (2022) Open Science for Computer Simulation*
-2. *Nelson. B.L. (2013). [Foundations and methods of stochastic simulation](https://www.amazon.co.uk/Foundations-Methods-Stochastic-Simulation-International/dp/1461461596/ref=sr_1_1?dchild=1&keywords=foundations+and+methods+of+stochastic+simulation&qid=1617050801&sr=8-1). Springer.* 
-3. https://health-data-science-or.github.io/simpy-streamlit-tutorial/
-"""    
-)
-
-
