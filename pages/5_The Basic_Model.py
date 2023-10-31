@@ -37,7 +37,9 @@ with tab1:
                 - Generating and using resources
                 - Sending people down different paths 
                 
-                It's time to bring it all together into the final version of the treatment centre model we saw at the beginning.
+                So now let's create a version of the model that uses all of these aspects. 
+
+                For now, we won't consider nurses separately - we will assume that each nurse on shift has one room that is theirs to always use.
                 """
                 )
     
@@ -133,13 +135,12 @@ with tab3:
     #     probability that a new arrival is a trauma patient.
     
 
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3, col4 = st.columns(4)
 
     with col1:
         st.subheader("Registration and Triage")
         n_triage = st.slider("Number of Triage Cubicles", 1, 10, step=1, value=5)
         n_reg = st.slider("Number of Registration Clerks", 1, 10, step=1, value=3)
-        prob_trauma = st.slider("Probability that a new arrival is a trauma patient", 0.0, 1.0, step=0.01, value=0.3)
 
 
     with col2:
@@ -151,6 +152,10 @@ with tab3:
         st.subheader("Non-Trauma Pathway")
         n_exam = st.slider("Number of Examination Rooms for non-trauma patients", 1, 10, step=1, value=6)
         n_cubicles_1 = st.slider("Number of Treatment Cubicles for Non-Trauma", 1, 10, step=1, value=3)
+
+    with col4: 
+        st.subheader("Pathway Probabilities")
+        prob_trauma = st.slider("Probability that a new arrival is a trauma patient", 0.0, 1.0, step=0.01, value=0.3)
         non_trauma_treat_p = st.slider("Probability that a non-trauma patient will need treatment", 0.0, 1.0, step=0.01, value=0.7)
 
     st.write("Total rooms in use is {}".format(n_cubicles_1+n_cubicles_2+n_exam+n_trauma+n_triage))

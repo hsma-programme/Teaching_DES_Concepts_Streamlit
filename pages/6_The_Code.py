@@ -27,3 +27,11 @@ with open("style.css") as css:
 ## We add in a title for our web app's page
 st.title("Discrete Event Simulation Playground")
 st.subheader("What's going on under the hood?")
+
+st.markdown(
+    """
+    If you join us on the HSMA course, you will learn how to write models just like this one using the Python programming language and the SimPy package.
+
+    And actually, to create a model 
+    """
+)

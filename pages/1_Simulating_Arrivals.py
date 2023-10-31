@@ -39,7 +39,7 @@ with tab1:
     st.markdown(
         "Let's start with just having some patients arriving into our treatment centre.")
 
-    mermaid(height=250, code="""
+    mermaid(height=300, code="""
             %%{ init: {  'flowchart': { 'curve': 'step', "defaultRenderer": "elk" } } }%%
 
             %%{ init: {  'theme': 'base', 'themeVariables': {'lineColor': '#b4b4b4'} } }%%
@@ -88,7 +88,7 @@ with tab1:
     """
     To start with, we need to create some simulated patients who will turn up to our centre. 
 
-    To simulate patient arrivals, we will use the exponential distribution. 
+    To simulate patient arrivals, we will use the exponential distribution, which looks a bit like this. 
 
     """
     )
