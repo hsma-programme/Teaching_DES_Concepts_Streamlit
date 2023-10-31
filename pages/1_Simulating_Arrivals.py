@@ -32,7 +32,7 @@ with open("style.css") as css:
 st.title("Discrete Event Simulation Playground")
 st.subheader("Simulating Patients Arriving at the Centre")
 
-tab1, tab2 = st.tabs(["Introduction", "Exercise"])
+tab1, tab2, tab3 = st.tabs(["Introduction", "Exercise", "Playground"])
 
 with tab1:
 
@@ -100,9 +100,22 @@ with tab1:
     st.divider()
 
 
-
-
 with tab2:
+
+    st.subheader("Things to Try Out")
+
+    st.markdown(
+
+        """
+        - Try changing the random number the computer uses without changing anything else. What happens to the number of patients? Does the animated bar chart look different?
+        - Try increasing the simulation runs. What happens to the shape of the histograms?
+        - Try running the simulation for fewer days. What happens to the animated bar chart compared to running the simulation for more days?
+        - Look at the scatter (dot) plots at the bottom of the page to understand how the arrival times of patients varies across different simulation runs and different days. 
+        """
+
+    )
+
+with tab3:
     col1_1, col1_2= st.columns([0.5, 1.5])
     # set number of resources
     with col1_1:
@@ -141,7 +154,9 @@ with col1_2:
                     override_arrival_lambda=True)
 
     # A user must press a streamlit button to run the model
-    if st.button("Run simulation"):
+    button_run_pressed = st.button("Run simulation")
+    
+    if button_run_pressed:
 
         # add a spinner and then display success box
         with st.spinner('Simulating the minor injuries unit...'):
@@ -217,81 +232,82 @@ with col1_2:
         #         (results[['00_arrivals']]/run_time_days).round(0).astype('int')
         #     ], axis=1, keys = ['Total Arrivals', 'Mean Daily Arrivals'])
         #         )
+if button_run_pressed:
+    col_a_1, col_a_2 = st.columns(2)
 
-        col_a_1, col_a_2 = st.columns(2)
-
-        with col_a_1:
-            st.subheader(
-                "Histogram: Total Patients per Run"
-            )
-
-            st.plotly_chart(
-                px.histogram(
-                    results[['00_arrivals']]
-                    )
-            )
-            
-        with col_a_2:
-            st.subheader(
-                    "Histogram: Average Daily Patients per Run"
-            )
-
-            st.plotly_chart(
-                px.histogram(
-                    (results[['00_arrivals']]/run_time_days).round(1)
-                    )
-            )
-        
-        # st.write(patient_log)
-
-        # Animated chart - 
-        # st.plotly_chart(px.scatter(
-        #     patient_log,
-        #     #patient_log[patient_log['event'] == 'arrival'], 
-        #     x="time_in_day", 
-        #     y="Rep", 
-        #     animation_frame="rank", 
-        #     animation_group="patient",
-        #     #size="pop", 
-        #     #color="Rep", 
-        #     #hover_name="patient",
-        #     #log_x=True, 
-        #     #size_max=55, 
-        #     range_x=[0, 24*60], 
-        #     range_y=[0,n_reps+1]))
-
-        st.markdown(
-            """
-            The plots below show the minute-by-minute arrivals of patients across different model replications and different days.
-            Only the first 10 replications and a maximum of 30 days are shown.
-
-            Each dot is a single patient arriving.
-
-            From left to right within each plot, we start at midnight and through the day. 
-
-            Vertically in each plot we have the model replications. 
-
-            Each horizontal line represents a full day for one model replication.  
-            """ 
+    with col_a_1:
+        st.subheader(
+            "Histogram: Total Patients per Run"
         )
 
-        #facet_col_wrap_calculated = np.ceil(run_time_days/4).astype(int)
+        st.plotly_chart(
+            px.histogram(
+                results[['00_arrivals']]
+                )
+        )
+        
+    with col_a_2:
+        st.subheader(
+                "Histogram: Average Daily Patients per Run"
+        )
 
-        st.plotly_chart(px.scatter(
-                patient_log[(patient_log['event'] == 'arrival') & 
-                            (patient_log['Rep'] <= 10) & 
-                            (patient_log['model_day'] <= 30)],
-                #patient_log,
-                x="time_in_day", 
-                y="Rep",
-                range_x=[0, 24*60], 
-                range_y=[0, min(10, n_reps)+1],
-                facet_col='model_day', 
-                # facet_col_wrap=facet_col_wrap_calculated, # this causes an unbound_local_error when used so hard coding for now
-                facet_col_wrap = 4,
-                width=1200,
-                height=1500
-        ))
+        st.plotly_chart(
+            px.histogram(
+                (results[['00_arrivals']]/run_time_days).round(1)
+                )
+        )
+    
+
+    
+    #st.write(patient_log)
+
+    # Animated chart - 
+    # st.plotly_chart(px.scatter(
+    #     patient_log,
+    #     #patient_log[patient_log['event'] == 'arrival'], 
+    #     x="time_in_day", 
+    #     y="Rep", 
+    #     animation_frame="rank", 
+    #     animation_group="patient",
+    #     #size="pop", 
+    #     #color="Rep", 
+    #     #hover_name="patient",
+    #     #log_x=True, 
+    #     #size_max=55, 
+    #     range_x=[0, 24*60], 
+    #     range_y=[0,n_reps+1]))
+
+    st.markdown(
+        """
+        The plots below show the minute-by-minute arrivals of patients across different model replications and different days.
+        Only the first 10 replications and a maximum of 30 days are shown.
+
+        Each dot is a single patient arriving.
+
+        From left to right within each plot, we start at one minute past midnight and move through the day until midnight. 
+
+        Looking from the top to the bottom of each plot, we have the model replications. 
+        Each horizontal line represents a **full day** for one model replication.  
+        """ 
+    )
+
+    #facet_col_wrap_calculated = np.ceil(run_time_days/4).astype(int)
+
+    st.plotly_chart(px.scatter(
+            patient_log[(patient_log['event'] == 'arrival') & 
+                        (patient_log['Rep'] <= 10) & 
+                        (patient_log['model_day'] <= 30)],
+            #patient_log,
+            x="time_in_day", 
+            y="Rep",
+            range_x=[0, 24*60], 
+            range_y=[0, min(10, n_reps)+1],
+            facet_col='model_day', 
+            # facet_col_wrap=facet_col_wrap_calculated, # this causes an unbound_local_error when used so hard coding for now
+            facet_col_wrap = 4,
+            width=1200,
+            height=1500
+    ), use_container_width=True)
 
 
 
