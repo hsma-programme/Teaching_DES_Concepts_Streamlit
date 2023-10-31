@@ -44,12 +44,14 @@ with tab1:
 
             %%{ init: {  'theme': 'base', 'themeVariables': {'lineColor': '#b4b4b4'} } }%%
             flowchart LR
-
-            A[Arrival]:::highlight --> B{Trauma or non-trauma} 
-            B --> C[Stabilisation]
+            A[Arrival] --> B{Trauma or non-trauma}
+            B --> B1{Trauma Pathway} 
+            B --> B2{Non-Trauma Pathway}
+                    
+            B1 --> C[Stabilisation]
             C --> E[Treatment]
-            E --> F[Discharge]
-            B --> D[Registration]
+                
+            B2 --> D[Registration]
             D --> G[Examination]
 
             G --> H[Treat?]
@@ -76,7 +78,7 @@ with tab1:
             classDef unlight fill:#b4b4b4,stroke:#787878,stroke-width:2px,color:#787878,font-size:6pt,font-family:lexend;
 
             class A highlight;
-            class B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z unlight;
+            class B,B1,B2,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z unlight;
 
             
         """
