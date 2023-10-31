@@ -446,6 +446,11 @@ class TraumaPathway:
 
             trace(f'patient {self.identifier} triaged to trauma '
                   f'{self.env.now:.3f}')
+            # self.full_event_log.append(
+            #     {'patient': self.identifier,
+            #      'event': 'triaged_to_trauma',
+            #      'time': self.env.now}
+            # )
 
             # sample triage duration.
             self.triage_duration = self.args.triage_dist.sample()
@@ -479,6 +484,11 @@ class TraumaPathway:
             self.wait_treat = self.env.now - start_wait
             trace(f'treatment of patient {self.identifier} at '
                   f'{self.env.now:.3f}')
+            # self.full_event_log.append(
+            #     {'patient': self.identifier,
+            #      'event': 'treated',
+            #      'time': self.env.now}
+            # )
 
             # sample treatment duration.
             self.treat_duration = self.args.trauma_dist.sample()
@@ -495,6 +505,11 @@ class TraumaPathway:
         '''
         trace(f'triage {self.identifier} complete {self.env.now:.3f}; '
               f'waiting time was {self.wait_triage:.3f}')
+        # self.full_event_log.append(
+        #         {'patient': self.identifier,
+        #          'event': 'triage_complete',
+        #          'time': self.env.now}
+        #     )
 
     def trauma_complete(self):
         '''
@@ -502,6 +517,11 @@ class TraumaPathway:
         '''
         trace(f'stabilisation of patient {self.identifier} at '
               f'{self.env.now:.3f}')
+        # self.full_event_log.append(
+        #         {'patient': self.identifier,
+        #          'event': 'trauma_stabilised',
+        #          'time': self.env.now}
+        #     )
 
     def treatment_complete(self):
         '''
@@ -509,6 +529,11 @@ class TraumaPathway:
         '''
         trace(f'patient {self.identifier} treatment complete {self.env.now:.3f}; '
               f'waiting time was {self.wait_treat:.3f}')
+        # self.full_event_log.append(
+        #         {'patient': self.identifier,
+        #          'event': 'treatment_complete',
+        #          'time': self.env.now}
+        #     )
 
 
 class NonTraumaPathway(object):
@@ -579,6 +604,11 @@ class NonTraumaPathway(object):
             self.wait_triage = self.env.now - self.arrival
             trace(f'patient {self.identifier} triaged to minors '
                   f'{self.env.now:.3f}')
+            # self.full_event_log.append(
+            #     {'patient': self.identifier,
+            #      'event': 'triaged_minors',
+            #      'time': self.env.now}
+            # )
 
             # sample triage duration.
             self.triage_duration = self.args.triage_dist.sample()
@@ -586,6 +616,11 @@ class NonTraumaPathway(object):
 
             trace(f'triage {self.identifier} complete {self.env.now:.3f}; '
                   f'waiting time was {self.wait_triage:.3f}')
+            # self.full_event_log.append(
+            #     {'patient': self.identifier,
+            #      'event': 'triage_complete',
+            #      'time': self.env.now}
+            # )
 
         # record the time that entered the registration queue
         start_wait = self.env.now
@@ -598,6 +633,11 @@ class NonTraumaPathway(object):
             self.wait_reg = self.env.now - start_wait
             trace(f'registration of patient {self.identifier} at '
                   f'{self.env.now:.3f}')
+            # self.full_event_log.append(
+            #     {'patient': self.identifier,
+            #      'event': 'registered',
+            #      'time': self.env.now}
+            # )
 
             # sample registration duration.
             self.reg_duration = self.args.reg_dist.sample()
@@ -606,6 +646,11 @@ class NonTraumaPathway(object):
             trace(f'patient {self.identifier} registered at'
                   f'{self.env.now:.3f}; '
                   f'waiting time was {self.wait_reg:.3f}')
+            # self.full_event_log.append(
+            #     {'patient': self.identifier,
+            #      'event': 'treated',
+            #      'time': self.env.now}
+            # )
 
         # record the time that entered the evaluation queue
         start_wait = self.env.now
@@ -682,6 +727,8 @@ class TreatmentCentreModel:
 
         self.rc_period = None
         self.results = None
+
+        self.full_event_log = []
 
     def init_resources(self):
         '''
@@ -780,6 +827,11 @@ class TreatmentCentreModel:
             yield self.env.timeout(interarrival_time)
 
             trace(f'patient {patient_count} arrives at: {self.env.now:.3f}')
+            self.full_event_log.append(
+                {'patient': patient_count,
+                 'event': 'arrival',
+                 'time': self.env.now}
+            )
 
             # sample if the patient is trauma or non-trauma
             trauma = self.args.p_trauma_dist.sample()
@@ -814,6 +866,8 @@ class SimulationSummary:
         self.model = model
         self.args = model.args
         self.results = None
+        self.full_log = None
+        self.full_event_log = model.full_event_log
 
     def process_run_results(self):
         '''
@@ -884,6 +938,8 @@ class SimulationSummary:
         mean_total2 = self.get_mean_metric('total_time',
                                            self.model.trauma_patients)
 
+        self.full_log = patients
+
         self.results = {'00_arrivals': len(patients),
                         '01a_triage_wait': mean_triage_wait,
                         '01b_triage_util': triage_util,
@@ -901,7 +957,6 @@ class SimulationSummary:
                         '08_total_time(trauma)': mean_total2,
                         '09_throughput': self.get_throughput(patients)
                         }
-        
 
     def get_mean_metric(self, metric, patients):
         '''
@@ -980,11 +1035,40 @@ class SimulationSummary:
         df.index.name = 'rep'
         return df
 
+    def patient_log(self):
+        '''
+        Returns run results as a pandas.DataFrame
+
+        Returns:
+        -------
+        pd.DataFrame
+        '''
+        # append to results df
+        if self.full_log is None:
+            self.process_run_results()
+
+        return self.full_log
+    
+    # def get_full_event_log(self):
+    #     '''
+    #     Returns run results as a pandas.DataFrame
+
+    #     Returns:
+    #     -------
+    #     pd.DataFrame
+    #     '''
+    #     # append to results df
+
+    #     df = pd.DataFrame(self.full_event_log)
+    #     #df = df.T
+    #     #df.index.name = 'rep'
+    #     return df
+
 
 # ## Executing a model
 
 def single_run(scenario, rc_period=DEFAULT_RESULTS_COLLECTION_PERIOD,
-               random_no_set=1
+               random_no_set=1, return_full_log = False, return_event_log = False
                ):
     '''
     Perform a single run of the model and return the results
@@ -1020,13 +1104,24 @@ def single_run(scenario, rc_period=DEFAULT_RESULTS_COLLECTION_PERIOD,
 
     # run results
     summary = SimulationSummary(model)
+
+    if return_full_log:
+        log = summary.patient_log()
+        return log
+    
+    if return_event_log:
+        return pd.DataFrame(model.full_event_log)
+
+    
     summary_df = summary.summary_frame()
 
     return summary_df
+        
 
 
 def multiple_replications(scenario, rc_period=DEFAULT_RESULTS_COLLECTION_PERIOD,
-                          n_reps=5):
+                          n_reps=5, 
+                          return_full_log=False, return_event_log=False):
     '''
     Perform multiple replications of the model.
 
@@ -1047,10 +1142,40 @@ def multiple_replications(scenario, rc_period=DEFAULT_RESULTS_COLLECTION_PERIOD,
     pandas.DataFrame
     '''
 
-    results = [single_run(scenario, 
-                          rc_period, 
-                          random_no_set=(scenario.random_number_set)+rep)
-               for rep in range(n_reps)]
+    if return_full_log:
+        results = [single_run(scenario, 
+                    rc_period, 
+                    random_no_set=(scenario.random_number_set)+rep,
+                    return_full_log = True,
+                    return_event_log= False)
+        for rep in range(n_reps)]
+
+        # format and return results in a dataframe
+        #df_results = pd.concat(reesults)
+        # df_results.index = np.arange(1, len(df_results)+1)
+        # df_results.index.name = 'rep'
+        #return df_results
+        return results
+
+    if return_event_log:
+        results = [single_run(scenario, 
+                    rc_period, 
+                    random_no_set=(scenario.random_number_set)+rep,
+                    return_full_log = False,
+                    return_event_log= True).assign(Rep = rep+1)
+        for rep in range(n_reps)]
+
+        # format and return results in a dataframe
+        df_results = pd.concat(results)
+        return df_results
+        #return results
+
+
+    
+    results = [single_run(scenario,
+                        rc_period,
+                        random_no_set=(scenario.random_number_set)+rep)
+            for rep in range(n_reps)]
 
     # format and return results in a dataframe
     df_results = pd.concat(results)

@@ -5,6 +5,7 @@ Allows users to interact with an increasingly more complex treatment simulation
 '''
 import time
 import streamlit as st
+import numpy as np
 import plotly.express as px
 
 from helper_functions import read_file_contents, add_logo, mermaid
@@ -107,10 +108,10 @@ with tab2:
                         step=1, value=42)
         
         n_reps = st.slider("How many times should the simulation run?",
-                           1, 50,
+                           1, 30,
                            step=1, value=10)
         run_time_days = st.slider("How many days should we run the simulation for each time?",
-                                  1, 100,
+                                  1, 60,
                                   step=1, value=15)
 
      
@@ -147,6 +148,19 @@ with col1_2:
                 n_reps=n_reps,
                 rc_period=run_time_days*60*24
             )
+
+            patient_log = multiple_replications(
+                args,
+                n_reps=n_reps,
+                rc_period=run_time_days*60*24,
+                return_full_log=False,
+                return_event_log=True
+            )
+            patient_log = patient_log.assign(model_day = (patient_log.time/24/60).pipe(np.floor)+1)
+            patient_log = patient_log.assign(time_in_day= (patient_log.time - ((patient_log.model_day -1) * 24 * 60)).pipe(np.floor))
+            # patient_log = patient_log.assign(time_in_day_ (patient_log.time_in_day/60).pipe(np.floor))
+            patient_log['patient_full_id'] = patient_log['Rep'].astype(str) + '_' + patient_log['patient'].astype(str) 
+            patient_log['rank'] = patient_log['time_in_day'].rank(method='max')
 
         #st.success('Done!')
 
@@ -224,6 +238,62 @@ with col1_2:
                     (results[['00_arrivals']]/run_time_days).round(1)
                     )
             )
+        
+        # st.write(patient_log)
+
+        # Animated chart - 
+        # st.plotly_chart(px.scatter(
+        #     patient_log,
+        #     #patient_log[patient_log['event'] == 'arrival'], 
+        #     x="time_in_day", 
+        #     y="Rep", 
+        #     animation_frame="rank", 
+        #     animation_group="patient",
+        #     #size="pop", 
+        #     #color="Rep", 
+        #     #hover_name="patient",
+        #     #log_x=True, 
+        #     #size_max=55, 
+        #     range_x=[0, 24*60], 
+        #     range_y=[0,n_reps+1]))
+
+        st.markdown(
+            """
+            The plots below show the minute-by-minute arrivals of patients across different model replications and different days.
+            Only the first 10 replications and a maximum of 30 days are shown.
+
+            Each dot is a single patient arriving.
+
+            From left to right within each plot, we start at midnight and through the day. 
+
+            Vertically in each plot we have the model replications. 
+
+            Each horizontal line represents a full day for one model replication.  
+            """ 
+        )
+
+        #facet_col_wrap_calculated = np.ceil(run_time_days/4).astype(int)
+
+        st.plotly_chart(px.scatter(
+                patient_log[(patient_log['event'] == 'arrival') & 
+                            (patient_log['Rep'] <= 10) & 
+                            (patient_log['model_day'] <= 30)],
+                #patient_log,
+                x="time_in_day", 
+                y="Rep",
+                range_x=[0, 24*60], 
+                range_y=[0, min(10, n_reps)+1],
+                facet_col='model_day', 
+                # facet_col_wrap=facet_col_wrap_calculated, # this causes an unbound_local_error when used so hard coding for now
+                facet_col_wrap = 4,
+                width=1200,
+                height=1500
+        ))
+
+
+
+
+        
 
 
     # st.print(
