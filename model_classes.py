@@ -396,7 +396,7 @@ class TraumaPathway:
     Following treatment they are discharged.
     '''
 
-    def __init__(self, identifier, env, args):
+    def __init__(self, identifier, env, args, full_event_log):
         '''
         Constructor method
 
@@ -415,6 +415,7 @@ class TraumaPathway:
         self.identifier = identifier
         self.env = env
         self.args = args
+        self.full_event_log = full_event_log
 
         # metrics
         self.arrival = -np.inf
@@ -437,6 +438,11 @@ class TraumaPathway:
         '''
         # record the time of arrival and entered the triage queue
         self.arrival = self.env.now
+        self.full_event_log.append(
+                {'patient': self.identifier,
+                    'event': 'arrives_at_trauma',
+                    'time': self.env.now}
+            )
 
         # request sign-in/triage
         with self.args.triage.request() as req:
@@ -446,11 +452,11 @@ class TraumaPathway:
 
             trace(f'patient {self.identifier} triaged to trauma '
                   f'{self.env.now:.3f}')
-            # self.full_event_log.append(
-            #     {'patient': self.identifier,
-            #      'event': 'triaged_to_trauma',
-            #      'time': self.env.now}
-            # )
+            self.full_event_log.append(
+                {'patient': self.identifier,
+                 'event': 'triaged_to_trauma',
+                 'time': self.env.now}
+            )
 
             # sample triage duration.
             self.triage_duration = self.args.triage_dist.sample()
@@ -484,11 +490,11 @@ class TraumaPathway:
             self.wait_treat = self.env.now - start_wait
             trace(f'treatment of patient {self.identifier} at '
                   f'{self.env.now:.3f}')
-            # self.full_event_log.append(
-            #     {'patient': self.identifier,
-            #      'event': 'treated',
-            #      'time': self.env.now}
-            # )
+            self.full_event_log.append(
+                {'patient': self.identifier,
+                 'event': 'treated',
+                 'time': self.env.now}
+            )
 
             # sample treatment duration.
             self.treat_duration = self.args.trauma_dist.sample()
@@ -505,11 +511,11 @@ class TraumaPathway:
         '''
         trace(f'triage {self.identifier} complete {self.env.now:.3f}; '
               f'waiting time was {self.wait_triage:.3f}')
-        # self.full_event_log.append(
-        #         {'patient': self.identifier,
-        #          'event': 'triage_complete',
-        #          'time': self.env.now}
-        #     )
+        self.full_event_log.append(
+                {'patient': self.identifier,
+                 'event': 'triage_complete',
+                 'time': self.env.now}
+            )
 
     def trauma_complete(self):
         '''
@@ -517,11 +523,11 @@ class TraumaPathway:
         '''
         trace(f'stabilisation of patient {self.identifier} at '
               f'{self.env.now:.3f}')
-        # self.full_event_log.append(
-        #         {'patient': self.identifier,
-        #          'event': 'trauma_stabilised',
-        #          'time': self.env.now}
-        #     )
+        self.full_event_log.append(
+                {'patient': self.identifier,
+                 'event': 'trauma_stabilised',
+                 'time': self.env.now}
+            )
 
     def treatment_complete(self):
         '''
@@ -529,11 +535,11 @@ class TraumaPathway:
         '''
         trace(f'patient {self.identifier} treatment complete {self.env.now:.3f}; '
               f'waiting time was {self.wait_treat:.3f}')
-        # self.full_event_log.append(
-        #         {'patient': self.identifier,
-        #          'event': 'treatment_complete',
-        #          'time': self.env.now}
-        #     )
+        self.full_event_log.append(
+                {'patient': self.identifier,
+                 'event': 'treatment_complete',
+                 'time': self.env.now}
+            )
 
 
 class NonTraumaPathway(object):
@@ -547,7 +553,7 @@ class NonTraumaPathway(object):
     Following treatment they are discharged.
     '''
 
-    def __init__(self, identifier, env, args):
+    def __init__(self, identifier, env, args, full_event_log):
         '''
         Constructor method
 
@@ -566,6 +572,7 @@ class NonTraumaPathway(object):
         self.identifier = identifier
         self.env = env
         self.args = args
+        self.full_event_log = full_event_log
 
         # triage resource
         self.triage = args.triage
@@ -595,6 +602,12 @@ class NonTraumaPathway(object):
         '''
         # record the time of arrival and entered the triage queue
         self.arrival = self.env.now
+        self.full_event_log.append(
+                {'patient': self.identifier,
+                 'event': 'arrives_at_minors_non_trauma',
+                 'time': self.env.now}
+            )
+
 
         # request sign-in/triage
         with self.triage.request() as req:
@@ -604,11 +617,11 @@ class NonTraumaPathway(object):
             self.wait_triage = self.env.now - self.arrival
             trace(f'patient {self.identifier} triaged to minors '
                   f'{self.env.now:.3f}')
-            # self.full_event_log.append(
-            #     {'patient': self.identifier,
-            #      'event': 'triaged_minors',
-            #      'time': self.env.now}
-            # )
+            self.full_event_log.append(
+                {'patient': self.identifier,
+                 'event': 'triaged_minors',
+                 'time': self.env.now}
+            )
 
             # sample triage duration.
             self.triage_duration = self.args.triage_dist.sample()
@@ -616,11 +629,11 @@ class NonTraumaPathway(object):
 
             trace(f'triage {self.identifier} complete {self.env.now:.3f}; '
                   f'waiting time was {self.wait_triage:.3f}')
-            # self.full_event_log.append(
-            #     {'patient': self.identifier,
-            #      'event': 'triage_complete',
-            #      'time': self.env.now}
-            # )
+            self.full_event_log.append(
+                {'patient': self.identifier,
+                 'event': 'triage_complete',
+                 'time': self.env.now}
+            )
 
         # record the time that entered the registration queue
         start_wait = self.env.now
@@ -633,11 +646,11 @@ class NonTraumaPathway(object):
             self.wait_reg = self.env.now - start_wait
             trace(f'registration of patient {self.identifier} at '
                   f'{self.env.now:.3f}')
-            # self.full_event_log.append(
-            #     {'patient': self.identifier,
-            #      'event': 'registered',
-            #      'time': self.env.now}
-            # )
+            self.full_event_log.append(
+                {'patient': self.identifier,
+                 'event': 'registered',
+                 'time': self.env.now}
+            )
 
             # sample registration duration.
             self.reg_duration = self.args.reg_dist.sample()
@@ -646,11 +659,11 @@ class NonTraumaPathway(object):
             trace(f'patient {self.identifier} registered at'
                   f'{self.env.now:.3f}; '
                   f'waiting time was {self.wait_reg:.3f}')
-            # self.full_event_log.append(
-            #     {'patient': self.identifier,
-            #      'event': 'treated',
-            #      'time': self.env.now}
-            # )
+            self.full_event_log.append(
+                {'patient': self.identifier,
+                 'event': 'treated',
+                 'time': self.env.now}
+            )
 
         # record the time that entered the evaluation queue
         start_wait = self.env.now
@@ -663,6 +676,11 @@ class NonTraumaPathway(object):
             self.wait_exam = self.env.now - start_wait
             trace(f'examination of patient {self.identifier} begins '
                   f'{self.env.now:.3f}')
+            self.full_event_log.append(
+                {'patient': self.identifier,
+                 'event': 'examination begins',
+                 'time': self.env.now}
+            )
 
             # sample examination duration.
             self.exam_duration = self.args.exam_dist.sample()
@@ -671,6 +689,11 @@ class NonTraumaPathway(object):
             trace(f'patient {self.identifier} examination complete '
                   f'at {self.env.now:.3f};'
                   f'waiting time was {self.wait_exam:.3f}')
+            self.full_event_log.append(
+                {'patient': self.identifier,
+                 'event': 'examination complete',
+                 'time': self.env.now}
+            )
 
         # sample if patient requires treatment?
         self.require_treat = self.args.nt_p_treat_dist.sample()
@@ -688,6 +711,11 @@ class NonTraumaPathway(object):
                 self.wait_treat = self.env.now - start_wait
                 trace(f'treatment of patient {self.identifier} begins '
                       f'{self.env.now:.3f}')
+                self.full_event_log.append(
+                    {'patient': self.identifier,
+                    'event': 'treatment begins',
+                    'time': self.env.now}
+                )
 
                 # sample treatment duration.
                 self.treat_duration = self.args.nt_treat_dist.sample()
@@ -696,6 +724,11 @@ class NonTraumaPathway(object):
                 trace(f'patient {self.identifier} treatment complete '
                       f'at {self.env.now:.3f};'
                       f'waiting time was {self.wait_treat:.3f}')
+                self.full_event_log.append(
+                    {'patient': self.identifier,
+                    'event': 'treatment ends',
+                    'time': self.env.now}
+                )
 
         # total time in system
         self.total_time = self.env.now - self.arrival
@@ -837,12 +870,12 @@ class TreatmentCentreModel:
             trauma = self.args.p_trauma_dist.sample()
             if trauma:
                 # create and store a trauma patient to update KPIs.
-                new_patient = TraumaPathway(patient_count, self.env, self.args)
+                new_patient = TraumaPathway(patient_count, self.env, self.args, self.full_event_log)
                 self.trauma_patients.append(new_patient)
             else:
                 # create and store a non-trauma patient to update KPIs.
                 new_patient = NonTraumaPathway(patient_count, self.env,
-                                               self.args)
+                                               self.args, self.full_event_log)
                 self.non_trauma_patients.append(new_patient)
 
             # start the pathway process for the patient
@@ -1277,3 +1310,182 @@ def scenario_summary_frame(scenario_results):
 
     summary.columns = columns
     return summary
+
+
+
+
+class TreatmentCentreModelSimpleNurseStepOnly:
+    '''
+    The treatment centre model
+
+    Patients arrive at random to a treatment centre, see a nurse, then leave.
+
+    The main class that a user interacts with to run the model is 
+    `TreatmentCentreModel`.  This implements a `.run()` method, contains a simple
+    algorithm for the non-stationary poission process for patients arrivals and 
+    inits instances of the nurse pathway.
+
+    '''
+
+    def __init__(self, args):
+        self.env = simpy.Environment()
+        self.args = args
+        self.init_resources()
+
+        self.patients = []
+        self.trauma_patients = []
+        self.non_trauma_patients = []
+
+        self.rc_period = None
+        self.results = None
+
+    def init_resources(self):
+        '''
+        Init the number of resources
+        and store in the arguments container object
+
+        Resource list:
+            1. Nurses
+
+        '''
+        # examination
+        self.args.exam = simpy.Resource(self.env,
+                                        capacity=self.args.n_exam)
+
+    def run(self, results_collection_period=DEFAULT_RESULTS_COLLECTION_PERIOD):
+        '''
+        Conduct a single run of the model in its current 
+        configuration
+
+
+        Parameters:
+        ----------
+        results_collection_period, float, optional
+            default = DEFAULT_RESULTS_COLLECTION_PERIOD
+
+        warm_up, float, optional (default=0)
+
+            length of initial transient period to truncate
+            from results.
+
+        Returns:
+        --------
+            None
+        '''
+        # setup the arrival generator process
+        self.env.process(self.arrivals_generator())
+
+        # store rc perio
+        self.rc_period = results_collection_period
+
+        # run
+        self.env.run(until=results_collection_period)
+
+    def arrivals_generator(self):
+        ''' 
+        Simulate the arrival of patients to the model
+
+        Patients either follow a TraumaPathway or
+        NonTraumaPathway simpy process.
+
+        Non stationary arrivals implemented via Thinning acceptance-rejection 
+        algorithm.
+        '''
+        for patient_count in itertools.count():
+
+            # this give us the index of dataframe to use
+            t = int(self.env.now // 60) % self.args.arrivals.shape[0]
+            lambda_t = self.args.arrivals['arrival_rate'].iloc[t]
+
+            # set to a large number so that at least 1 sample taken!
+            u = np.Inf
+
+            interarrival_time = 0.0
+
+            # reject samples if u >= lambda_t / lambda_max
+            while u >= (lambda_t / self.args.lambda_max):
+                interarrival_time += self.args.arrival_dist.sample()
+                u = self.args.thinning_rng.sample()
+
+            # iat
+            yield self.env.timeout(interarrival_time)
+
+            trace(f'patient {patient_count} arrives at: {self.env.now:.3f}')
+
+            # Generate the patient
+            new_patient = SimplePathway(patient_count, self.env, self.args)
+            self.patients.append(new_patient)
+            # start the pathway process for the patient
+            self.env.process(new_patient.execute())
+
+
+# UNFINISHED
+
+class SimplePathway(object):
+    '''
+    Encapsulates the process a patient with minor injuries and illness.
+
+    These patients are arrived, then seen and treated by a nurse as soon as one is available. 
+    No place-based resources are considered in this pathway. 
+
+    Following treatment they are discharged.
+    '''
+
+    def __init__(self, identifier, env, args):
+        '''
+        Constructor method
+
+        Params:
+        -----
+        identifier: int
+            a numeric identifier for the patient.
+
+        env: simpy.Environment
+            the simulation environment
+
+        args: Scenario
+            Container class for the simulation parameters
+
+        '''
+        self.identifier = identifier
+        self.env = env
+        self.args = args
+
+
+        # metrics
+        self.arrival = -np.inf
+        self.wait_nurse = -np.inf
+        self.total_time = -np.inf
+
+        self.nurse_treat_duration = -np.inf
+
+    def execute(self):
+        '''
+        simulates the simplest minor treatment process for a patient
+
+        1. Arrive
+        2. Examined/treated by nurse when one available
+        3. Discharged
+        '''
+        # record the time of arrival and entered the triage queue
+        self.arrival = self.env.now
+
+        # request examination resource
+        with self.args.exam.request() as req:
+            yield req
+
+            # record the waiting time for registration
+            self.wait_exam = self.env.now - start_wait
+            trace(f'examination of patient {self.identifier} begins '
+                  f'{self.env.now:.3f}')
+
+            # sample examination duration.
+            self.exam_duration = self.args.exam_dist.sample()
+            yield self.env.timeout(self.exam_duration)
+
+            trace(f'patient {self.identifier} nurse exam/treatment complete '
+                  f'at {self.env.now:.3f};'
+                  f'waiting time was {self.wait_exam:.3f}')
+
+        # total time in system
+        self.total_time = self.env.now - self.arrival
