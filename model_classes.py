@@ -440,7 +440,7 @@ class TraumaPathway:
         self.arrival = self.env.now
         self.full_event_log.append(
                 {'patient': self.identifier,
-                    'event': 'arrives_at_trauma',
+                    'event': 'TRAUMA_triage_wait_begins',
                     'time': self.env.now}
             )
 
@@ -454,7 +454,7 @@ class TraumaPathway:
                   f'{self.env.now:.3f}')
             self.full_event_log.append(
                 {'patient': self.identifier,
-                 'event': 'triaged_to_trauma',
+                 'event': 'TRAUMA_triage_begins',
                  'time': self.env.now}
             )
 
@@ -465,10 +465,21 @@ class TraumaPathway:
 
         # record the time that entered the trauma queue
         start_wait = self.env.now
+        self.full_event_log.append(
+                {'patient': self.identifier,
+                 'event': 'TRAUMA_stabilisation_wait_begins',
+                 'time': self.env.now}
+            )
 
         # request trauma room
         with self.args.trauma.request() as req:
             yield req
+
+            self.full_event_log.append(
+                {'patient': self.identifier,
+                 'event': 'TRAUMA_stabilisation_begins',
+                 'time': self.env.now}
+            )
 
             # record the waiting time for trauma
             self.wait_trauma = self.env.now - start_wait
@@ -481,6 +492,11 @@ class TraumaPathway:
 
         # record the time that entered the treatment queue
         start_wait = self.env.now
+        self.full_event_log.append(
+                {'patient': self.identifier,
+                 'event': 'TRAUMA_treatment_wait_begins',
+                 'time': self.env.now}
+            )
 
         # request treatment cubicle
         with self.args.cubicle_2.request() as req:
@@ -492,7 +508,7 @@ class TraumaPathway:
                   f'{self.env.now:.3f}')
             self.full_event_log.append(
                 {'patient': self.identifier,
-                 'event': 'treated',
+                 'event': 'TRAUMA_treatment_begins',
                  'time': self.env.now}
             )
 
@@ -513,7 +529,7 @@ class TraumaPathway:
               f'waiting time was {self.wait_triage:.3f}')
         self.full_event_log.append(
                 {'patient': self.identifier,
-                 'event': 'triage_complete',
+                 'event': 'TRAUMA_triage_complete',
                  'time': self.env.now}
             )
 
@@ -525,7 +541,7 @@ class TraumaPathway:
               f'{self.env.now:.3f}')
         self.full_event_log.append(
                 {'patient': self.identifier,
-                 'event': 'trauma_stabilised',
+                 'event': 'TRAUMA_stabilisation_complete',
                  'time': self.env.now}
             )
 
@@ -537,7 +553,7 @@ class TraumaPathway:
               f'waiting time was {self.wait_treat:.3f}')
         self.full_event_log.append(
                 {'patient': self.identifier,
-                 'event': 'treatment_complete',
+                 'event': 'TRAUMA_treatment_complete',
                  'time': self.env.now}
             )
 
@@ -604,7 +620,7 @@ class NonTraumaPathway(object):
         self.arrival = self.env.now
         self.full_event_log.append(
                 {'patient': self.identifier,
-                 'event': 'arrives_at_minors_non_trauma',
+                 'event': 'MINORS_triage_wait_begins',
                  'time': self.env.now}
             )
 
@@ -619,7 +635,7 @@ class NonTraumaPathway(object):
                   f'{self.env.now:.3f}')
             self.full_event_log.append(
                 {'patient': self.identifier,
-                 'event': 'triaged_minors',
+                 'event': 'MINORS_triage_begins',
                  'time': self.env.now}
             )
 
@@ -631,12 +647,17 @@ class NonTraumaPathway(object):
                   f'waiting time was {self.wait_triage:.3f}')
             self.full_event_log.append(
                 {'patient': self.identifier,
-                 'event': 'triage_complete',
+                 'event': 'MINORS_triage_complete',
                  'time': self.env.now}
             )
 
         # record the time that entered the registration queue
         start_wait = self.env.now
+        self.full_event_log.append(
+                {'patient': self.identifier,
+                 'event': 'MINORS_registration_wait_start',
+                 'time': self.env.now}
+            )
 
         # request registration clert
         with self.args.registration.request() as req:
@@ -648,7 +669,7 @@ class NonTraumaPathway(object):
                   f'{self.env.now:.3f}')
             self.full_event_log.append(
                 {'patient': self.identifier,
-                 'event': 'registered',
+                 'event': 'MINORS_registration_wait_end',
                  'time': self.env.now}
             )
 
@@ -661,24 +682,30 @@ class NonTraumaPathway(object):
                   f'waiting time was {self.wait_reg:.3f}')
             self.full_event_log.append(
                 {'patient': self.identifier,
-                 'event': 'treated',
+                 'event': 'MINORS_registration_complete',
                  'time': self.env.now}
             )
 
         # record the time that entered the evaluation queue
         start_wait = self.env.now
+        
+        self.full_event_log.append(
+                {'patient': self.identifier,
+                 'event': 'MINORS_examination_wait_begins',
+                 'time': self.env.now}
+            )
 
         # request examination resource
         with self.args.exam.request() as req:
             yield req
 
-            # record the waiting time for registration
+            # record the waiting time for examination to begin
             self.wait_exam = self.env.now - start_wait
             trace(f'examination of patient {self.identifier} begins '
                   f'{self.env.now:.3f}')
             self.full_event_log.append(
                 {'patient': self.identifier,
-                 'event': 'examination begins',
+                 'event': 'MINORS_examination_begins',
                  'time': self.env.now}
             )
 
@@ -691,7 +718,7 @@ class NonTraumaPathway(object):
                   f'waiting time was {self.wait_exam:.3f}')
             self.full_event_log.append(
                 {'patient': self.identifier,
-                 'event': 'examination complete',
+                 'event': 'MINORS_examination_complete',
                  'time': self.env.now}
             )
 
@@ -702,6 +729,11 @@ class NonTraumaPathway(object):
 
             # record the time that entered the treatment queue
             start_wait = self.env.now
+            self.full_event_log.append(
+                    {'patient': self.identifier,
+                    'event': 'MINORS_treatment_wait_begins',
+                    'time': self.env.now}
+                )
 
             # request treatment cubicle
             with self.args.cubicle_1.request() as req:
@@ -713,7 +745,7 @@ class NonTraumaPathway(object):
                       f'{self.env.now:.3f}')
                 self.full_event_log.append(
                     {'patient': self.identifier,
-                    'event': 'treatment begins',
+                    'event': 'MINORS_treatment_begins',
                     'time': self.env.now}
                 )
 
@@ -726,7 +758,7 @@ class NonTraumaPathway(object):
                       f'waiting time was {self.wait_treat:.3f}')
                 self.full_event_log.append(
                     {'patient': self.identifier,
-                    'event': 'treatment ends',
+                    'event': 'MINORS_treatment_ends',
                     'time': self.env.now}
                 )
 
