@@ -31,10 +31,19 @@ mermaid(height=125, code=
             %%{ init: { 'flowchart': { 'curve': 'step' } } }%%
             %%{ init: {  'theme': 'base', 'themeVariables': {'lineColor': '#b4b4b4'} } }%%
             flowchart LR
-            A[Arrival]--> B[Advice -\nNurse]
-            B--> C[Treatment -\nNurse]
-            B --> Z[Discharge]
-            C --> Z
+            
+            A[Arrival]----> B[Advice]
+            
+            B -.-> F([Nurse/Cubicle])
+            F -.-> B
+            
+            B----> C[Treatment]
+
+            C -.-> G([Nurse/Cubicle])
+            G -.-> C
+
+            B ----> Z[Discharge]
+            C ----> Z
 
             classDef default font-size:18pt,font-family:lexend;
             linkStyle default stroke:white;

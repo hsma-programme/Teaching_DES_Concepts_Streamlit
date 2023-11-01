@@ -1,17 +1,13 @@
-At the moment, all of our patients are being treated in one huge room. The nurses never run out of space to treat people. 
+At the moment, our model assumes that nurses and rooms to treat people in are the same thing.
 
-But it's more likely that we actually have a series of rooms or cubicles to give people some degree of privacy! 
+In fact, that generally won't be the case - we might need more nurses than rooms to account for breaks, or people with different skills, or a fixed time for paperwork that is done outside of a room. 
+
+There can also be issues that arise when a nurse is no longer needed, but the patient can't vacate the room yet - maybe they're waiting to be admitted into a general ward. This can lead to a lot of idle time for nurses who could otherwise be seeing patients if another room hasn't become available at that point. 
+
+This is very important in a lot of real systems, so it's something we want to build into our model!
 
 So now we need to check for two resources when a patient reaches the front of the queue:
 - a nurse
 - a room for them to be treated in 
 
-This can start to get really significant when we start thinking about people's destinations after our nurses have finished treating them. 
-So let's add in an extra consideration here now too - some of our patients might be so ill that they need to be admitted to the hospital for further treatment after our nurses are done with them, but they don't need the nurse to stay with them. 
-
-So now we have a free nurse - but not a free room. 
-
-
-### Things to try out
-- What is the impact of changing the number of triage and treatment rooms we have available? 
-- What happens if we have different types of rooms for triage and treatment, versus allowing people to use whichever room type is free? 
+To give us a better chance of wrapping our head around the impact of this, let's go back to a simpler version of the model for now. 

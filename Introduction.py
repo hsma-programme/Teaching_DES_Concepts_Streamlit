@@ -25,7 +25,7 @@ st.markdown(read_file_contents('resources/introduction_text.md'))
 
 mermaid(height=450, code=
 """
-    %%{ init: { 'flowchart': { 'curve': 'step', "defaultRenderer": "elk" } } }%%
+    %%{ init: { 'flowchart': { 'curve': 'step'} } }%%
     %%{ init: {  'theme': 'base', 'themeVariables': {'lineColor': '#b4b4b4'} } }%%
     flowchart LR
         A[Arrival] --> B{Trauma or non-trauma}
@@ -39,27 +39,27 @@ mermaid(height=450, code=
         D --> G[Examination]
 
         G --> H[Treat?]
-        H --> F 
+        H ----> F 
 
         H --> I[Non-Trauma Treatment]
         I --> F 
 
-        C --> Z([Trauma Room])
-        Z --> C
+        C -.-> Z([Trauma Room\n<b>RESOURCE</b>])
+        Z -.-> C
 
-        E --> Y([Cubicle - 1])
-        Y --> E
+        E -.-> Y([Cubicle - 1\n<b>RESOURCE</b>])
+        Y -.-> E
 
-        D --> X([Clerks])
-        X --> D
+        D -.-> X([Clerks\n<b>RESOURCE</b>])
+        X -.-> D
 
-        G --> W([Exam Room])
-        W --> G
+        G -.-> W([Exam Room\n<b>RESOURCE</b>])
+        W -.-> G
 
-        I --> V([Cubicle - 2])
-        V --> I
+        I -.-> V([Cubicle - 2\n<b>RESOURCE</b>])
+        V -.-> I
 
-        E --> F[Discharge]
+        E ----> F[Discharge]
 
         classDef ZZ1 fill:#47D7FF,font-family:lexend
         classDef ZZ2 fill:#5DFDA0,font-family:lexend

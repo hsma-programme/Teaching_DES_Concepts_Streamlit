@@ -39,8 +39,8 @@ with tab1:
     st.markdown(
         "Let's start with just having some patients arriving into our treatment centre.")
 
-    mermaid(height=300, code="""
-            %%{ init: {  'flowchart': { 'curve': 'step', "defaultRenderer": "elk" } } }%%
+    mermaid(height=350, code="""
+            %%{ init: {  'flowchart': { 'curve': 'step'} } }%%
 
             %%{ init: {  'theme': 'base', 'themeVariables': {'lineColor': '#b4b4b4'} } }%%
             flowchart LR
@@ -50,29 +50,30 @@ with tab1:
                     
             B1 --> C[Stabilisation]
             C --> E[Treatment]
+            E ----> F
                 
             B2 --> D[Registration]
             D --> G[Examination]
 
             G --> H[Treat?]
-            H --> F 
+            H ----> F[Discharge]
             H --> I[Non-Trauma Treatment]
             I --> F 
 
-            C --> Z([Trauma Room])
-            Z --> C
+            C -.-> Z([Trauma Room])
+            Z -.-> C
 
-            E --> Y([Cubicle - 1])
-            Y --> E
+            E -.-> Y([Cubicle - 1])
+            Y -.-> E
 
-            D --> X([Clerks])
-            X --> D
+            D -.-> X([Clerks])
+            X -.-> D
 
-            G --> W([Exam Room])
-            W --> G
+            G -.-> W([Exam Room])
+            W -.-> G
 
-            I --> V([Cubicle - 2])
-            V --> I
+            I -.-> V([Cubicle - 2])
+            V -.-> I
 
             classDef highlight fill:#02CD55,stroke:#E8AD02,stroke-width:4px,color:#0C0D11,font-size:12pt,font-family:lexend;
             classDef unlight fill:#b4b4b4,stroke:#787878,stroke-width:2px,color:#787878,font-size:6pt,font-family:lexend;
