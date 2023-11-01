@@ -75,6 +75,7 @@ filtered_log = patient_log[
 
 # Set up an empty list for the minute-by-minute df
 minute_dfs = list()
+patient_dfs = list()
 
 # First set up the canvas and animation controls
 d = dw.Drawing(1000, 800, origin=(0, 0),
@@ -105,76 +106,85 @@ for rep in range(1, max(filtered_log['Rep'])+1):
 
         # Think we maybe need a pathway order and pathway precedence column
         # But what about shared elements of each pathway?
-        
-        try:
-            current_patients_in_moment = pivoted_log[(pivoted_log['TRAUMA_triage_wait_begins'] <= minute) & 
-                        (
-                            (pivoted_log['TRAUMA_treatment_complete'] >= minute) |
-                            (pivoted_log['TRAUMA_treatment_complete'].isnull() )
-                        )]['patient'].values
-        except KeyError:
-            current_patients_in_moment = None
-        
-        if current_patients_in_moment is not None:
-            patient_minute_df = filtered_log_rep[filtered_log_rep['patient'].isin(current_patients_in_moment)]
-            # print(len(patient_minute_df))
-            # Grab just those clients from the filtered log (the unpivoted version)
-            # Each person can only be in a single place at once, so filter out any events
-            # that have taken place after the minute
-            # then just take the latest event that has taken place for each client
-            most_recent_events_minute = patient_minute_df[patient_minute_df['time'] <= minute] \
-                .sort_values('time', ascending=True) \
-                .groupby('patient') \
-                .tail(1)  
-
-            # Now count how many people are in each state
-            state_counts_minute = most_recent_events_minute['event'].value_counts().reset_index().assign(minute=minute, rep=rep)
+        if minute % 10 == 0:
+            try:
+                current_patients_in_moment = pivoted_log[(pivoted_log['TRAUMA_triage_wait_begins'] <= minute) & 
+                            (
+                                (pivoted_log['TRAUMA_treatment_complete'] >= minute) |
+                                (pivoted_log['TRAUMA_treatment_complete'].isnull() )
+                            )]['patient'].values
+            except KeyError:
+                current_patients_in_moment = None
             
-            minute_dfs.append(state_counts_minute)
-            
-            
-            # Set up the layout of the flow
-            # In future this will be done programatically, but for now let's just do it fairly simply
-            # For our triage pathway, we need people to be in the following states
-            # - arriving (waiting for triage)
-            # - being triaged
-            # - waiting for stabilisation
-            # - being stabilised
-            # - waiting for treatment
-            # - being treated
-            # - being discharged
-            # For now, let's make sections squares and people circles
+            if current_patients_in_moment is not None:
+                patient_minute_df = filtered_log_rep[filtered_log_rep['patient'].isin(current_patients_in_moment)]
+                # print(len(patient_minute_df))
+                # Grab just those clients from the filtered log (the unpivoted version)
+                # Each person can only be in a single place at once, so filter out any events
+                # that have taken place after the minute
+                # then just take the latest event that has taken place for each client
+                most_recent_events_minute = patient_minute_df[patient_minute_df['time'] <= minute] \
+                    .sort_values('time', ascending=True) \
+                    .groupby('patient') \
+                    .tail(1)  
 
-            # set up triage waits
-            
+                patient_dfs.append(most_recent_events_minute.assign(minute=minute, rep=rep))
 
-            # set up triage
+                # Now count how many people are in each state
+                state_counts_minute = most_recent_events_minute['event'].value_counts().reset_index().assign(minute=minute, rep=rep)
+                
+                minute_dfs.append(state_counts_minute)
+                
+                
+                # Set up the layout of the flow
+                # In future this will be done programatically, but for now let's just do it fairly simply
+                # For our triage pathway, we need people to be in the following states
+                # - arriving (waiting for triage)
+                # - being triaged
+                # - waiting for stabilisation
+                # - being stabilised
+                # - waiting for treatment
+                # - being treated
+                # - being discharged
+                # For now, let's make sections squares and people circles
 
-            # set up stabilisation waits
+                # set up triage waits
+                
+
+                # set up triage
+
+                # set up stabilisation waits
 
 
-            # Set up stabilisation
+                # Set up stabilisation
 
 
-            # Set up waiting for treatment
-                # if len(state_counts_minute) > 0:
-                #     try:
-                #         for i in range(1, state_counts_minute[state_counts_minute["event"]=="TRAUMA_triage_begins"].iloc[0]['count']):
-                #             circle = dw.Circle(100, 100, 10, fill='gray')  # Moving circle
-                #             circle.add_key_frame(minute, cx=100, cy=100)
-                #             d.append(circle)
-                #     except IndexError:
-                #         pass
+                # Set up waiting for treatment
+                    # if len(state_counts_minute) > 0:
+                    #     try:
+                    #         for i in range(1, state_counts_minute[state_counts_minute["event"]=="TRAUMA_triage_begins"].iloc[0]['count']):
+                    #             circle = dw.Circle(100, 100, 10, fill='gray')  # Moving circle
+                    #             circle.add_key_frame(minute, cx=100, cy=100)
+                    #             d.append(circle)
+                    #     except IndexError:
+                    #         pass
 
 
 
-            # Set up being treated
+                # Set up being treated
 
 # html(d.as_html(), width=1100, height=900)
 
 # st.write(pd.concat(minute_dfs))
 
+
+
+rep_choice = st.selectbox(label="Select the replication to explore",
+             options=range(1, n_reps+1))
+
 minute_counts_df = pd.concat(minute_dfs)
+full_patient_df = pd.concat(patient_dfs).sort_values(["rep", "minute", "event"])
+
 
 minute_counts_df_pivoted = minute_counts_df.pivot_table(values="count", 
                                            index=["minute", "rep"], 
@@ -182,9 +192,6 @@ minute_counts_df_pivoted = minute_counts_df.pivot_table(values="count",
 
 minute_counts_df_complete = minute_counts_df_pivoted.melt(id_vars=["minute", "rep"])
 minute_counts_df_downsampled = minute_counts_df_complete[minute_counts_df_complete["minute"] % 10 == 0 ] 
-
-rep_choice = st.selectbox(label="Select the replication to explore",
-             options=range(1, n_reps+1))
 
 # Downsample to only include a snapshot every 10 minutes (else it falls over completely)
 # For runs of more days will have to downsample more aggressively - every 10 minutes works for 15 days
@@ -196,13 +203,64 @@ fig = px.bar(minute_counts_df_downsampled[minute_counts_df_downsampled["rep"] ==
 
 
 
-st.plotly_chart(fig)
+fig.update_xaxes(categoryorder='array', 
+                 categoryarray= ['TRAUMA_triage_wait_begins', 'TRAUMA_triage_begins', 'TRAUMA_triage_complete', 
+                                 'TRAUMA_stabilisation_wait_begins', 'TRAUMA_stabilisation_begins', 'TRAUMA_stabilisation_complete', 
+                                 'TRAUMA_treatment_wait_begins', 'TRAUMA_treatment_begins', 'TRAUMA_treatment_wait_begins'
+                                 ])
 
 
-df = minute_counts_df_pivoted[minute_counts_df_pivoted["minute"] % 10 == 0 ]
+st.plotly_chart(fig,
+           use_container_width=True)
+
+
+# df = minute_counts_df_pivoted[minute_counts_df_pivoted["minute"] % 10 == 0 ]
+
+full_patient_df.value_counts('event')
+
+
+full_patient_df['count'] = full_patient_df.groupby(['event','minute','rep'])['minute'].transform('count')
+full_patient_df['rank'] = full_patient_df.groupby(['event','minute','rep'])['minute'].rank(method='first')
 
 
 
+
+
+event_position_dicts = pd.DataFrame([
+    {'event': 'arrival', 'x':  0, 'y': 0 },
+    {'event': 'TRAUMA_triage_wait_begins', 'x':  100, 'y': 30 },
+    {'event': 'TRAUMA_triage_begins', 'x':  150, 'y': 60 },
+    {'event': 'TRAUMA_triage_complete', 'x':  200, 'y': 90},
+    {'event': 'TRAUMA_stabilisation_wait_begins', 'x': 250, 'y': 120},
+    {'event': 'TRAUMA_stabilisation_begins', 'x': 300, 'y': 150},
+    {'event': 'TRAUMA_stabilisation_complete', 'x': 350, 'y': 180},
+    {'event': 'TRAUMA_treatment_wait_begins', 'x': 400, 'y': 210},
+    {'event': 'TRAUMA_treatment_begins', 'x': 450, 'y': 240},
+    {'event': 'TRAUMA_treatment_wait_begins', 'x': 500, 'y': 270}
+])
+
+full_patient_df_plus_pos = full_patient_df.merge(event_position_dicts, on="event")
+
+full_patient_df_plus_pos['y_final'] =  full_patient_df_plus_pos['y']
+full_patient_df_plus_pos['x_final'] = full_patient_df_plus_pos['x'] - full_patient_df_plus_pos['rank']*5
+
+
+fig2 = px.scatter(
+           full_patient_df_plus_pos[full_patient_df_plus_pos["rep"] == int(rep_choice)], 
+           x="x_final", 
+           y="y_final", 
+           animation_frame="minute", 
+           animation_group="patient",
+           #color="event", 
+           hover_name="event",
+           range_x=[0, 550], range_y=[0,300]
+           )
+
+st.plotly_chart(fig2,
+           use_container_width=True)
+
+
+full_patient_df_plus_pos[full_patient_df_plus_pos['minute']==11380].sort_values(['y_final', 'x_final'])
 # tab1, tab2, tab3, tab4 = st.tabs(["Anim 1", "Anim 2", "Anim 3", "Anim 4"])
 
 # with tab1:
