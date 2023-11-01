@@ -195,7 +195,7 @@ minute_counts_df_downsampled = minute_counts_df_complete[minute_counts_df_comple
 
 # Downsample to only include a snapshot every 10 minutes (else it falls over completely)
 # For runs of more days will have to downsample more aggressively - every 10 minutes works for 15 days
-fig = px.bar(minute_counts_df_downsampled[minute_counts_df_downsampled["rep"] == int(rep_choice)], 
+fig = px.bar(minute_counts_df_downsampled[minute_counts_df_downsampled["rep"] == int(rep_choice)].sort_values('minute'), 
              x="event", 
              y="value", 
              animation_frame="minute", 
@@ -209,6 +209,13 @@ fig.update_xaxes(categoryorder='array',
                                  'TRAUMA_treatment_wait_begins', 'TRAUMA_treatment_begins', 'TRAUMA_treatment_wait_begins'
                                  ])
 
+st.subheader("Event Log Animation 1")
+
+# Remove the play/pause buttton and just keep the drag as then it looks less like people are moving
+# backwards and forwards between stages
+# https://stackoverflow.com/questions/68624485/hide-play-and-stop-buttons-in-plotly-express-animation
+
+fig["layout"].pop("updatemenus")
 
 st.plotly_chart(fig,
            use_container_width=True)
@@ -235,8 +242,7 @@ event_position_dicts = pd.DataFrame([
     {'event': 'TRAUMA_stabilisation_begins', 'x': 300, 'y': 150},
     {'event': 'TRAUMA_stabilisation_complete', 'x': 350, 'y': 180},
     {'event': 'TRAUMA_treatment_wait_begins', 'x': 400, 'y': 210},
-    {'event': 'TRAUMA_treatment_begins', 'x': 450, 'y': 240},
-    {'event': 'TRAUMA_treatment_wait_begins', 'x': 500, 'y': 270}
+    {'event': 'TRAUMA_treatment_begins', 'x': 450, 'y': 240}
 ])
 
 full_patient_df_plus_pos = full_patient_df.merge(event_position_dicts, on="event")
@@ -245,22 +251,70 @@ full_patient_df_plus_pos['y_final'] =  full_patient_df_plus_pos['y']
 full_patient_df_plus_pos['x_final'] = full_patient_df_plus_pos['x'] - full_patient_df_plus_pos['rank']*5
 
 
+# This is very slow!
+full_patient_df_plus_pos['label'] = np.where(full_patient_df_plus_pos['x_final'].astype(int) == full_patient_df_plus_pos['x'].astype(int)-5, 
+                                             full_patient_df_plus_pos['event'], 
+                                             '')
+
+# Hacky workaround for making the icons people, not shapes
+
+# choose an icon from https://www.compart.com/en/unicode/search?q=person#characters
+# idea taken from Blueberry's comment here https://community.plotly.com/t/i-want-to-use-custom-icon-for-the-scatter-markers-how-to-do-it/6644/4
+full_patient_df_plus_pos['icon'] = '🙍'
+
 fig2 = px.scatter(
-           full_patient_df_plus_pos[full_patient_df_plus_pos["rep"] == int(rep_choice)], 
+           full_patient_df_plus_pos[full_patient_df_plus_pos["rep"] == int(rep_choice)].sort_values('minute'), 
            x="x_final", 
            y="y_final", 
            animation_frame="minute", 
            animation_group="patient",
+           text="icon",
+           # Can't have colours because it causes bugs with
+           # lots of points failing to appear
            #color="event", 
            hover_name="event",
-           range_x=[0, 550], range_y=[0,300]
+        #    symbol="rep",
+        #    symbol_sequence=["⚽"],
+           #symbol_map=dict(rep_choice = "⚽"),
+           range_x=[0, 550], range_y=[0,300],
+           height=600
            )
+
+fig2.update_layout(
+    font=dict(
+        size=24
+    )
+)
+
+# Remove the play/pause buttton and just keep the drag as then it looks less like people are moving
+# backwards and forwards between stages
+# https://stackoverflow.com/questions/68624485/hide-play-and-stop-buttons-in-plotly-express-animation
+
+fig2["layout"].pop("updatemenus")
+
+# fig2.update_traces(
+#     textposition='top center'
+#     )
+
+st.subheader("Event Log Animation 2")
 
 st.plotly_chart(fig2,
            use_container_width=True)
+st.markdown("""
+            To do:
+            - add in labels to make it clear what each step is doing (I sacrificed this to be able to have people icons, but original approach did have the issue of the labels disappearing if there was no-one in at that point anyway)
+            - split out and visualise the available resources at each step
+            - tweak the event log in models_classes.py to split out pathways
+            - generalise into a function (which will also expand it to deal with the additional steps in this pathway)
+            - consider how to best lay out - e.g. do we create groups of 5 or 10 people that then cascade down vertically instead of creating a neverending horizontal queue that is hard to count? (and can go off the plot?)
+            """)
 
 
-full_patient_df_plus_pos[full_patient_df_plus_pos['minute']==11380].sort_values(['y_final', 'x_final'])
+st.subheader("Utilisation Log Animation")
+
+st.markdown("To be created")
+
+# full_patient_df_plus_pos[full_patient_df_plus_pos['minute']==11380].sort_values(['y_final', 'x_final'])
 # tab1, tab2, tab3, tab4 = st.tabs(["Anim 1", "Anim 2", "Anim 3", "Anim 4"])
 
 # with tab1:
