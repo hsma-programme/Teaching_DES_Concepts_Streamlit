@@ -24,10 +24,13 @@ st.subheader("How can we optimise the full system?")
 
 args = Scenario()
 
+n_reps = 2
+rc_period = 10*60*24
+
 patient_log = multiple_replications(
             scenario=args,
-            n_reps=2,
-            rc_period=10*60*24,
+            n_reps=n_reps,
+            rc_period=rc_period,
             return_event_log=True
         )
 
@@ -83,10 +86,10 @@ d = dw.Drawing(1000, 800, origin=(0, 0),
 
 d.append(dw.Rectangle(0, 0, 1000, 800, fill='#eee'))  # Background
 
-for rep in range(1, max(filtered_log['Rep'])):
+for rep in range(1, max(filtered_log['Rep'])+1):
     # print("Rep {}".format(rep))
     # Start by getting data for a single rep
-    filtered_log_rep = filtered_log[filtered_log['Rep'] == 1]
+    filtered_log_rep = filtered_log[filtered_log['Rep'] == rep]
     pivoted_log = filtered_log_rep.pivot_table(values="time", 
                                            index="patient", 
                                            columns="event").reset_index()
@@ -102,7 +105,7 @@ for rep in range(1, max(filtered_log['Rep'])):
 
         # Think we maybe need a pathway order and pathway precedence column
         # But what about shared elements of each pathway?
-
+        
         try:
             current_patients_in_moment = pivoted_log[(pivoted_log['TRAUMA_triage_wait_begins'] <= minute) & 
                         (
@@ -125,47 +128,47 @@ for rep in range(1, max(filtered_log['Rep'])):
                 .tail(1)  
 
             # Now count how many people are in each state
-            state_counts_minute = most_recent_events_minute['event'].value_counts().reset_index().assign(minute=minute)
+            state_counts_minute = most_recent_events_minute['event'].value_counts().reset_index().assign(minute=minute, rep=rep)
             
             minute_dfs.append(state_counts_minute)
             
             
-        # Set up the layout of the flow
-        # In future this will be done programatically, but for now let's just do it fairly simply
-        # For our triage pathway, we need people to be in the following states
-        # - arriving (waiting for triage)
-        # - being triaged
-        # - waiting for stabilisation
-        # - being stabilised
-        # - waiting for treatment
-        # - being treated
-        # - being discharged
-        # For now, let's make sections squares and people circles
+            # Set up the layout of the flow
+            # In future this will be done programatically, but for now let's just do it fairly simply
+            # For our triage pathway, we need people to be in the following states
+            # - arriving (waiting for triage)
+            # - being triaged
+            # - waiting for stabilisation
+            # - being stabilised
+            # - waiting for treatment
+            # - being treated
+            # - being discharged
+            # For now, let's make sections squares and people circles
 
-        # set up triage waits
-        
+            # set up triage waits
+            
 
-        # set up triage
+            # set up triage
 
-        # set up stabilisation waits
-
-
-        # Set up stabilisation
+            # set up stabilisation waits
 
 
-        # Set up waiting for treatment
-            if len(state_counts_minute) > 0:
-                try:
-                    for i in range(1, state_counts_minute[state_counts_minute["event"]=="TRAUMA_triage_begins"].iloc[0]['count']):
-                        circle = dw.Circle(100, 100, 10, fill='gray')  # Moving circle
-                        circle.add_key_frame(minute, cx=100, cy=100)
-                        d.append(circle)
-                except IndexError:
-                    pass
+            # Set up stabilisation
+
+
+            # Set up waiting for treatment
+                # if len(state_counts_minute) > 0:
+                #     try:
+                #         for i in range(1, state_counts_minute[state_counts_minute["event"]=="TRAUMA_triage_begins"].iloc[0]['count']):
+                #             circle = dw.Circle(100, 100, 10, fill='gray')  # Moving circle
+                #             circle.add_key_frame(minute, cx=100, cy=100)
+                #             d.append(circle)
+                #     except IndexError:
+                #         pass
 
 
 
-        # Set up being treated
+            # Set up being treated
 
 # html(d.as_html(), width=1100, height=900)
 
@@ -174,15 +177,18 @@ for rep in range(1, max(filtered_log['Rep'])):
 minute_counts_df = pd.concat(minute_dfs)
 
 minute_counts_df_pivoted = minute_counts_df.pivot_table(values="count", 
-                                           index="minute", 
+                                           index=["minute", "rep"], 
                                            columns="event").reset_index().fillna(0)
 
-minute_counts_df_complete = minute_counts_df_pivoted.melt(id_vars="minute")
+minute_counts_df_complete = minute_counts_df_pivoted.melt(id_vars=["minute", "rep"])
+minute_counts_df_downsampled = minute_counts_df_complete[minute_counts_df_complete["minute"] % 10 == 0 ] 
 
+rep_choice = st.selectbox(label="Select the replication to explore",
+             options=range(1, n_reps+1))
 
 # Downsample to only include a snapshot every 10 minutes (else it falls over completely)
 # For runs of more days will have to downsample more aggressively - every 10 minutes works for 15 days
-fig = px.bar(minute_counts_df_complete[minute_counts_df_complete["minute"] % 10 == 0 ] , 
+fig = px.bar(minute_counts_df_downsampled[minute_counts_df_downsampled["rep"] == int(rep_choice)], 
              x="event", 
              y="value", 
              animation_frame="minute", 
@@ -191,6 +197,10 @@ fig = px.bar(minute_counts_df_complete[minute_counts_df_complete["minute"] % 10 
 
 
 st.plotly_chart(fig)
+
+
+df = minute_counts_df_pivoted[minute_counts_df_pivoted["minute"] % 10 == 0 ]
+
 
 
 # tab1, tab2, tab3, tab4 = st.tabs(["Anim 1", "Anim 2", "Anim 3", "Anim 4"])
@@ -285,16 +295,16 @@ st.plotly_chart(fig)
 #     arrival
 # }
 
-with tab3:
-    # Let's borrow the man icon from the docs
-    d = dw.Drawing(200, 200, origin='center')
+# with tab3:
+#     # Let's borrow the man icon from the docs
+#     d = dw.Drawing(200, 200, origin='center')
 
-    g_man = dw.Group(id='man', fill='none', stroke='blue')
-    g_man.append(dw.Circle(85, 56, 10))
-    g_man.append(dw.Line(85, 66, 85, 80))
-    g_man.append(dw.Lines(76, 104, 85, 80, 94, 104))
-    g_man.append(dw.Lines(76, 70, 85, 76, 94, 70))
-    d.append(g_man)
+#     g_man = dw.Group(id='man', fill='none', stroke='blue')
+#     g_man.append(dw.Circle(85, 56, 10))
+#     g_man.append(dw.Line(85, 66, 85, 80))
+#     g_man.append(dw.Lines(76, 104, 85, 80, 94, 104))
+#     g_man.append(dw.Lines(76, 70, 85, 76, 94, 70))
+#     d.append(g_man)
 
-    html(d.as_html(), width=220, height=220)
+#     html(d.as_html(), width=220, height=220)
 
