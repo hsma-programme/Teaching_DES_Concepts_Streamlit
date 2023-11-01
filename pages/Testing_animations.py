@@ -50,18 +50,114 @@ filtered_log['event'].value_counts()
 
 filtered_log[filtered_log['patient'] == 18]
 
-# Let's borrow the man icon from the docs
 
-d = dw.Drawing(200, 200, origin='center')
 
-g_man = dw.Group(id='man', fill='none', stroke='blue')
-g_man.append(dw.Circle(85, 56, 10))
-g_man.append(dw.Line(85, 66, 85, 80))
-g_man.append(dw.Lines(76, 104, 85, 80, 94, 104))
-g_man.append(dw.Lines(76, 70, 85, 76, 94, 70))
-d.append(g_man)
+# Steps - generating keyframes
+# Work out where everyone is at a given moment (1 minute increments)
+# Generate each frame, with a queue of people waiting by each resource
 
-html(d.as_html(), width=220, height=220)
+# Iterating by minute
+# To get who is in the system, start by excluding any patients who have either not yet arrived or who have left
+# Then pivot so we have a count of who is at each resource
+
+# Have a standardised template for the resource layout
+# (later we can make this adjust to the number of resources that are set up by the user)
+# Maybe put a box around each group of resources and head it up with the stage
+# Stages are hardcoded (later can expand this to be more clever)
+# But then within each box it can be programatically expanded based on slider/scenario inputs
+
+
+# Get various details from the scenario object
+
+
+# First set up the canvas and animation controls
+d = dw.Drawing(1000, 800, origin=(0, 0),
+        animation_config=dw.types.SyncedAnimationConfig(
+            # Animation configuration
+            duration=(10*60*24)/10,  # Seconds
+            show_playback_progress=True,
+            show_playback_controls=True))
+
+d.append(dw.Rectangle(0, 0, 1000, 800, fill='#eee'))  # Background
+
+for rep in range(1, max(filtered_log['Rep'])):
+    print("Rep {}".format(rep))
+    # Start by getting data for a single rep
+    filtered_log_rep = filtered_log[filtered_log['Rep'] == rep]
+    pivoted_log = filtered_log_rep.pivot_table(values="time", 
+                                           index="patient", 
+                                           columns="event").reset_index()
+
+    for minute in range(10*60*24):
+        # Get patients who arrived before the current minute and who left the system after the current minute
+        # (or arrived but didn't reach the point of being seen before the model run ended)
+        # When turning this into a function, think we will want user to pass
+        # 'first step' and 'last step' or something similar
+        # and will want to reshape the event log for this so that it has a clear start/end regardless
+        # of pathway (move all the pathway stuff into a separate column?)
+        try:
+            current_patients_in_moment = pivoted_log[(pivoted_log['TRAUMA_arrival'] <= minute) & 
+                        (
+                            (pivoted_log['TRAUMA_treatment_complete'] >= minute) |
+                            (pivoted_log['TRAUMA_treatment_complete'].isnull() )
+                        )]['patient'].values
+            
+            if len(current_patients_in_moment > 0):
+                patient_minute_df = filtered_log_rep[filtered_log_rep['patient'].isin(current_patients_in_moment)]
+
+                # Grab just those clients from the filtered log (the unpivoted version)
+                # Each person can only be in a single place at once, so filter out any events
+                # that have taken place after the minute
+                # then just take the latest event that has taken place for each client
+                most_recent_events_minute = patient_minute_df[patient_minute_df['time'] <= minute] \
+                .sort_values('time', ascending=True) \
+                .groupby('patient') \
+                .tail(1)  
+
+                # Now count how many people are in each state
+                most_recent_events_minute['event'].value_counts()
+
+        except KeyError:
+            pass
+
+
+        # Set up the layout of the flow
+        # In future this will be done programatically, but for now let's just do it fairly simply
+        # For our triage pathway, we need people to be in the following states
+        # - arriving (waiting for triage)
+        # - being triaged
+        # - waiting for stabilisation
+        # - being stabilised
+        # - waiting for treatment
+        # - being treated
+        # - being discharged
+        # For now, let's make sections squares and people circles
+
+        # set up triage waits
+
+
+        # set up triage
+
+        # set up stabilisation waits
+
+
+        # Set up stabilisation
+
+
+        # Set up waiting for treatment
+
+        # Set up being treated
+
+
+
+html(d.as_html(), width=1100, height=900)
+
+
+
+
+
+
+
 
 tab1, tab2, tab3, tab4 = st.tabs(["Anim 1", "Anim 2", "Anim 3", "Anim 4"])
 
@@ -154,3 +250,17 @@ with tab2:
 # events_ordering = {
 #     arrival
 # }
+
+with tab3:
+    # Let's borrow the man icon from the docs
+    d = dw.Drawing(200, 200, origin='center')
+
+    g_man = dw.Group(id='man', fill='none', stroke='blue')
+    g_man.append(dw.Circle(85, 56, 10))
+    g_man.append(dw.Line(85, 66, 85, 80))
+    g_man.append(dw.Lines(76, 104, 85, 80, 94, 104))
+    g_man.append(dw.Lines(76, 70, 85, 76, 94, 70))
+    d.append(g_man)
+
+    html(d.as_html(), width=220, height=220)
+
