@@ -7,6 +7,7 @@ import time
 import streamlit as st
 import numpy as np
 import plotly.express as px
+import pandas as pd
 
 from helper_functions import read_file_contents, add_logo, mermaid
 from model_classes import Scenario, multiple_replications
@@ -164,19 +165,27 @@ with col1_2:
         # add a spinner and then display success box
         with st.spinner('Simulating the minor injuries unit...'):
             # run multiple replications of experment
-            results = multiple_replications(
-                args,
-                n_reps=n_reps,
-                rc_period=run_time_days*60*24
-            )
+            # results = multiple_replications(
+            #     args,
+            #     n_reps=n_reps,
+            #     rc_period=run_time_days*60*24
+            # )
 
-            patient_log = multiple_replications(
+            detailed_outputs = multiple_replications(
                 args,
                 n_reps=n_reps,
                 rc_period=run_time_days*60*24,
-                return_full_log=False,
-                return_event_log=True
+                return_detailed_logs=True
+
             )
+
+            patient_log = pd.concat([detailed_outputs[i]['results']['full_event_log'].assign(Rep= i+1) 
+                         for i in range(n_reps)])
+
+            results = pd.concat([detailed_outputs[i]['results']['summary_df'].assign(rep= i+1)
+                                                for i in range(n_reps)]).set_index('rep')
+
+
             patient_log = patient_log.assign(model_day = (patient_log.time/24/60).pipe(np.floor)+1)
             patient_log = patient_log.assign(time_in_day= (patient_log.time - ((patient_log.model_day -1) * 24 * 60)).pipe(np.floor))
             # patient_log = patient_log.assign(time_in_day_ (patient_log.time_in_day/60).pipe(np.floor))
@@ -193,8 +202,7 @@ with col1_2:
 
         # chart_mean_daily = st.bar_chart(results[['00_arrivals']].iloc[[0]]/run_time_days)
         chart_mean_daily = st.bar_chart(
-            results[['00_arrivals']].iloc[[0]]/
-            run_time_days - results[['00_arrivals']].iloc[[0]]/run_time_days,
+            results[['00_arrivals']].iloc[[0]] / run_time_days - results[['00_arrivals']].iloc[[0]] / run_time_days,
 
             height=250
             
@@ -218,7 +226,7 @@ with col1_2:
             # chart_total.add_rows(new_rows)
             # chart_mean_daily.add_rows(new_rows/run_time_days)
             chart_mean_daily.add_rows(
-                ((results[['00_arrivals']].iloc[[i+1]]['00_arrivals']/run_time_days) -
+               ((results[['00_arrivals']].iloc[[i+1]]['00_arrivals']/run_time_days) -
                 (results[['00_arrivals']].iloc[0]['00_arrivals']/run_time_days)).round(1)
             )
 
