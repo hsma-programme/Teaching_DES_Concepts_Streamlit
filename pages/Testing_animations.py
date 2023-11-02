@@ -235,7 +235,7 @@ full_patient_df['rank'] = full_patient_df.groupby(['event','minute','rep'])['min
 
 
 event_position_dicts = pd.DataFrame([
-    {'event': 'arrival', 'x':  0, 'y': 0 },
+    {'event': 'arrival', 'x':  50, 'y': 15 },
     {'event': 'TRAUMA_triage_wait_begins', 'x':  100, 'y': 30 },
     {'event': 'TRAUMA_triage_begins', 'x':  150, 'y': 60 },
     {'event': 'TRAUMA_triage_complete', 'x':  200, 'y': 90},
@@ -295,7 +295,9 @@ fig2.add_trace(go.Scatter(
     textposition="middle right"
 ))
 
-
+fig2.update_xaxes(showticklabels=False, showgrid=False, zeroline=False)
+fig2.update_yaxes(showticklabels=False, showgrid=False, zeroline=False)
+fig2.update_layout(yaxis_title=None, xaxis_title=None)
 
 # fig2.update_layout(
 #     font=dict(
