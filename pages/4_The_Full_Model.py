@@ -171,26 +171,26 @@ with tab3:
                  non_trauma_treat_p=non_trauma_treat_p,
                  prob_trauma=prob_trauma)
 
+    n_reps = 10
+
     # A user must press a streamlit button to run the model
     button_run_pressed = st.button("Run simulation")
+    
     
     if button_run_pressed:
 
         # add a spinner and then display success box
         with st.spinner('Simulating the minor injuries unit...'):
             # run multiple replications of experment
-            results = multiple_replications(
+            detailed_outputs = multiple_replications(
                 args,
-                n_reps=10,
-                rc_period=30*60*24
+                n_reps=n_reps,
+                rc_period=30*60*24,
+                return_detailed_logs=True
             )
 
-            patient_log = multiple_replications(
-                args,
-                n_reps=10,
-                rc_period=30*60*24,
-                return_event_log=True
-            )
+            results = pd.concat([detailed_outputs[i]['results']['summary_df'].assign(rep= i+1)
+                                        for i in range(n_reps)]).set_index('rep')
 
         # st.write(results.reset_index())
 
@@ -200,24 +200,31 @@ with tab3:
         # st.write(results.reset_index().melt(id_vars="rep").set_index('variable').filter(like="util", axis=0))
 
         # Add in a box plot showing utilisation
-        st.plotly_chart(px.box(
-            results.reset_index().melt(id_vars="rep").set_index('variable').filter(like="util", axis=0).reset_index(), 
-            y="variable", 
-            x="value",
-            points="all",
-            range_x=[0, 1]),
-            use_container_width=True
-            )
-        
-        # Add in a box plot showing waits
-        st.plotly_chart(px.box(
-            results.reset_index().melt(id_vars="rep").set_index('variable').filter(like="wait", axis=0).reset_index(), 
-            y="variable", 
-            x="value",
-            points="all"),
-            use_container_width=True
-            )
+        col_res_1, col_res_2 = st.columns(2)
 
-        st.write(results)
+
+        with col_res_1:
+            st.plotly_chart(px.box(
+                results.reset_index().melt(id_vars="rep").set_index('variable').filter(like="util", axis=0).reset_index(), 
+                y="variable", 
+                x="value",
+                points="all",
+                range_x=[0, 1]),
+                use_container_width=True
+                )
+            
+            st.write(results.filter(like="util", axis=1))
+            
+        with col_res_2:
+        # Add in a box plot showing waits
+            st.plotly_chart(px.box(
+                results.reset_index().melt(id_vars="rep").set_index('variable').filter(like="wait", axis=0).reset_index(), 
+                y="variable", 
+                x="value",
+                points="all"),
+                use_container_width=True
+                )
+
+            st.write(results.filter(like="wait", axis=1))
 
 
