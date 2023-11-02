@@ -25,19 +25,25 @@ st.subheader("How can we optimise the full system?")
 
 args = Scenario()
 
-args.n_triage
+# args.n_triage
 
 n_reps = 2
 rc_period = 10*60*24
 
-patient_log = multiple_replications(
+detailed_outputs = multiple_replications(
             scenario=args,
             n_reps=n_reps,
             rc_period=rc_period,
             return_detailed_logs=True
         )
 
-patient_log[1]['results']['utilisation_audit']
+#detailed_outputs[1]['results']['utilisation_audit']
+
+patient_log = pd.concat([detailed_outputs[i]['results']['full_event_log'].assign(Rep= i+1) 
+                         for i in range(n_reps)])
+
+full_utilisation_audit = pd.concat([detailed_outputs[i]['results']['utilisation_audit'].assign(Rep= i+1)
+                                    for i in range(n_reps)])
 
 
 # st.write(patient_log)
@@ -331,12 +337,55 @@ st.markdown("""
             - tweak the event log in models_classes.py to split out pathways
             - generalise into a function (which will also expand it to deal with the additional steps in this pathway)
             - consider how to best lay out - e.g. do we create groups of 5 or 10 people that then cascade down vertically instead of creating a neverending horizontal queue that is hard to count? (and can go off the plot?)
+            
+            With regards to getting the animation to look at which resources are in use at the time, it's going to be a bit tricky
+            with the way it's currently written because it seems like it's not really supported to monitor which resource people are
+            accessing from a pool, so resources have to be rewritten to be a store. 
+
+            https://stackoverflow.com/questions/39956444/simpy-resource-get-id
+            https://stackoverflow.com/questions/74803930/how-can-i-print-with-simpy-which-resource-each-customer-goes-to
+            https://stackoverflow.com/questions/66405873/how-to-know-which-resource-is-being-used-when-using-simpys-simpy-events-anyof
+            
+            I don't think it's worth rewriting to use this for now as it complicates the understanding of resources (if people are inclined
+            to look at the code) and it doesn't add enough benefit vs 
+
+            Can't do a simple fudge by randomising the position of users when count changes BUT could potentially use the 
+            full patient log 
+
             """)
 
 
 st.subheader("Utilisation Log Animation")
 
-st.markdown("To be created")
+full_utilisation_audit['number_not_utilised'] = full_utilisation_audit['number_available'] - full_utilisation_audit['number_utilised'] 
+
+
+
+fig3 = px.bar(
+           full_utilisation_audit[['resource_name', 'simulation_time', 'number_utilised', 'number_not_utilised']].melt(id_vars=['resource_name', 'simulation_time']), 
+           x="resource_name", 
+           y="value",
+           color="variable", 
+           animation_frame="simulation_time", 
+        #    animation_group="resource_name",
+        #    text="icon",
+           # Can't have colours because it causes bugs with
+           # lots of points failing to appear
+           #color="event", 
+        #    hover_name="event",
+        #    symbol="rep",
+        #    symbol_sequence=["⚽"],
+           #symbol_map=dict(rep_choice = "⚽"),
+           range_y=[0,5],
+           height=900,
+        #    size="size"
+           )
+
+fig3["layout"].pop("updatemenus")
+
+
+st.plotly_chart(fig3,
+           use_container_width=True)
 
 # full_patient_df_plus_pos[full_patient_df_plus_pos['minute']==11380].sort_values(['y_final', 'x_final'])
 # tab1, tab2, tab3, tab4 = st.tabs(["Anim 1", "Anim 2", "Anim 3", "Anim 4"])
