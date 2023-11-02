@@ -6,6 +6,7 @@ from model_classes import *
 import plotly.express as px
 import drawsvg as dw
 from streamlit.components.v1 import html
+import plotly.graph_objects as go
 
 st.set_page_config(
      page_title="The Full Model",
@@ -261,6 +262,7 @@ full_patient_df_plus_pos['label'] = np.where(full_patient_df_plus_pos['x_final']
 # choose an icon from https://www.compart.com/en/unicode/search?q=person#characters
 # idea taken from Blueberry's comment here https://community.plotly.com/t/i-want-to-use-custom-icon-for-the-scatter-markers-how-to-do-it/6644/4
 full_patient_df_plus_pos['icon'] = '🙍'
+full_patient_df_plus_pos['size'] = 24
 
 fig2 = px.scatter(
            full_patient_df_plus_pos[full_patient_df_plus_pos["rep"] == int(rep_choice)].sort_values('minute'), 
@@ -277,14 +279,29 @@ fig2 = px.scatter(
         #    symbol_sequence=["⚽"],
            #symbol_map=dict(rep_choice = "⚽"),
            range_x=[0, 550], range_y=[0,300],
-           height=600
+           height=900,
+        #    size="size"
            )
 
-fig2.update_layout(
-    font=dict(
-        size=24
-    )
-)
+# Update the size of the icons
+fig2.update_traces(textfont_size=24)
+
+fig2.add_trace(go.Scatter(
+    x=event_position_dicts['x'].to_list(),
+    y=event_position_dicts['y'].to_list(),
+    mode="text",
+    name="",
+    text=event_position_dicts['event'].to_list(),
+    textposition="middle right"
+))
+
+
+
+# fig2.update_layout(
+#     font=dict(
+#         size=24
+#     )
+# )
 
 # Remove the play/pause buttton and just keep the drag as then it looks less like people are moving
 # backwards and forwards between stages
@@ -302,7 +319,7 @@ st.plotly_chart(fig2,
            use_container_width=True)
 st.markdown("""
             To do:
-            - add in labels to make it clear what each step is doing (I sacrificed this to be able to have people icons, but original approach did have the issue of the labels disappearing if there was no-one in at that point anyway)
+            - ~~add in labels to make it clear what each step is doing (I sacrificed this to be able to have people icons, but original approach did have the issue of the labels disappearing if there was no-one in at that point anyway)~~
             - split out and visualise the available resources at each step
             - tweak the event log in models_classes.py to split out pathways
             - generalise into a function (which will also expand it to deal with the additional steps in this pathway)
