@@ -25,6 +25,8 @@ st.subheader("How can we optimise the full system?")
 
 args = Scenario()
 
+args.n_triage
+
 n_reps = 2
 rc_period = 10*60*24
 
@@ -32,8 +34,11 @@ patient_log = multiple_replications(
             scenario=args,
             n_reps=n_reps,
             rc_period=rc_period,
-            return_event_log=True
+            return_detailed_logs=True
         )
+
+patient_log[1]['results']['utilisation_audit']
+
 
 # st.write(patient_log)
 
