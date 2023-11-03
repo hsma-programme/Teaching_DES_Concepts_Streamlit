@@ -163,7 +163,7 @@ def trace(msg):
 # def patch_resource(resource, pre=None, post=None):
 #     """
 #     Part of the required code for event-based auditing of resources (so records each time
-#     utilisation of a resource changes in some way, as opposed to recording after 
+#     utilisation of a resource changes in some way, as opposed to recording after
 #     defined time intervals)
 
 #     Patch *resource* so that it calls the callable *pre* before each
@@ -171,13 +171,13 @@ def trace(msg):
 #      operation.  The only argument to these functions is the resource
 #      instance.
 
-#      From 
+#      From
 #      https://simpy.readthedocs.io/en/4.0.1/topical_guides/monitoring.html?highlight=monitor#resource-usage
 
 #     Used for event-based monitoring (as opposed to interval-based monitoring)
 
 #      """
-     
+
 #     def get_wrapper(func):
 #         # Generate a wrapper for put/get/request/release
 #         @wraps(func)
@@ -403,23 +403,23 @@ class Scenario:
     def init_nspp(self):
 
         # read arrival profile
-        self.arrivals = pd.read_csv(NSPP_PATH) # pylint: disable=attribute-defined-outside-init
+        self.arrivals = pd.read_csv(NSPP_PATH)  # pylint: disable=attribute-defined-outside-init
         self.arrivals['mean_iat'] = 60 / self.arrivals['arrival_rate']
 
         # maximum arrival rate (smallest time between arrivals)
-        self.lambda_max = self.arrivals['arrival_rate'].max() # pylint: disable=attribute-defined-outside-init
+        self.lambda_max = self.arrivals['arrival_rate'].max()  # pylint: disable=attribute-defined-outside-init
 
         # thinning exponential
         if self.override_arrival_lambda is True:
 
-            self.arrival_dist = Exponential(self.manual_arrival_lambda, # pylint: disable=attribute-defined-outside-init
+            self.arrival_dist = Exponential(self.manual_arrival_lambda,  # pylint: disable=attribute-defined-outside-init
                                             random_seed=self.seeds[8])
         else:
-            self.arrival_dist = Exponential(60.0 / self.lambda_max, # pylint: disable=attribute-defined-outside-init
+            self.arrival_dist = Exponential(60.0 / self.lambda_max,  # pylint: disable=attribute-defined-outside-init
                                             random_seed=self.seeds[8])
 
         # thinning uniform rng
-        self.thinning_rng = Uniform(low=0.0, high=1.0, # pylint: disable=attribute-defined-outside-init
+        self.thinning_rng = Uniform(low=0.0, high=1.0,  # pylint: disable=attribute-defined-outside-init
                                     random_seed=self.seeds[9])
 
 
@@ -482,7 +482,8 @@ class TraumaPathway:
         self.full_event_log.append(
             {'patient': self.identifier,
              'pathway': 'Trauma',
-             'event': 'TRAUMA_triage_wait_begins',
+             'event_type': 'queue',
+             'event': 'triage_wait_begins',
              'time': self.env.now}
         )
 
@@ -497,7 +498,8 @@ class TraumaPathway:
             self.full_event_log.append(
                 {'patient': self.identifier,
                  'pathway': 'Trauma',
-                 'event': 'TRAUMA_triage_begins',
+                 'event_type': 'resource_use',
+                 'event': 'triage_begins',
                  'time': self.env.now}
             )
 
@@ -511,6 +513,7 @@ class TraumaPathway:
         self.full_event_log.append(
             {'patient': self.identifier,
              'pathway': 'Trauma',
+             'event_type': 'queue',
              'event': 'TRAUMA_stabilisation_wait_begins',
              'time': self.env.now}
         )
@@ -522,6 +525,7 @@ class TraumaPathway:
             self.full_event_log.append(
                 {'patient': self.identifier,
                  'pathway': 'Trauma',
+                 'event_type': 'resource_use',
                  'event': 'TRAUMA_stabilisation_begins',
                  'time': self.env.now}
             )
@@ -540,6 +544,7 @@ class TraumaPathway:
         self.full_event_log.append(
             {'patient': self.identifier,
              'pathway': 'Trauma',
+             'event_type': 'queue',
              'event': 'TRAUMA_treatment_wait_begins',
              'time': self.env.now}
         )
@@ -555,6 +560,7 @@ class TraumaPathway:
             self.full_event_log.append(
                 {'patient': self.identifier,
                  'pathway': 'Trauma',
+                 'event_type': 'resource_use',
                  'event': 'TRAUMA_treatment_begins',
                  'time': self.env.now}
             )
@@ -577,7 +583,8 @@ class TraumaPathway:
         self.full_event_log.append(
             {'patient': self.identifier,
              'pathway': 'Trauma',
-             'event': 'TRAUMA_triage_complete',
+             'event_type': 'resource_use_end',
+             'event': 'triage_complete',
              'time': self.env.now}
         )
 
@@ -590,6 +597,7 @@ class TraumaPathway:
         self.full_event_log.append(
             {'patient': self.identifier,
              'pathway': 'Trauma',
+             'event_type': 'resource_use_end',
              'event': 'TRAUMA_stabilisation_complete',
              'time': self.env.now}
         )
@@ -603,8 +611,16 @@ class TraumaPathway:
         self.full_event_log.append(
             {'patient': self.identifier,
              'pathway': 'Trauma',
+             'event_type': 'resource_use_end',
              'event': 'TRAUMA_treatment_complete',
              'time': self.env.now}
+        )
+        self.full_event_log.append(
+            {'patient': self.identifier,
+            'pathway': 'Shared',
+            'event': 'depart',
+            'event_type': 'arrival_departure',
+            'time': self.env.now}
         )
 
 
@@ -671,7 +687,8 @@ class NonTraumaPathway(object):
         self.full_event_log.append(
             {'patient': self.identifier,
              'pathway': 'Non-Trauma',
-             'event': 'MINORS_triage_wait_begins',
+             'event_type': 'queue',
+             'event': 'triage_wait_begins',
              'time': self.env.now}
         )
 
@@ -686,7 +703,8 @@ class NonTraumaPathway(object):
             self.full_event_log.append(
                 {'patient': self.identifier,
                  'pathway': 'Non-Trauma',
-                 'event': 'MINORS_triage_begins',
+                 'event_type': 'resource_use',
+                 'event': 'triage_begins',
                  'time': self.env.now}
             )
 
@@ -699,7 +717,8 @@ class NonTraumaPathway(object):
             self.full_event_log.append(
                 {'patient': self.identifier,
                  'pathway': 'Non-Trauma',
-                 'event': 'MINORS_triage_complete',
+                 'event_type': 'resource_use_end',
+                 'event': 'triage_complete',
                  'time': self.env.now}
             )
 
@@ -708,11 +727,12 @@ class NonTraumaPathway(object):
         self.full_event_log.append(
             {'patient': self.identifier,
              'pathway': 'Non-Trauma',
-             'event': 'MINORS_registration_wait_start',
+             'event_type': 'queue',
+             'event': 'MINORS_registration_wait_begins',
              'time': self.env.now}
         )
 
-        # request registration clert
+        # request registration clerk
         with self.args.registration.request() as req:
             yield req
 
@@ -723,7 +743,8 @@ class NonTraumaPathway(object):
             self.full_event_log.append(
                 {'patient': self.identifier,
                  'pathway': 'Non-Trauma',
-                 'event': 'MINORS_registration_wait_end',
+                 'event_type': 'resource_use_end',
+                 'event': 'MINORS_registration_begins',
                  'time': self.env.now}
             )
 
@@ -738,6 +759,7 @@ class NonTraumaPathway(object):
                 {'patient': self.identifier,
                  'pathway': 'Non-Trauma',
                  'event': 'MINORS_registration_complete',
+                 'event_type': 'resource_use_end',
                  'time': self.env.now}
             )
 
@@ -748,6 +770,7 @@ class NonTraumaPathway(object):
             {'patient': self.identifier,
              'pathway': 'Non-Trauma',
              'event': 'MINORS_examination_wait_begins',
+             'event_type': 'queue',
              'time': self.env.now}
         )
 
@@ -763,6 +786,7 @@ class NonTraumaPathway(object):
                 {'patient': self.identifier,
                  'pathway': 'Non-Trauma',
                  'event': 'MINORS_examination_begins',
+                 'event_type': 'resource_use',
                  'time': self.env.now}
             )
 
@@ -777,13 +801,22 @@ class NonTraumaPathway(object):
                 {'patient': self.identifier,
                  'pathway': 'Non-Trauma',
                  'event': 'MINORS_examination_complete',
+                 'event_type': 'resource_use_end',
                  'time': self.env.now}
             )
 
         # sample if patient requires treatment?
-        self.require_treat = self.args.nt_p_treat_dist.sample()
+        self.require_treat = self.args.nt_p_treat_dist.sample()  #pylint: disable=attribute-defined-outside-init
 
         if self.require_treat:
+
+            self.full_event_log.append(
+                {'patient': self.identifier,
+                 'pathway': 'Non-Trauma',
+                 'event': 'requires_treatment',
+                 'event_type': 'attribute_assigned',
+                 'time': self.env.now}
+            )
 
             # record the time that entered the treatment queue
             start_wait = self.env.now
@@ -791,6 +824,7 @@ class NonTraumaPathway(object):
                 {'patient': self.identifier,
                  'pathway': 'Non-Trauma',
                  'event': 'MINORS_treatment_wait_begins',
+                 'event_type': 'queue',
                  'time': self.env.now}
             )
 
@@ -806,6 +840,7 @@ class NonTraumaPathway(object):
                     {'patient': self.identifier,
                      'pathway': 'Non-Trauma',
                      'event': 'MINORS_treatment_begins',
+                     'event_type': 'resource_use',
                      'time': self.env.now}
                 )
 
@@ -820,8 +855,18 @@ class NonTraumaPathway(object):
                     {'patient': self.identifier,
                      'pathway': 'Non-Trauma',
                      'event': 'MINORS_treatment_ends',
+                     'event_type': 'resource_use_end',
                      'time': self.env.now}
                 )
+
+        # Return to what happens to all patients, regardless of whether they were sampled as needing treatment
+        self.full_event_log.append(
+            {'patient': self.identifier,
+            'pathway': 'Shared',
+            'event': 'depart',
+            'event_type': 'arrival_departure',
+            'time': self.env.now}
+        )
 
         # total time in system
         self.total_time = self.env.now - self.arrival
@@ -917,34 +962,36 @@ class TreatmentCentreModel:
         '''
         # setup the arrival generator process
         self.env.process(self.arrivals_generator())
-        
+
         # setup the resource montioring process
 
         # self.env.process(
         #     self.interval_audit_utilisation(
-        #         resources=self.args.triage, 
+        #         resources=self.args.triage,
         #         interval=1
-        #     ) 
+        #     )
         # )
 
-
-
         resources_list = [
-            {'resource_name':'registration_clerks', 'resource_object': self.args.registration},
-            {'resource_name':'triage_bays', 'resource_object': self.args.triage},
-            
-            {'resource_name':'examination_bays', 'resource_object': self.args.exam},
-            {'resource_name':'non_trauma_treatment_cubicle_type_1', 'resource_object': self.args.cubicle_1},
-            
-            {'resource_name':'trauma_bays', 'resource_object': self.args.trauma},
-            {'resource_name':'trauma_treatmentcubicle_type_2', 'resource_object': self.args.cubicle_2}
+            {'resource_name': 'registration_clerks',
+                'resource_object': self.args.registration},
+            {'resource_name': 'triage_bays', 'resource_object': self.args.triage},
+
+            {'resource_name': 'examination_bays',
+                'resource_object': self.args.exam},
+            {'resource_name': 'non_trauma_treatment_cubicle_type_1',
+                'resource_object': self.args.cubicle_1},
+
+            {'resource_name': 'trauma_bays', 'resource_object': self.args.trauma},
+            {'resource_name': 'trauma_treatmentcubicle_type_2',
+                'resource_object': self.args.cubicle_2}
         ]
 
         self.env.process(
             self.interval_audit_utilisation(
-                resources=resources_list, 
+                resources=resources_list,
                 interval=5
-            ) 
+            )
         )
 
         # store rc period
@@ -981,19 +1028,20 @@ class TreatmentCentreModel:
             Time between audits. 
             1 unit of time is 1 day in this model.  
         '''
-        
+
         while True:
             # Record time
             if isinstance(resources, list):
                 for i in range(len(resources)):
                     self.utilisation_audit.append({
-                    'resource_name': resources[i]['resource_name'],
-                    'simulation_time': self.env.now,  # The current simulation time
-                    'number_utilised': resources[i]['resource_object'].count,  # The number of users
-                    'number_available': resources[i]['resource_object'].capacity,
-                    'number_queued': len(resources[i]['resource_object'].queue),  # The number of queued processes
-            })
-
+                        'resource_name': resources[i]['resource_name'],
+                        'simulation_time': self.env.now,  # The current simulation time
+                        # The number of users
+                        'number_utilised': resources[i]['resource_object'].count,
+                        'number_available': resources[i]['resource_object'].capacity,
+                        # The number of queued processes
+                        'number_queued': len(resources[i]['resource_object'].queue),
+                    })
 
             else:
                 self.utilisation_audit.append({
@@ -1001,12 +1049,12 @@ class TreatmentCentreModel:
                     'simulation_time': self.env.now,  # The current simulation time
                     'number_utilised': resources.count,  # The number of users
                     'number_available': resources.capacity,
-                    'number_queued': len(resources.queue),  # The number of queued processes
-            })
+                    # The number of queued processes
+                    'number_queued': len(resources.queue),
+                })
 
             # Trigger next audit after interval
             yield self.env.timeout(interval)
-
 
     def arrivals_generator(self):
         ''' 
@@ -1019,7 +1067,7 @@ class TreatmentCentreModel:
         algorithm.
         '''
         # while self.env.now < self.rc_period:
-        #if int(round(self.env.now,0)) % 10 == 0:
+        # if int(round(self.env.now,0)) % 10 == 0:
         for patient_count in itertools.count():
             # this give us the index of dataframe to use
             t = int(self.env.now // 60) % self.args.arrivals.shape[0]
@@ -1043,6 +1091,7 @@ class TreatmentCentreModel:
                 {'patient': patient_count,
                  'pathway': 'Shared',
                  'event': 'arrival',
+                 'event_type': 'arrival_departure',
                  'time': self.env.now}
             )
 
@@ -1262,7 +1311,7 @@ class SimulationSummary:
         # append to results df
         if self.full_event_log is None:
             self.process_run_results()
-        
+
         if self.utilisation_audit is None:
             self.process_run_results()
 
@@ -1292,7 +1341,7 @@ class SimulationSummary:
 # ## Executing a model
 
 def single_run(scenario, rc_period=DEFAULT_RESULTS_COLLECTION_PERIOD,
-               random_no_set=1, 
+               random_no_set=1,
                utilisation_audit_interval=1,
                return_detailed_logs=False
                ):
@@ -1343,7 +1392,7 @@ def single_run(scenario, rc_period=DEFAULT_RESULTS_COLLECTION_PERIOD,
     return summary_df
 
 
-def multiple_replications(scenario, 
+def multiple_replications(scenario,
                           rc_period=DEFAULT_RESULTS_COLLECTION_PERIOD,
                           n_reps=5,
                           return_detailed_logs=False):
@@ -1375,27 +1424,27 @@ def multiple_replications(scenario,
     #                           return_event_log=False)
     #                for rep in range(n_reps)]
 
-        # format and return results in a dataframe
-        # df_results = pd.concat(reesults)
-        # df_results.index = np.arange(1, len(df_results)+1)
-        # df_results.index.name = 'rep'
-        # return df_results
-        # return results
+    # format and return results in a dataframe
+    # df_results = pd.concat(reesults)
+    # df_results.index = np.arange(1, len(df_results)+1)
+    # df_results.index.name = 'rep'
+    # return df_results
+    # return results
 
     if return_detailed_logs:
         results = [{'rep': rep+1,
                     'results': single_run(scenario,
-                              rc_period,
-                              random_no_set=(scenario.random_number_set)+rep,
-                              return_detailed_logs=True)}
-                            #   .assign(Rep=rep+1)
+                                          rc_period,
+                                          random_no_set=(scenario.random_number_set)+rep,
+                                          return_detailed_logs=True)}
+                   #   .assign(Rep=rep+1)
                    for rep in range(n_reps)]
 
         # format and return results in a dataframe
-        
+
         return results
     # {
-            # {df_results = [pd.concat(result) for result in results] }
+        # {df_results = [pd.concat(result) for result in results] }
         # }
         # return results
 

@@ -44,20 +44,26 @@ def reshape_for_animations(full_event_log):
                     # Each person can only be in a single place at once, so filter out any events
                     # that have taken place after the minute
                     # then just take the latest event that has taken place for each client
-                    most_recent_events_minute = patient_minute_df[patient_minute_df['time'] <= minute] \
-                        .sort_values('time', ascending=True) \
-                        .groupby(['patient',"event_type","pathway"]) \
-                        .tail(1)  
+                    # most_recent_events_minute = patient_minute_df[patient_minute_df['time'] <= minute] \
+                    #     .sort_values('time', ascending=True) \
+                    #     .groupby(['patient',"event_type","pathway"]) \
+                    #     .tail(1)  
 
-                    patient_dfs.append(most_recent_events_minute.assign(minute=minute, rep=rep))
+                    most_recent_events_minute_ungrouped = patient_minute_df[patient_minute_df['time'] <= minute] \
+                        .sort_values('time', ascending=True) \
+                        .groupby(['patient']) \
+                        .tail(1) 
+
+                    patient_dfs.append(most_recent_events_minute_ungrouped.assign(minute=minute, rep=rep))
 
                     # Now count how many people are in each state
-                    state_counts_minute = most_recent_events_minute[['pathway', 'event_type','event']].value_counts().reset_index().assign(minute=minute, rep=rep)
+                    # CHECK - I THINK THIS IS PROBABLY DOUBLE COUNTING PEOPLE BECAUSE OF THE PATHWAY AND EVENT TYPE. JUST JOIN PATHWAY/EVENT TYPE BACK IN INSTEAD?
+                    state_counts_minute = most_recent_events_minute_ungrouped[['event']].value_counts().reset_index().assign(minute=minute, rep=rep)
                     
                     minute_dfs.append(state_counts_minute)
 
 
-    minute_counts_df = pd.concat(minute_dfs)
+    minute_counts_df = pd.concat(minute_dfs).merge(filtered_log_rep[['event','event_type', 'pathway']].drop_duplicates().reset_index(drop=True), on="event")
     full_patient_df = pd.concat(patient_dfs).sort_values(["rep", "minute", "event"])
 
 
@@ -104,6 +110,7 @@ def animate_queue_activity_bar_chart(minute_counts_df_complete,
 def animate_activity_log(
         full_patient_df,
         event_position_df,
+        scenario,
         rep=1,
         plotly_height=900,
         wrap_queues_at = None      
@@ -130,7 +137,7 @@ def animate_activity_log(
     
     
 
-    full_patient_df = full_patient_df[full_patient_df['rep'] == rep]
+    full_patient_df = full_patient_df[full_patient_df['rep'] == rep].sort_values('minute')
 
     full_patient_df['count'] = full_patient_df.groupby(['event','minute','rep'])['minute'].transform('count')
     full_patient_df['rank'] = full_patient_df.groupby(['event','minute','rep'])['minute'].rank(method='first')
@@ -143,7 +150,7 @@ def animate_activity_log(
 
     full_patient_df_plus_pos['icon'] = '🙍'
     full_patient_df_plus_pos['size'] = 24
-
+    # First add the animated traces for the different resources
     fig = px.scatter(
             full_patient_df_plus_pos.sort_values('minute'), 
             x="x_final", 
@@ -155,10 +162,11 @@ def animate_activity_log(
             # lots of points failing to appear
             #color="event", 
             hover_name="event",
+            hover_data=["patient", "pathway", "time", "minute"],
             #    symbol="rep",
             #    symbol_sequence=["⚽"],
             #symbol_map=dict(rep_choice = "⚽"),
-            range_x=[0, event_position_df['x'].max()*1.1], 
+            range_x=[0, event_position_df['x'].max()*1.25], 
             range_y=[0, [0, event_position_df['y'].max()*1.1]],
             height=plotly_height,
             #    size="size"
@@ -166,14 +174,43 @@ def animate_activity_log(
 
     # Update the size of the icons
     fig.update_traces(textfont_size=24)
-
+    
+    # Now add labels identifying each stage
     fig.add_trace(go.Scatter(
         x=event_position_df['x'].to_list(),
         y=event_position_df['y'].to_list(),
         mode="text",
         name="",
-        text=event_position_df['event'].to_list(),
-        textposition="middle right"
+        text=event_position_df['label'].to_list(),
+        textposition="middle right",
+        hoverinfo='none'
+    ))
+
+    events_with_resources = event_position_df[event_position_df['resource'].notnull()].copy()
+    
+    
+    # Finally add in icons to indicate the available resources
+    # Make an additional dataframe that has one row per resource type
+    # Then, starting from the initial position, make that many large circles
+    # make them semi-transparent or you won't see the people using them! 
+
+    events_with_resources['resource_count'] = events_with_resources['resource'].apply(lambda x: getattr(scenario, x))
+
+    events_with_resources = events_with_resources.join(events_with_resources.apply(
+        lambda r: pd.Series({'x_final': [r['x']-(5*(i+1)) for i in range(r['resource_count'])]}), axis=1).explode('x_final'),
+        how='right')
+
+    fig.add_trace(go.Scatter(
+        x=events_with_resources['x_final'].to_list(),
+        y=events_with_resources['y'].to_list(),
+        mode="markers",
+        marker=dict(
+            color='LightSkyBlue',
+            size=15),
+        opacity=0.5,
+        hoverinfo='none'
+        # name="",
+        # textposition="middle right"
     ))
 
     fig.update_xaxes(showticklabels=False, showgrid=False, zeroline=False)

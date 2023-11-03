@@ -316,38 +316,38 @@ with tab3:
         with tab_playground_results_2:
             
             event_position_df = pd.DataFrame([
-                {'event': 'arrival', 'x':  50, 'y': 300 },
+                {'event': 'arrival', 'x':  50, 'y': 300, 'label': "Arrival" },
                 
-                # Triage - minor and trauma
-                {'event': 'TRAUMA_triage_wait_begins', 'x':  100, 'y': 350 },
-                {'event': 'TRAUMA_triage_begins', 'x':  150, 'y': 375 },
-                    
-                {'event': 'MINORS_triage_wait_begins', 'x':  100, 'y': 250 },
-                {'event': 'MINORS_triage_begins', 'x':  150, 'y': 225 },
+                # Triage - minor and trauma                
+                {'event': 'triage_wait_begins', 'x':  100, 'y': 325, 'label': "Waiting for Triage"  },
+                {'event': 'triage_begins', 'x':  150, 'y': 275, 'resource':'n_triage', 'label': "Being Triaged" },
             
                 # Minors pathway 
-                {'event': 'MINORS_registration_wait_begins', 'x':  200, 'y': 175 },
-                {'event': 'MINORS_registration_begins', 'x':  250, 'y': 150 },
+                {'event': 'MINORS_registration_wait_begins', 'x':  200, 'y': 175, 'label': "Waiting for Registration"  },
+                {'event': 'MINORS_registration_begins', 'x':  250, 'y': 150, 'resource':'n_reg', 'label':'Being Registered'  },
 
-                {'event': 'MINORS_examination_wait_begins', 'x':  300, 'y': 125 },
-                {'event': 'MINORS_examination_begins', 'x':  350, 'y': 100 },
+                {'event': 'MINORS_examination_wait_begins', 'x':  300, 'y': 125, 'label': "Waiting for Examination"  },
+                {'event': 'MINORS_examination_begins', 'x':  350, 'y': 100, 'resource':'n_exam', 'label': "Being Examined" },
 
-                {'event': 'MINORS_treatment_wait_begins', 'x':  400, 'y': 75 },
-                {'event': 'MINORS_treatment_begins', 'x':  450, 'y': 50 },
+                {'event': 'MINORS_treatment_wait_begins', 'x':  400, 'y': 75, 'label': "Waiting for Treatment (Non-Trauma)"  },
+                {'event': 'MINORS_treatment_begins', 'x':  450, 'y': 50, 'resource':'n_cubicles_1', 'label': "Being Treated (Non-Trauma)" },
 
                 # Trauma pathway
-                {'event': 'TRAUMA_stabilisation_wait_begins', 'x': 250, 'y': 400},
-                {'event': 'TRAUMA_stabilisation_begins', 'x': 300, 'y': 425},
+                {'event': 'TRAUMA_stabilisation_wait_begins', 'x': 250, 'y': 400, 'label': "Waiting for Stabilisation" },
+                {'event': 'TRAUMA_stabilisation_begins', 'x': 300, 'y': 425, 'resource':'n_trauma', 'label': "Being Stabilised" },
 
-                {'event': 'TRAUMA_treatment_wait_begins', 'x': 400, 'y': 450},
-                {'event': 'TRAUMA_treatment_begins', 'x': 450, 'y': 475}
+                {'event': 'TRAUMA_treatment_wait_begins', 'x': 400, 'y': 450, 'label': "Waiting for Treatment (Trauma)" },
+                {'event': 'TRAUMA_treatment_begins', 'x': 450, 'y': 475, 'resource':'n_cubicles_2', 'label': "Being Treated (Trauma)" }
             ])
 
             st.plotly_chart(animate_activity_log(
                     animation_dfs_log['full_patient_df'],
-                    event_position_df = event_position_df
-
+                    event_position_df = event_position_df,
+                    scenario=args
             ), use_container_width=True)
+
+        # st.write(animation_dfs_log['full_patient_df'].sort_values('minute'))
+
 
         with tab_playground_results_3:
             st.markdown("placeholder")
@@ -359,17 +359,23 @@ with tab3:
                 animate_queue_activity_bar_chart(
                     minute_counts_df_complete=animation_dfs_queue['minute_counts_df_complete'],
                     event_order= ['arrival', 
-                                  'MINORS_triage_wait_begins', 
-                                  'TRAUMA_triage_wait_begins', 
-                                  'MINORS_examination_wait_begins', 
+                                  'triage_wait_begins', 
+
+                                  'MINORS_registration_wait_begins',            
+                                  'MINORS_examination_wait_begins',
+                                  
+
                                   'TRAUMA_stabilisation_wait_begins', 
+                                  
                                   'MINORS_treatment_wait_begins', 
-                                   'TRAUMA_treatment_wait_begins'
+                                  'TRAUMA_treatment_wait_begins'
                                     ]
                     ),
                     scenario = args,
                     use_container_width=True
                     )
+            
+            
 
         with tab_playground_results_5:
             tab1a, tab1b = st.tabs(["Facet by Replication", "Facet by Resource"])
