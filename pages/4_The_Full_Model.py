@@ -198,7 +198,7 @@ with tab3:
                                         for i in range(n_reps)]).set_index('rep')
             
 
-            print(len(st.session_state['session_results']))
+            # print(len(st.session_state['session_results']))
             # results_for_state = pd.DataFrame(results.median()).T.drop(['Rep'], axis=1)
             results_for_state = results
             original_cols = results_for_state.columns.values
@@ -210,15 +210,18 @@ with tab3:
             results_for_state['Trauma\nTreatment Cubicles'] = args.n_cubicles_2
             results_for_state['Probability patient\nis a trauma patient'] = args.prob_trauma
             results_for_state['Probability non-trauma patients\nrequire treatment'] = args.non_trauma_treat_p
+            results_for_state['Model Run'] = len(st.session_state['session_results']) + 1
+            results_for_state['Random Seed'] = args.random_number_set
 
             # Reorder columns
-            column_order = ['Triage\nCubicles', 'Registration\nClerks', 'Examination\nRooms',
+            column_order = ['Model Run', 'Triage\nCubicles', 'Registration\nClerks', 'Examination\nRooms',
                             'Non-Trauma\nTreatment Cubicles', 'Trauma\nStabilisation Bays', 
                             'Trauma\nTreatment Cubicles', 'Probability patient\nis a trauma patient',
-                            'Probability non-trauma patients\nrequire treatment',
+                            'Probability non-trauma patients\nrequire treatment', 'Random Seed'
                             ] + list(original_cols)
 
             results_for_state = results_for_state[column_order]
+
 
             current_state = st.session_state['session_results']
 
@@ -226,7 +229,7 @@ with tab3:
 
             st.session_state['session_results'] = current_state
 
-            print(len(st.session_state['session_results']))
+            # print(len(st.session_state['session_results']))
 
             full_utilisation_audit = pd.concat([detailed_outputs[i]['results']['utilisation_audit'].assign(Rep= i+1)
                                     for i in range(n_reps)])
