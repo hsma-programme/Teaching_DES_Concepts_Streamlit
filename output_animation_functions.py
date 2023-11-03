@@ -1,4 +1,5 @@
 import plotly.express as px
+import plotly.graph_objects as go
 import pandas as pd
 
 
@@ -97,4 +98,88 @@ def animate_queue_activity_bar_chart(minute_counts_df_complete,
     
     fig["layout"].pop("updatemenus")
     
+    return fig
+
+
+def animate_activity_log(
+        full_patient_df,
+        event_position_df,
+        rep=1,
+        plotly_height=900,
+        wrap_queues_at = None      
+        ):
+    """_summary_
+
+    Args:
+        full_patient_df (pd.Dataframe): _description_
+        event_position_dicts (pd.Dataframe): 
+            dataframe with three cols - event, x and y
+            Can be more easily created by passing a list of dicts to pd.DataFrame
+            list of dictionaries with one dicitionary per event type
+            containing keys 'event', 'x' and 'y'
+            This will determine the intial position of any entries in the animated log
+
+
+
+        rep (int, optional): _description_. Defaults to 1.
+        plotly_height (int, optional): _description_. Defaults to 900.
+
+    Returns:
+        _type_: _description_
+    """        
+    
+    
+
+    full_patient_df = full_patient_df[full_patient_df['rep'] == rep]
+
+    full_patient_df['count'] = full_patient_df.groupby(['event','minute','rep'])['minute'].transform('count')
+    full_patient_df['rank'] = full_patient_df.groupby(['event','minute','rep'])['minute'].rank(method='first')
+
+
+    full_patient_df_plus_pos = full_patient_df.merge(event_position_df, on="event")
+
+    full_patient_df_plus_pos['y_final'] =  full_patient_df_plus_pos['y']
+    full_patient_df_plus_pos['x_final'] = full_patient_df_plus_pos['x'] - full_patient_df_plus_pos['rank']*5
+
+    full_patient_df_plus_pos['icon'] = '🙍'
+    full_patient_df_plus_pos['size'] = 24
+
+    fig = px.scatter(
+            full_patient_df_plus_pos.sort_values('minute'), 
+            x="x_final", 
+            y="y_final", 
+            animation_frame="minute", 
+            animation_group="patient",
+            text="icon",
+            # Can't have colours because it causes bugs with
+            # lots of points failing to appear
+            #color="event", 
+            hover_name="event",
+            #    symbol="rep",
+            #    symbol_sequence=["⚽"],
+            #symbol_map=dict(rep_choice = "⚽"),
+            range_x=[0, event_position_df['x'].max()*1.1], 
+            range_y=[0, [0, event_position_df['y'].max()*1.1]],
+            height=plotly_height,
+            #    size="size"
+            )
+
+    # Update the size of the icons
+    fig.update_traces(textfont_size=24)
+
+    fig.add_trace(go.Scatter(
+        x=event_position_df['x'].to_list(),
+        y=event_position_df['y'].to_list(),
+        mode="text",
+        name="",
+        text=event_position_df['event'].to_list(),
+        textposition="middle right"
+    ))
+
+    fig.update_xaxes(showticklabels=False, showgrid=False, zeroline=False)
+    fig.update_yaxes(showticklabels=False, showgrid=False, zeroline=False)
+    fig.update_layout(yaxis_title=None, xaxis_title=None)
+
+    fig["layout"].pop("updatemenus")
+
     return fig

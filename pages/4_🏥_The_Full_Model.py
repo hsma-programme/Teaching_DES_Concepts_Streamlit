@@ -8,7 +8,7 @@ import pandas as pd
 
 from helper_functions import read_file_contents, add_logo, mermaid
 from model_classes import Scenario, multiple_replications
-from output_animation_functions import reshape_for_animations, animate_queue_activity_bar_chart
+from output_animation_functions import reshape_for_animations, animate_queue_activity_bar_chart, animate_activity_log
 # from st_pages import show_pages_from_config, add_page_title
 import plotly.express as px
 
@@ -51,14 +51,18 @@ with tab1:
                 """
                 )
     
-    mermaid(height=450, code=
+    mermaid(height=600, code=
     """
     %%{ init: { 'flowchart': { 'curve': 'step' } } }%%
     %%{ init: {  'theme': 'base', 'themeVariables': {'lineColor': '#b4b4b4'} } }%%
     flowchart LR
-                A[Arrival] --> B{Trauma or non-trauma}
-        B --> B1{Trauma Pathway} 
-        B --> B2{Non-Trauma Pathway}
+        A[Arrival] --> BX[Triage]
+        BX -.-> T([Triage Bay\n<b>RESOURCE</b>])
+        T -.-> BX
+
+        BX --> BY{Trauma or non-trauma}
+        BY ----> B1{Trauma Pathway} 
+        BY ----> B2{Non-Trauma Pathway}
         
         B1 --> C[Stabilisation]
         C --> E[Treatment]
@@ -89,19 +93,24 @@ with tab1:
 
         E ----> F[Discharge]
 
-        classDef ZZ1 fill:#47D7FF,font-family:lexend
+        classDef ZZ1 fill:#8B5E0F,font-family:lexend, color:#FFF
         classDef ZZ2 fill:#5DFDA0,font-family:lexend
         classDef ZZ2a fill:#02CD55,font-family:lexend, color:#FFF
         classDef ZZ3 fill: #D45E5E,font-family:lexend
         classDef ZZ3a fill: #932727,font-family:lexend, color:#FFF
         classDef ZZ4 fill: #611D67,font-family:lexend, color:#FFF
+        classDef ZZ5 fill:#47D7FF,font-family:lexend
+        classDef ZZ5a fill:#00AADA,font-family:lexend
 
-        class A,B ZZ1
+        class A ZZ1
         class C,E ZZ2
         class D,G ZZ3
         class X,W ZZ3a
         class Z,Y ZZ2a
-        class I,V ZZ4;
+        class I,V ZZ4
+        class BX ZZ5
+        class T ZZ5a
+        ;
     """
 )
     
@@ -147,7 +156,7 @@ with tab3:
     with col1:
         st.subheader("Registration and Triage")
         n_triage = st.slider("Number of Triage Cubicles", 1, 10, step=1, value=3)
-        n_reg = st.slider("Number of Registration Clerks", 1, 10, step=1, value=2)
+        n_reg = st.slider("Number of Registration Cubicles", 1, 10, step=1, value=2)
 
 
     with col2:
@@ -165,7 +174,7 @@ with tab3:
         prob_trauma = st.slider("Probability that a new arrival is a trauma patient", 0.0, 1.0, step=0.01, value=0.3)
         non_trauma_treat_p = st.slider("Probability that a non-trauma patient will need treatment", 0.0, 1.0, step=0.01, value=0.7)
 
-    st.write("Total rooms in use is {}".format(n_cubicles_1+n_cubicles_2+n_exam+n_trauma+n_triage))
+    st.write("Total rooms in use is {}".format(n_cubicles_1+n_cubicles_2+n_exam+n_trauma+n_triage+n_reg))
 
     args = Scenario(
         random_number_set=42,
@@ -240,9 +249,18 @@ with tab3:
                                     for i in range(n_reps)])
             
             animation_dfs_queue = reshape_for_animations(
-                full_event_log[(full_event_log['rep']==1) &
-                                ((full_event_log['event_type']=='queue') | (full_event_log['event_type']=='arrival_departure'))
-            ])
+                full_event_log[
+                    (full_event_log['rep']==1) &
+                    ((full_event_log['event_type']=='queue') | (full_event_log['event_type']=='arrival_departure'))
+                ]
+            )
+
+            animation_dfs_log = reshape_for_animations(
+                full_event_log=full_event_log[
+                    (full_event_log['rep']==1) &
+                    ((full_event_log['event_type']=='queue') | (full_event_log['event_type']=='resource_use')  | (full_event_log['event_type']=='arrival_departure'))
+                ]
+            )
         # st.write(results.reset_index())
 
         # st.write(pd.wide_to_long(results, stubnames=['util', 'wait'], i="rep", j="metric_type",         
@@ -296,8 +314,40 @@ with tab3:
 
 
         with tab_playground_results_2:
-            st.markdown("placeholder")
-            # st.markdown("placeholder")
+            
+            event_position_df = pd.DataFrame([
+                {'event': 'arrival', 'x':  50, 'y': 300 },
+                
+                # Triage - minor and trauma
+                {'event': 'TRAUMA_triage_wait_begins', 'x':  100, 'y': 350 },
+                {'event': 'TRAUMA_triage_begins', 'x':  150, 'y': 375 },
+                    
+                {'event': 'MINORS_triage_wait_begins', 'x':  100, 'y': 250 },
+                {'event': 'MINORS_triage_begins', 'x':  150, 'y': 225 },
+            
+                # Minors pathway 
+                {'event': 'MINORS_registration_wait_begins', 'x':  200, 'y': 175 },
+                {'event': 'MINORS_registration_begins', 'x':  250, 'y': 150 },
+
+                {'event': 'MINORS_examination_wait_begins', 'x':  300, 'y': 125 },
+                {'event': 'MINORS_examination_begins', 'x':  350, 'y': 100 },
+
+                {'event': 'MINORS_treatment_wait_begins', 'x':  400, 'y': 75 },
+                {'event': 'MINORS_treatment_begins', 'x':  450, 'y': 50 },
+
+                # Trauma pathway
+                {'event': 'TRAUMA_stabilisation_wait_begins', 'x': 250, 'y': 400},
+                {'event': 'TRAUMA_stabilisation_begins', 'x': 300, 'y': 425},
+
+                {'event': 'TRAUMA_treatment_wait_begins', 'x': 400, 'y': 450},
+                {'event': 'TRAUMA_treatment_begins', 'x': 450, 'y': 475}
+            ])
+
+            st.plotly_chart(animate_activity_log(
+                    animation_dfs_log['full_patient_df'],
+                    event_position_df = event_position_df
+
+            ), use_container_width=True)
 
         with tab_playground_results_3:
             st.markdown("placeholder")
@@ -317,6 +367,7 @@ with tab3:
                                    'TRAUMA_treatment_wait_begins'
                                     ]
                     ),
+                    scenario = args,
                     use_container_width=True
                     )
 
