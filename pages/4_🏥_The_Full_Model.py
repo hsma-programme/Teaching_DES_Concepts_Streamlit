@@ -248,10 +248,12 @@ with tab3:
                                                                                         'Animated Queue Sizes',
                                                                                         'Utilisation over Time'])
         
-        with tab_playground_results_1:
-            col_res_1, col_res_2 = st.columns(2)
+        st.subheader("Look at Average Results Across Replications")
 
-            st.subheader("Look at Average Results Across Replications")
+        with tab_playground_results_1:
+            
+
+            col_res_1, col_res_2 = st.columns(2)
 
             with col_res_1:
                 st.subheader("Utilisation Metrics")

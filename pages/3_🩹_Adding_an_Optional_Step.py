@@ -26,7 +26,7 @@ with open("style.css") as css:
 st.title("Discrete Event Simulation Playground")
 st.subheader("Making Patients Behave Differently: Adding in an Optional Step")
 
-mermaid(height=125, code=
+mermaid(height=225, code=
     """
             %%{ init: { 'flowchart': { 'curve': 'step' } } }%%
             %%{ init: {  'theme': 'base', 'themeVariables': {'lineColor': '#b4b4b4'} } }%%
