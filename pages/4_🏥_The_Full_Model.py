@@ -4,9 +4,11 @@ A Streamlit application based on Monks and
 Allows users to interact with an increasingly more complex treatment simulation 
 '''
 import streamlit as st
+import pandas as pd
 
 from helper_functions import read_file_contents, add_logo, mermaid
-from model_classes import *
+from model_classes import Scenario, multiple_replications
+from output_animation_functions import reshape_for_animations, animate_queue_activity_bar_chart
 # from st_pages import show_pages_from_config, add_page_title
 import plotly.express as px
 
@@ -197,6 +199,9 @@ with tab3:
             results = pd.concat([detailed_outputs[i]['results']['summary_df'].assign(rep= i+1)
                                         for i in range(n_reps)]).set_index('rep')
             
+            full_event_log = pd.concat([detailed_outputs[i]['results']['full_event_log'].assign(rep= i+1)
+                                        for i in range(n_reps)])
+            
 
             # print(len(st.session_state['session_results']))
             # results_for_state = pd.DataFrame(results.median()).T.drop(['Rep'], axis=1)
@@ -233,6 +238,11 @@ with tab3:
 
             full_utilisation_audit = pd.concat([detailed_outputs[i]['results']['utilisation_audit'].assign(Rep= i+1)
                                     for i in range(n_reps)])
+            
+            animation_dfs_queue = reshape_for_animations(
+                full_event_log[(full_event_log['rep']==1) &
+                                ((full_event_log['event_type']=='queue') | (full_event_log['event_type']=='arrival_departure'))
+            ])
         # st.write(results.reset_index())
 
         # st.write(pd.wide_to_long(results, stubnames=['util', 'wait'], i="rep", j="metric_type",         
@@ -248,7 +258,7 @@ with tab3:
                                                                                         'Animated Queue Sizes',
                                                                                         'Utilisation over Time'])
         
-        st.subheader("Look at Average Results Across Replications")
+        # st.subheader("Look at Average Results Across Replications")
 
         with tab_playground_results_1:
             
@@ -284,14 +294,31 @@ with tab3:
                         .merge(results.filter(like="throughput", axis=1), 
                                 left_index=True, right_index=True))
 
+
         with tab_playground_results_2:
             st.markdown("placeholder")
+            # st.markdown("placeholder")
 
         with tab_playground_results_3:
             st.markdown("placeholder")
 
         with tab_playground_results_4:
-            st.markdown("placeholder")
+
+            st.plotly_chart(
+                
+                animate_queue_activity_bar_chart(
+                    minute_counts_df_complete=animation_dfs_queue['minute_counts_df_complete'],
+                    event_order= ['arrival', 
+                                  'MINORS_triage_wait_begins', 
+                                  'TRAUMA_triage_wait_begins', 
+                                  'MINORS_examination_wait_begins', 
+                                  'TRAUMA_stabilisation_wait_begins', 
+                                  'MINORS_treatment_wait_begins', 
+                                   'TRAUMA_treatment_wait_begins'
+                                    ]
+                    ),
+                    use_container_width=True
+                    )
 
         with tab_playground_results_5:
             tab1a, tab1b = st.tabs(["Facet by Replication", "Facet by Resource"])
