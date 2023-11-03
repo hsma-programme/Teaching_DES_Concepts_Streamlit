@@ -241,68 +241,68 @@ with tab3:
         # st.write(results.reset_index().melt(id_vars="rep").set_index('variable').filter(like="util", axis=0))
 
         # Add in a box plot showing utilisation
-        col_res_1, col_res_2 = st.columns(2)
+        
+        tab_playground_results_1, tab_playground_results_2, tab_playground_results_3, tab_playground_results_4, tab_playground_results_5  = st.tabs(['Utilisation and Wait Metrics',
+                                                                                        'Animated Model',
+                                                                                        'Animated Resource Utilisation',
+                                                                                        'Animated Queue Sizes',
+                                                                                        'Utilisation over Time'])
+        
+        with tab_playground_results_1:
+            col_res_1, col_res_2 = st.columns(2)
 
-        st.subheader("Look at Average Results Across Replications")
+            st.subheader("Look at Average Results Across Replications")
 
-        with col_res_1:
-            st.subheader("Utilisation Metrics")
+            with col_res_1:
+                st.subheader("Utilisation Metrics")
 
-            st.plotly_chart(px.box(
-                results.reset_index().melt(id_vars="rep").set_index('variable').filter(like="util", axis=0).reset_index(), 
-                y="variable", 
-                x="value",
-                points="all",
-                range_x=[0, 1]),
-                use_container_width=True
-                )
-            
-            st.write(results.filter(like="util", axis=1).merge(results.filter(like="throughput", axis=1),left_index=True,right_index=True))
-            
-        with col_res_2:
-            st.subheader("Wait Metrics")
-            # Add in a box plot showing waits
-            st.plotly_chart(px.box(
-                results.reset_index().melt(id_vars="rep").set_index('variable').filter(like="wait", axis=0).reset_index(), 
-                y="variable", 
-                x="value",
-                points="all"),
-                use_container_width=True
-                )
-
-            st.write(results.filter(like="wait", axis=1)
-                     .merge(results.filter(like="throughput", axis=1), 
-                            left_index=True, right_index=True))
-
-
-        tab1a, tab1b = st.tabs(["Facet by Replication", "Facet by Resource"])
-
-        with tab1a:
-            fig_util_line_chart = px.line(full_utilisation_audit,
-                    x="simulation_time",
-                    y="number_utilised", 
-                    color= "resource_name",
-                    facet_col="Rep", 
-                    facet_col_wrap=2,
-                    height=900
+                st.plotly_chart(px.box(
+                    results.reset_index().melt(id_vars="rep").set_index('variable').filter(like="util", axis=0).reset_index(), 
+                    y="variable", 
+                    x="value",
+                    points="all",
+                    range_x=[0, 1]),
+                    use_container_width=True
                     )
-            fig_util_line_chart.update_traces(line=dict(width=0.5))
-            # write(results.filter(like="wait", axis=1).merge(results.filter(like="util", axis=1),left_index=True,right_index=True).reset_index().melt(id_vars=["rep"]))
+                
+                st.write(results.filter(like="util", axis=1).merge(results.filter(like="throughput", axis=1),left_index=True,right_index=True))
+                
+            with col_res_2:
+                st.subheader("Wait Metrics")
+                # Add in a box plot showing waits
+                st.plotly_chart(px.box(
+                    results.reset_index().melt(id_vars="rep").set_index('variable').filter(like="wait", axis=0).reset_index(), 
+                    y="variable", 
+                    x="value",
+                    points="all"),
+                    use_container_width=True
+                    )
 
-            st.plotly_chart(
-                fig_util_line_chart,
-                use_container_width=True
-            )
+                st.write(results.filter(like="wait", axis=1)
+                        .merge(results.filter(like="throughput", axis=1), 
+                                left_index=True, right_index=True))
 
-            with tab1b:
+        with tab_playground_results_2:
+            st.markdown("placeholder")
+
+        with tab_playground_results_3:
+            st.markdown("placeholder")
+
+        with tab_playground_results_4:
+            st.markdown("placeholder")
+
+        with tab_playground_results_5:
+            tab1a, tab1b = st.tabs(["Facet by Replication", "Facet by Resource"])
+
+            with tab1a:
                 fig_util_line_chart = px.line(full_utilisation_audit,
-                    x="simulation_time",
-                    y="number_utilised", 
-                    color= "Rep",
-                    facet_col="resource_name", 
-                    facet_col_wrap=1,
-                    height=900
-                    )
+                        x="simulation_time",
+                        y="number_utilised", 
+                        color= "resource_name",
+                        facet_col="Rep", 
+                        facet_col_wrap=2,
+                        height=900
+                        )
                 fig_util_line_chart.update_traces(line=dict(width=0.5))
                 # write(results.filter(like="wait", axis=1).merge(results.filter(like="util", axis=1),left_index=True,right_index=True).reset_index().melt(id_vars=["rep"]))
 
@@ -310,6 +310,23 @@ with tab3:
                     fig_util_line_chart,
                     use_container_width=True
                 )
+
+                with tab1b:
+                    fig_util_line_chart = px.line(full_utilisation_audit,
+                        x="simulation_time",
+                        y="number_utilised", 
+                        color= "Rep",
+                        facet_col="resource_name", 
+                        facet_col_wrap=1,
+                        height=900
+                        )
+                    fig_util_line_chart.update_traces(line=dict(width=0.5))
+                    # write(results.filter(like="wait", axis=1).merge(results.filter(like="util", axis=1),left_index=True,right_index=True).reset_index().melt(id_vars=["rep"]))
+
+                    st.plotly_chart(
+                        fig_util_line_chart,
+                        use_container_width=True
+                    )
 
 
 
