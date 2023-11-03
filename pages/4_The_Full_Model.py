@@ -16,6 +16,10 @@ st.set_page_config(
      initial_sidebar_state="expanded",
  )
 
+# Initialise session state
+if 'session_results' not in st.session_state:
+    st.session_state['session_results'] = []
+
 # add_page_title()
 
 # show_pages_from_config()
@@ -28,6 +32,8 @@ with open("style.css") as css:
 ## We add in a title for our web app's page
 st.title("Discrete Event Simulation Playground")
 st.subheader("How can we optimise the full system?")
+
+
 
 tab1, tab2, tab3 = st.tabs(["Introduction", "Exercises", "Playground"])
 with tab1:
@@ -45,11 +51,10 @@ with tab1:
     
     mermaid(height=450, code=
     """
-    %%{ init: { 'flowchart': { 'curve': 'step', "defaultRenderer": "elk" } } }%%
+    %%{ init: { 'flowchart': { 'curve': 'step' } } }%%
     %%{ init: {  'theme': 'base', 'themeVariables': {'lineColor': '#b4b4b4'} } }%%
     flowchart LR
-        A[Arrival] --> B{Trauma or non-trauma}
-
+                A[Arrival] --> B{Trauma or non-trauma}
         B --> B1{Trauma Pathway} 
         B --> B2{Non-Trauma Pathway}
         
@@ -60,27 +65,27 @@ with tab1:
         D --> G[Examination]
 
         G --> H[Treat?]
-        H --> F 
+        H ----> F 
 
         H --> I[Non-Trauma Treatment]
         I --> F 
 
-        C --> Z([Trauma Room])
-        Z --> C
+        C -.-> Z([Trauma Room\n<b>RESOURCE</b>])
+        Z -.-> C
 
-        E --> Y([Cubicle - 1])
-        Y --> E
+        E -.-> Y([Cubicle - 1\n<b>RESOURCE</b>])
+        Y -.-> E
 
-        D --> X([Clerks])
-        X --> D
+        D -.-> X([Clerks\n<b>RESOURCE</b>])
+        X -.-> D
 
-        G --> W([Exam Room])
-        W --> G
+        G -.-> W([Exam Room\n<b>RESOURCE</b>])
+        W -.-> G
 
-        I --> V([Cubicle - 2])
-        V --> I
+        I -.-> V([Cubicle - 2\n<b>RESOURCE</b>])
+        V -.-> I
 
-        E --> F[Discharge]
+        E ----> F[Discharge]
 
         classDef ZZ1 fill:#47D7FF,font-family:lexend
         classDef ZZ2 fill:#5DFDA0,font-family:lexend
@@ -191,7 +196,40 @@ with tab3:
 
             results = pd.concat([detailed_outputs[i]['results']['summary_df'].assign(rep= i+1)
                                         for i in range(n_reps)]).set_index('rep')
+            
 
+            print(len(st.session_state['session_results']))
+            # results_for_state = pd.DataFrame(results.median()).T.drop(['Rep'], axis=1)
+            results_for_state = results
+            original_cols = results_for_state.columns.values
+            results_for_state['Triage\nCubicles'] = args.n_triage
+            results_for_state['Registration\nClerks'] = args.n_reg
+            results_for_state['Examination\nRooms'] = args.n_exam
+            results_for_state['Non-Trauma\nTreatment Cubicles'] = args.n_cubicles_1
+            results_for_state['Trauma\nStabilisation Bays'] = args.n_trauma
+            results_for_state['Trauma\nTreatment Cubicles'] = args.n_cubicles_2
+            results_for_state['Probability patient\nis a trauma patient'] = args.prob_trauma
+            results_for_state['Probability non-trauma patients\nrequire treatment'] = args.non_trauma_treat_p
+
+            # Reorder columns
+            column_order = ['Triage\nCubicles', 'Registration\nClerks', 'Examination\nRooms',
+                            'Non-Trauma\nTreatment Cubicles', 'Trauma\nStabilisation Bays', 
+                            'Trauma\nTreatment Cubicles', 'Probability patient\nis a trauma patient',
+                            'Probability non-trauma patients\nrequire treatment',
+                            ] + list(original_cols)
+
+            results_for_state = results_for_state[column_order]
+
+            current_state = st.session_state['session_results']
+
+            current_state.append(results_for_state)
+
+            st.session_state['session_results'] = current_state
+
+            print(len(st.session_state['session_results']))
+
+            full_utilisation_audit = pd.concat([detailed_outputs[i]['results']['utilisation_audit'].assign(Rep= i+1)
+                                    for i in range(n_reps)])
         # st.write(results.reset_index())
 
         # st.write(pd.wide_to_long(results, stubnames=['util', 'wait'], i="rep", j="metric_type",         
@@ -202,8 +240,11 @@ with tab3:
         # Add in a box plot showing utilisation
         col_res_1, col_res_2 = st.columns(2)
 
+        st.subheader("Look at Average Results Across Replications")
 
         with col_res_1:
+            st.subheader("Utilisation Metrics")
+
             st.plotly_chart(px.box(
                 results.reset_index().melt(id_vars="rep").set_index('variable').filter(like="util", axis=0).reset_index(), 
                 y="variable", 
@@ -213,10 +254,11 @@ with tab3:
                 use_container_width=True
                 )
             
-            st.write(results.filter(like="util", axis=1))
+            st.write(results.filter(like="util", axis=1).merge(results.filter(like="throughput", axis=1),left_index=True,right_index=True))
             
         with col_res_2:
-        # Add in a box plot showing waits
+            st.subheader("Wait Metrics")
+            # Add in a box plot showing waits
             st.plotly_chart(px.box(
                 results.reset_index().melt(id_vars="rep").set_index('variable').filter(like="wait", axis=0).reset_index(), 
                 y="variable", 
@@ -225,6 +267,66 @@ with tab3:
                 use_container_width=True
                 )
 
-            st.write(results.filter(like="wait", axis=1))
+            st.write(results.filter(like="wait", axis=1)
+                     .merge(results.filter(like="throughput", axis=1), 
+                            left_index=True, right_index=True))
+
+
+        tab1a, tab1b = st.tabs(["Facet by Replication", "Facet by Resource"])
+
+        with tab1a:
+            fig_util_line_chart = px.line(full_utilisation_audit,
+                    x="simulation_time",
+                    y="number_utilised", 
+                    color= "resource_name",
+                    facet_col="Rep", 
+                    facet_col_wrap=2,
+                    height=900
+                    )
+            fig_util_line_chart.update_traces(line=dict(width=0.5))
+            # write(results.filter(like="wait", axis=1).merge(results.filter(like="util", axis=1),left_index=True,right_index=True).reset_index().melt(id_vars=["rep"]))
+
+            st.plotly_chart(
+                fig_util_line_chart,
+                use_container_width=True
+            )
+
+            with tab1b:
+                fig_util_line_chart = px.line(full_utilisation_audit,
+                    x="simulation_time",
+                    y="number_utilised", 
+                    color= "Rep",
+                    facet_col="resource_name", 
+                    facet_col_wrap=1,
+                    height=900
+                    )
+                fig_util_line_chart.update_traces(line=dict(width=0.5))
+                # write(results.filter(like="wait", axis=1).merge(results.filter(like="util", axis=1),left_index=True,right_index=True).reset_index().melt(id_vars=["rep"]))
+
+                st.plotly_chart(
+                    fig_util_line_chart,
+                    use_container_width=True
+                )
+
+
+
+        
+
+# results_pivoted = pd.concat([results.filter(like="wait", axis=1).reset_index().melt(id_vars=["rep"]).assign(what="Wait"),
+#            results.filter(like="util", axis=1).reset_index().melt(id_vars=["rep"]).assign(what="Utilisation")])
+
+# results_pivoted['metric_group'] = results_pivoted['variable'].str.extract("(\d{2})")
+
+# st.plotly_chart(
+
+#             px.box(
+#                 results.filter(like="wait", axis=1) \
+#                     .merge(results.filter(like="util", axis=1),left_index=True,right_index=True) \
+#                     .reset_index() \
+#                     .melt(id_vars=["rep"])
+                
+#             )
+
+#         )
 
 
