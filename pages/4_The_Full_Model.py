@@ -35,7 +35,7 @@ st.subheader("How can we optimise the full system?")
 
 
 
-tab1, tab2, tab3 = st.tabs(["Introduction", "Exercises", "Playground"])
+tab1, tab2, tab3, tab4 = st.tabs(["Introduction", "Exercises", "Playground", "Compare Scenario Outputs"])
 with tab1:
     st.markdown("""
                 So now we have explored every component of the model:
@@ -333,3 +333,63 @@ with tab3:
 #         )
 
 
+with tab4:
+    if len(st.session_state['session_results']) > 0:
+
+        all_run_results = pd.concat(st.session_state['session_results'])
+
+        st.subheader("Look at Average Results Across Replications")
+
+        st.write(all_run_results.groupby('Model Run').median().T)
+
+        col_res_1, col_res_2 = st.columns(2)
+
+        
+
+        with col_res_1:
+            st.subheader("Utilisation Metrics")
+
+            st.plotly_chart(px.box(
+                all_run_results.reset_index().melt(id_vars=["Model Run", "rep"]).set_index('variable').filter(like="util", axis=0).reset_index(), 
+                y="variable", 
+                x="value",
+                color="Model Run",
+                points="all",
+                range_x=[0, 1]),
+                use_container_width=True
+                )
+            
+            # st.write(all_run_results.filter(like="util", axis=1).merge(all_run_results.filter(like="throughput", axis=1),left_index=True,right_index=True))
+            
+        with col_res_2:
+            st.subheader("Wait Metrics")
+            # Add in a box plot showing waits
+            st.plotly_chart(px.box(
+                all_run_results.reset_index().melt(id_vars=["Model Run", "rep"]).set_index('variable').filter(like="wait", axis=0).reset_index(), 
+            #                 left_index=True, right_index=True), 
+                y="variable", 
+                x="value",
+                color="Model Run",
+                points="all"),
+                use_container_width=True
+                )
+
+        col_res_3, col_res_4 = st.columns(2)
+
+        with col_res_3:
+            st.subheader("Throughput")
+            # Add in a box plot showing waits
+            st.plotly_chart(px.box(
+                all_run_results.reset_index().melt(id_vars=["Model Run", "rep"]).set_index('variable').filter(like="throughput", axis=0).reset_index(),  
+                y="variable", 
+                x="value",
+                color="Model Run",
+                points="all"),
+                use_container_width=True
+                )
+
+            # st.write(all_run_results.filter(like="wait", axis=1)
+            #             .merge(all_run_results.filter(like="throughput", axis=1), 
+            #                 left_index=True, right_index=True))
+    else:
+        st.markdown("No scenarios yet run. Go to the 'Playground' tab and click 'Run simulation'.")
