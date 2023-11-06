@@ -187,7 +187,7 @@ with tab3:
                  non_trauma_treat_p=non_trauma_treat_p,
                  prob_trauma=prob_trauma)
 
-    n_reps = 10
+    n_reps = 8
 
     # A user must press a streamlit button to run the model
     button_run_pressed = st.button("Run simulation")
@@ -344,8 +344,24 @@ with tab3:
                     animation_dfs_log['full_patient_df'],
                     event_position_df = event_position_df,
                     scenario=args,
-                    include_play_button=True
+                    include_play_button=True,
+                    return_df_only=False
             ), use_container_width=True)
+
+            # Uncomment if debugging animated event log
+            # st.write(
+            #     animate_activity_log(
+            #         animation_dfs_log['full_patient_df'],
+            #         event_position_df = event_position_df,
+            #         scenario=args,
+            #         include_play_button=True,
+            #         return_df_only=True
+            # ).sort_values(['patient', 'minute'])
+            # )
+
+            # st.write(
+            #          animation_dfs_log['full_patient_df'].sort_values(['patient', 'minute'])
+            # )
 
         # st.write(animation_dfs_log['full_patient_df'].sort_values('minute'))
 
@@ -446,9 +462,12 @@ with tab4:
         col_a, col_b = st.columns(2)
         
         with col_a:
-            st.write(all_run_results.filter(regex='[^\d]+', axis=0).groupby('Model Run').median().T)
+            
+            # st.write(all_run_results.drop(all_run_results.filter(regex='\d+').columns,axis=1).groupby('Model Run').median().T)
+            st.write(all_run_results.groupby('Model Run').median().T)
         with col_b:
-            st.write(all_run_results.filter(regex='\d+', axis=1).groupby('Model Run').median().T)
+            # st.write(all_run_results.filter(regex='\d+', axis=1).groupby('Model Run').median().T)
+            st.write("Placeholder")
 
         col_res_1, col_res_2 = st.columns(2)
 
