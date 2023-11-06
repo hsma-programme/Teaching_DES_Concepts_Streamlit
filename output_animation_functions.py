@@ -1,6 +1,7 @@
 import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
+import numpy as np
 
 
 def reshape_for_animations(full_event_log):
@@ -113,7 +114,8 @@ def animate_activity_log(
         scenario,
         rep=1,
         plotly_height=900,
-        wrap_queues_at = None      
+        wrap_queues_at = None,
+        include_play_button=False      
         ):
     """_summary_
 
@@ -146,9 +148,28 @@ def animate_activity_log(
     full_patient_df_plus_pos = full_patient_df.merge(event_position_df, on="event")
 
     full_patient_df_plus_pos['y_final'] =  full_patient_df_plus_pos['y']
-    full_patient_df_plus_pos['x_final'] = full_patient_df_plus_pos['x'] - full_patient_df_plus_pos['rank']*5
+    full_patient_df_plus_pos['x_final'] = full_patient_df_plus_pos['x'] - full_patient_df_plus_pos['rank']*10
 
-    full_patient_df_plus_pos['icon'] = '🙍'
+    # full_patient_df_plus_pos['icon'] = '🙍'
+
+    individual_patients = full_patient_df['patient'].drop_duplicates().sort_values()
+    icon_list = ['🧔🏼', '🧑🏾‍🦯', '👨🏻‍🦰', '🧑🏻', '👩🏿‍🦱', '🧑🏻‍🍼', '👳🏽', '👩🏼‍🦳', '👨🏿‍🦳', '🧑🏻‍🦱', '🧍🏽‍♀️', '🧑🏼‍🔬', '👩🏻‍🦰', '🧕🏿', '🧑‍🦽', '👴🏾'
+                 '🧑🏼‍🦱', '👷🏾', '🧑🏻‍🦲', '🧑🏿‍💼',  '🧔🏾', '🧕🏻', '👨🏾‍🎓', '👴🏻', '🧍🏼‍♂️', '👧🏿', '🙎🏻',  '🧑🏿‍🦱', '👱🏻', '🙋🏾‍♀️', '🧑🏼‍🔧', '🧑🏿‍🦽', '🧑🏽‍🦳'
+                 '🧑‍🦼', '🙋🏽‍♂️', '👩🏿‍🎓', '🤷🏻', '👶🏾', '🧑🏻‍✈️', '🙎🏾', '👶🏻', '👴🏿', '👨🏻‍🦳', '👩🏽', '🧑🏻‍🦳', '👩🏽‍🎓', '👱🏻‍♀️', '👲🏼', '🧕🏾', 
+                 '🧑‍🦯', '🧔🏿', '👳🏿', '🧑🏿‍🍼', '👩🏽‍🦰', '🧑🏾‍🦲', '🧍🏾‍♂️', '👧🏼', '🤷🏿‍♂️', '🧑🏻‍✈️', '👱🏾‍♂️', '👨🏻‍🎓', '👵🏼', '🤵🏿', '👳🏻', '🙋🏼',
+                 '👩🏻‍🎓', '🧑🏻‍🌾', '👩🏿‍🔧', '🤵🏻', '🧑🏼‍💼', '🧑🏿‍✈️', '🎅🏼'
+    ]
+
+    full_icon_list = icon_list * int(np.ceil(len(individual_patients)/len(icon_list)))
+
+    full_icon_list = full_icon_list[0:len(individual_patients)]
+
+    full_patient_df_plus_pos = full_patient_df_plus_pos.merge(
+        pd.DataFrame({'patient':list(individual_patients), 
+                      'icon':full_icon_list}),
+        on="patient")
+
+
     full_patient_df_plus_pos['size'] = 24
     # First add the animated traces for the different resources
     fig = px.scatter(
@@ -197,7 +218,7 @@ def animate_activity_log(
     events_with_resources['resource_count'] = events_with_resources['resource'].apply(lambda x: getattr(scenario, x))
 
     events_with_resources = events_with_resources.join(events_with_resources.apply(
-        lambda r: pd.Series({'x_final': [r['x']-(5*(i+1)) for i in range(r['resource_count'])]}), axis=1).explode('x_final'),
+        lambda r: pd.Series({'x_final': [r['x']-(10*(i+1)) for i in range(r['resource_count'])]}), axis=1).explode('x_final'),
         how='right')
 
     fig.add_trace(go.Scatter(
@@ -207,7 +228,7 @@ def animate_activity_log(
         marker=dict(
             color='LightSkyBlue',
             size=15),
-        opacity=0.5,
+        opacity=0.3,
         hoverinfo='none'
         # name="",
         # textposition="middle right"
@@ -217,6 +238,7 @@ def animate_activity_log(
     fig.update_yaxes(showticklabels=False, showgrid=False, zeroline=False)
     fig.update_layout(yaxis_title=None, xaxis_title=None)
 
-    fig["layout"].pop("updatemenus")
+    if not include_play_button:
+        fig["layout"].pop("updatemenus")
 
     return fig
