@@ -4,9 +4,14 @@ A Streamlit application based on Monks and
 Allows users to interact with an increasingly more complex treatment simulation 
 '''
 import streamlit as st
+import pandas as pd
+import plotly.express as px
+import numpy as np
+from output_animation_functions import reshape_for_animations, animate_queue_activity_bar_chart, animate_activity_log
+
 
 from helper_functions import read_file_contents, add_logo, mermaid
-from model_classes import *
+from model_classes import Scenario, multiple_replications
 # from st_pages import show_pages_from_config, add_page_title
 
 # Set page parameters
@@ -79,10 +84,10 @@ with tab3:
     col1, col2 = st.columns([0.5, 1.5])
 
     with col1:
-        nurses = st.slider("How Many Rooms/Nurses Are Available?", 1, 50, step=1, value=5)
+        nurses = st.slider("How Many Rooms/Nurses Are Available?", 1, 10, step=1, value=3)
 
         consult_time = st.slider("How long (in minutes) does a consultation take on average?",
-                                    5, 60, step=5, value=20)
+                                    5, 120, step=5, value=30)
 
         consult_time_sd = st.slider("How much (in minutes) does the time for a consultation usually vary by?",
                                     5, 30, step=5, value=10)
@@ -93,21 +98,114 @@ with tab3:
             st.markdown("If you like, you can edit these parameters too!")
 
             seed = st.number_input("Set a random number for the computer to start from",
-                            1, 100000,
+                            1, 10000000,
                             step=1, value=42)
             
             n_reps = st.slider("How many times should the simulation run?",
-                            1, 50,
+                            1, 30,
                             step=1, value=10)
+            
             run_time_days = st.slider("How many days should we run the simulation for each time?",
-                                    1, 100,
+                                    1, 60,
                                     step=1, value=15)
 
         
             mean_arrivals_per_day = st.slider("How many patients should arrive per day on average?",
-                                            10, 1000,
+                                            10, 500,
                                             step=5, value=300)
 
     with col2:
-        st.text("Placeholder")
+        args = Scenario(
+                random_number_set=seed,
+                n_cubicles_1=nurses,
+                override_arrival_lambda=True,
+                manual_arrival_lambda=60/(mean_arrivals_per_day/24),
+                model="simplest",
+                trauma_treat_mean=consult_time,
+                trauma_treat_var=consult_time_sd
+                )
 
+        # A user must press a streamlit button to run the model
+        button_run_pressed = st.button("Run simulation")
+        
+        
+        if button_run_pressed:
+
+            # add a spinner and then display success box
+            with st.spinner('Simulating the minor injuries unit...'):
+                # run multiple replications of experment
+                detailed_outputs = multiple_replications(
+                    args,
+                    n_reps=n_reps,
+                    rc_period=run_time_days*60*24,
+                    return_detailed_logs=True
+                )
+
+                results = pd.concat([detailed_outputs[i]['results']['summary_df'].assign(rep= i+1)
+                                            for i in range(n_reps)]).set_index('rep')
+                
+                full_event_log = pd.concat([detailed_outputs[i]['results']['full_event_log'].assign(rep= i+1)
+                                            for i in range(n_reps)])
+                
+
+                st.plotly_chart(px.box(
+                    results.reset_index().melt(id_vars=["rep"]).set_index('variable').filter(like="util", axis=0).reset_index(), 
+                    y="variable", 
+                    x="value",
+                    points="all",
+                    range_x=[0, 1.1],
+                    height=200),
+                    use_container_width=True
+                )
+
+                st.plotly_chart(px.box(
+                    results.reset_index().melt(id_vars=["rep"]).set_index('variable').filter(like="wait", axis=0).reset_index(), 
+                    y="variable", 
+                    x="value",
+                    points="all",
+                    height=200,
+                    range_x=[0, results.reset_index().melt(id_vars=["rep"]).set_index('variable').filter(like="wait", axis=0).reset_index().max().value]
+                    ),
+                    use_container_width=True
+                )
+
+                st.plotly_chart(px.box(
+                    results.reset_index().melt(id_vars=["rep"]).set_index('variable').filter(like="throughput", axis=0).reset_index(), 
+                    y="variable", 
+                    x="value",
+                    points="all",
+                    height=200,
+                    range_x=[0, results.reset_index().melt(id_vars=["rep"]).set_index('variable').filter(like='throughput', axis=0).reset_index().max().value]
+                    ),
+                    use_container_width=True
+                )
+
+               
+
+            event_position_df = pd.DataFrame([
+                            {'event': 'arrival', 'x':  50, 'y': 300, 'label': "Arrival" },
+                            
+                            # Triage - minor and trauma                
+                            {'event': 'treatment_wait_begins', 'x':  150, 'y': 200, 'label': "Waiting for Treatment"  },
+                            {'event': 'treatment_begins', 'x':  250, 'y': 100, 'resource':'n_cubicles_1', 'label': "Being Treated" },
+                        
+                        ])
+            animation_dfs_log = reshape_for_animations(
+                        full_event_log=full_event_log[
+                            (full_event_log['rep']==1) &
+                            ((full_event_log['event_type']=='queue') | (full_event_log['event_type']=='resource_use')  | (full_event_log['event_type']=='arrival_departure'))
+                        ]
+                    )
+if button_run_pressed:
+    st.subheader("Animated Model Output")
+    with st.spinner('Generating the animated patient log...'):
+        st.plotly_chart(animate_activity_log(
+                            animation_dfs_log['full_patient_df'],
+                            event_position_df = event_position_df,
+                            scenario=args,
+                            include_play_button=True,
+                            return_df_only=False,
+                            plotly_height=500
+                    ), use_container_width=True)
+
+                # st.write(results)

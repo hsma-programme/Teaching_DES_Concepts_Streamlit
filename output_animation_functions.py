@@ -197,8 +197,7 @@ def animate_activity_log(
             #    size="size"
             )
 
-    # Update the size of the icons
-    fig.update_traces(textfont_size=24)
+
     
     # Now add labels identifying each stage
     fig.add_trace(go.Scatter(
@@ -210,6 +209,9 @@ def animate_activity_log(
         textposition="middle right",
         hoverinfo='none'
     ))
+
+    # Update the size of the icons and labels
+    fig.update_traces(textfont_size=24)
 
     events_with_resources = event_position_df[event_position_df['resource'].notnull()].copy()
     
