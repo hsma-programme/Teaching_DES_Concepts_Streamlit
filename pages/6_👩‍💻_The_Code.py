@@ -60,13 +60,13 @@ Next, we need to define something that will generate our patients
 
 st.code(
 """
-def patient_generator_weight_loss(env, wl_inter, mean_consult, nurse):
+def patient_generator(env, wl_inter, mean_consult, nurse):
     p_id = 0 # We'll set this up to give each patient created a unique ID
 
     # Keep doing this indefinitely (whilst the program's running)
     while True:        
         # Create an instance of the activity generator function (defined below) which will define what happens to our patients.
-        wp = activity_generator_weight_loss(
+        wp = activity_generator(
             env, # let it make use of our simulated world
             mean_consult, # tell it how long a consultion takes on average
             nurse,  # tell it which nurse it's going to use
@@ -97,13 +97,13 @@ Next we need to define something that will actually do something to those patien
 
 st.code(
 """
-def activity_generator_weight_loss(env, mean_consult, nurse, p_id):
+def activity_generator(env, mean_consult, nurse, p_id):
     
     # Use 'env.now' to make a note of the time the person turned up
     time_entered_queue_for_nurse = env.now
 
     # We now call the request() function of the Nurse resource so that we can 
-    # grab a nurse that is available and get them to do the patient's treamtnet
+    # grab a nurse that is available and get them to do the patient's treatment
 
     # We use a 'with' statement to indicate that all of the code in the indented block needs to be done with the nurse resource, after which it can release it
     with nurse.request() as req:
@@ -167,7 +167,7 @@ Then we tell our virtual world to start making patients!
 
 st.code(
    """
-env.process(patient_generator_weight_loss(
+env.process(patient_generator(
     env, # Tell it to use our virtual world
     wl_inter, # Tell it the average time between patients arriving
     mean_consult, # Tell it the average time between patients
