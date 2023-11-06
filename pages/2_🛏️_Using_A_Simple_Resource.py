@@ -54,7 +54,7 @@ with tab1:
     """
     )
 
-    mermaid(height=125, code=
+    mermaid(height=175, code=
     """
             %%{ init: { 'flowchart': { 'curve': 'step' } } }%%
             %%{ init: {  'theme': 'base', 'themeVariables': {'lineColor': '#b4b4b4'} } }%%
@@ -87,24 +87,26 @@ with tab3:
         consult_time_sd = st.slider("How much (in minutes) does the time for a consultation usually vary by?",
                                     5, 30, step=5, value=10)
 
-        st.subheader("Previous Parameters")
-
-
-        seed = st.number_input("Set a random number for the computer to start from",
-                        1, 100000,
-                        step=1, value=42)
         
-        n_reps = st.slider("How many times should the simulation run?",
-                           1, 50,
-                           step=1, value=10)
-        run_time_days = st.slider("How many days should we run the simulation for each time?",
-                                  1, 100,
-                                  step=1, value=15)
+        with st.expander("Previous Parameters"):
 
-     
-        mean_arrivals_per_day = st.slider("How many patients should arrive per day on average?",
-                                          10, 1000,
-                                          step=5, value=300)
+            st.markdown("If you like, you can edit these parameters too!")
+
+            seed = st.number_input("Set a random number for the computer to start from",
+                            1, 100000,
+                            step=1, value=42)
+            
+            n_reps = st.slider("How many times should the simulation run?",
+                            1, 50,
+                            step=1, value=10)
+            run_time_days = st.slider("How many days should we run the simulation for each time?",
+                                    1, 100,
+                                    step=1, value=15)
+
+        
+            mean_arrivals_per_day = st.slider("How many patients should arrive per day on average?",
+                                            10, 1000,
+                                            step=5, value=300)
 
     with col2:
         st.text("Placeholder")
