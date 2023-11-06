@@ -11,7 +11,7 @@ def reshape_for_animations(full_event_log):
     for rep in range(1, max(full_event_log['rep'])+1):
         # print("Rep {}".format(rep))
         # Start by getting data for a single rep
-        filtered_log_rep = full_event_log[full_event_log['rep'] == rep]
+        filtered_log_rep = full_event_log[full_event_log['rep'] == rep].drop('rep', axis=1)
         pivoted_log = filtered_log_rep.pivot_table(values="time", 
                                             index=["patient","event_type","pathway"], 
                                             columns="event").reset_index()
@@ -50,8 +50,8 @@ def reshape_for_animations(full_event_log):
                     #     .groupby(['patient',"event_type","pathway"]) \
                     #     .tail(1)  
 
-                    most_recent_events_minute_ungrouped = patient_minute_df[patient_minute_df['time'] <= minute] \
-                        .sort_values('time', ascending=True) \
+                    most_recent_events_minute_ungrouped = patient_minute_df[patient_minute_df['time'] <= minute].reset_index() \
+                        .sort_values(['time', 'index'], ascending=True) \
                         .groupby(['patient']) \
                         .tail(1) 
 
@@ -69,7 +69,7 @@ def reshape_for_animations(full_event_log):
 
 
     minute_counts_df_pivoted = minute_counts_df.pivot_table(values="count", 
-                                            index=["minute", "rep","event_type","pathway"], 
+                                            index=["minute", "rep", "event_type", "pathway"], 
                                             columns="event").reset_index().fillna(0)
 
     minute_counts_df_complete = minute_counts_df_pivoted.melt(id_vars=["minute", "rep","event_type","pathway"])
@@ -115,7 +115,8 @@ def animate_activity_log(
         rep=1,
         plotly_height=900,
         wrap_queues_at = None,
-        include_play_button=False      
+        include_play_button=False,
+        return_df_only=False      
         ):
     """_summary_
 
@@ -145,7 +146,7 @@ def animate_activity_log(
     full_patient_df['rank'] = full_patient_df.groupby(['event','minute','rep'])['minute'].rank(method='first')
 
 
-    full_patient_df_plus_pos = full_patient_df.merge(event_position_df, on="event").sort_values(["rep", "event", "time"])
+    full_patient_df_plus_pos = full_patient_df.merge(event_position_df, on="event", how='left').sort_values(["rep", "event", "minute", "time"])
 
     full_patient_df_plus_pos['y_final'] =  full_patient_df_plus_pos['y']
     full_patient_df_plus_pos['x_final'] = full_patient_df_plus_pos['x'] - full_patient_df_plus_pos['rank']*10
@@ -168,6 +169,9 @@ def animate_activity_log(
         pd.DataFrame({'patient':list(individual_patients), 
                       'icon':full_icon_list}),
         on="patient")
+    
+    if return_df_only:
+        return full_patient_df_plus_pos
 
 
     full_patient_df_plus_pos['size'] = 24

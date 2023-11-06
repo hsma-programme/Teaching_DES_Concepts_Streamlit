@@ -343,14 +343,15 @@ with tab3:
             st.plotly_chart(animate_activity_log(
                     animation_dfs_log['full_patient_df'],
                     event_position_df = event_position_df,
-                    scenario=args
+                    scenario=args,
+                    include_play_button=True
             ), use_container_width=True)
 
         # st.write(animation_dfs_log['full_patient_df'].sort_values('minute'))
 
 
         with tab_playground_results_3:
-            st.markdown("placeholder")
+            st.markdown("Placeholder")
 
         with tab_playground_results_4:
 
@@ -371,7 +372,7 @@ with tab3:
                                   'TRAUMA_treatment_wait_begins'
                                     ]
                     ),
-                    scenario = args,
+                    
                     use_container_width=True
                     )
             
@@ -442,8 +443,12 @@ with tab4:
         all_run_results = pd.concat(st.session_state['session_results'])
 
         st.subheader("Look at Average Results Across Replications")
-
-        st.write(all_run_results.groupby('Model Run').median().T)
+        col_a, col_b = st.columns(2)
+        
+        with col_a:
+            st.write(all_run_results.filter(regex='[^\d]+', axis=0).groupby('Model Run').median().T)
+        with col_b:
+            st.write(all_run_results.filter(regex='\d+', axis=1).groupby('Model Run').median().T)
 
         col_res_1, col_res_2 = st.columns(2)
 
