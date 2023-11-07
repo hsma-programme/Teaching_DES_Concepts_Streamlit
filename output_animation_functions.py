@@ -249,12 +249,12 @@ def animate_activity_log(
 
     fig.add_trace(go.Scatter(
         x=events_with_resources['x_final'].to_list(),
-        y=events_with_resources['y'].to_list(),
+        y=[i-10 for i in events_with_resources['y'].to_list()],
         mode="markers",
         marker=dict(
             color='LightSkyBlue',
             size=15),
-        opacity=0.3,
+        opacity=1,
         hoverinfo='none'
         # name="",
         # textposition="middle right"
