@@ -154,10 +154,9 @@ with tab3:
     col1, col2, col3, col4 = st.columns(4)
 
     with col1:
-        st.subheader("Registration and Triage")
+        st.subheader("Triage")
         n_triage = st.slider("Number of Triage Cubicles", 1, 10, step=1, value=3)
-        n_reg = st.slider("Number of Registration Cubicles", 1, 10, step=1, value=2)
-
+        prob_trauma = st.slider("Probability that a new arrival is a trauma patient", 0.0, 1.0, step=0.01, value=0.3)
 
     with col2:
         st.subheader("Trauma Pathway")
@@ -166,12 +165,12 @@ with tab3:
 
     with col3:
         st.subheader("Non-Trauma Pathway")
+        n_reg = st.slider("Number of Registration Cubicles", 1, 10, step=1, value=2)
         n_exam = st.slider("Number of Examination Rooms for non-trauma patients", 1, 10, step=1, value=3)
-        n_cubicles_1 = st.slider("Number of Treatment Cubicles for Non-Trauma", 1, 10, step=1, value=2)
 
     with col4: 
-        st.subheader("Pathway Probabilities")
-        prob_trauma = st.slider("Probability that a new arrival is a trauma patient", 0.0, 1.0, step=0.01, value=0.3)
+        st.subheader("Non-trauma Treatment")
+        n_cubicles_1 = st.slider("Number of Treatment Cubicles for Non-Trauma", 1, 10, step=1, value=2)
         non_trauma_treat_p = st.slider("Probability that a non-trauma patient will need treatment", 0.0, 1.0, step=0.01, value=0.7)
 
     st.write("Total rooms in use is {}".format(n_cubicles_1+n_cubicles_2+n_exam+n_trauma+n_triage+n_reg))
@@ -316,28 +315,28 @@ with tab3:
         with tab_playground_results_2:
             
             event_position_df = pd.DataFrame([
-                {'event': 'arrival', 'x':  50, 'y': 300, 'label': "Arrival" },
+                # {'event': 'arrival', 'x':  10, 'y': 250, 'label': "Arrival" },
                 
                 # Triage - minor and trauma                
-                {'event': 'triage_wait_begins', 'x':  100, 'y': 325, 'label': "Waiting for Triage"  },
-                {'event': 'triage_begins', 'x':  150, 'y': 275, 'resource':'n_triage', 'label': "Being Triaged" },
+                {'event': 'triage_wait_begins', 'x':  160, 'y': 500, 'label': "Waiting for<br>Triage"  },
+                {'event': 'triage_begins', 'x':  160, 'y': 300, 'resource':'n_triage', 'label': "Being Triaged" },
             
-                # Minors pathway 
-                {'event': 'MINORS_registration_wait_begins', 'x':  200, 'y': 175, 'label': "Waiting for Registration"  },
-                {'event': 'MINORS_registration_begins', 'x':  250, 'y': 150, 'resource':'n_reg', 'label':'Being Registered'  },
+                # Minors (non-trauma) pathway 
+                {'event': 'MINORS_registration_wait_begins', 'x':  300, 'y': 620, 'label': "Waiting for<br>Registration"  },
+                {'event': 'MINORS_registration_begins', 'x':  300, 'y': 500, 'resource':'n_reg', 'label':'Being<br>Registered'  },
 
-                {'event': 'MINORS_examination_wait_begins', 'x':  300, 'y': 125, 'label': "Waiting for Examination"  },
-                {'event': 'MINORS_examination_begins', 'x':  350, 'y': 100, 'resource':'n_exam', 'label': "Being Examined" },
+                {'event': 'MINORS_examination_wait_begins', 'x':  465, 'y': 620, 'label': "Waiting for<br>Examination"  },
+                {'event': 'MINORS_examination_begins', 'x':  465, 'y': 500, 'resource':'n_exam', 'label': "Being<br>Examined" },
 
-                {'event': 'MINORS_treatment_wait_begins', 'x':  400, 'y': 75, 'label': "Waiting for Treatment (Non-Trauma)"  },
-                {'event': 'MINORS_treatment_begins', 'x':  450, 'y': 50, 'resource':'n_cubicles_1', 'label': "Being Treated (Non-Trauma)" },
+                {'event': 'MINORS_treatment_wait_begins', 'x':  630, 'y': 620, 'label': "Waiting for<br>Treatment"  },
+                {'event': 'MINORS_treatment_begins', 'x':  630, 'y': 500, 'resource':'n_cubicles_1', 'label': "Being<br>Treated" },
 
                 # Trauma pathway
-                {'event': 'TRAUMA_stabilisation_wait_begins', 'x': 250, 'y': 400, 'label': "Waiting for Stabilisation" },
-                {'event': 'TRAUMA_stabilisation_begins', 'x': 300, 'y': 425, 'resource':'n_trauma', 'label': "Being Stabilised" },
+                {'event': 'TRAUMA_stabilisation_wait_begins', 'x': 300, 'y': 100, 'label': "Waiting for<br>Stabilisation" },
+                {'event': 'TRAUMA_stabilisation_begins', 'x': 300, 'y': 185, 'resource':'n_trauma', 'label': "Being<br>Stabilised" },
 
-                {'event': 'TRAUMA_treatment_wait_begins', 'x': 400, 'y': 450, 'label': "Waiting for Treatment (Trauma)" },
-                {'event': 'TRAUMA_treatment_begins', 'x': 450, 'y': 475, 'resource':'n_cubicles_2', 'label': "Being Treated (Trauma)" }
+                {'event': 'TRAUMA_treatment_wait_begins', 'x': 630, 'y': 100, 'label': "Waiting for<br>Treatment" },
+                {'event': 'TRAUMA_treatment_begins', 'x': 630, 'y': 185, 'resource':'n_cubicles_2', 'label': "Being<br>Treated" }
             ])
 
             st.plotly_chart(animate_activity_log(
@@ -345,8 +344,16 @@ with tab3:
                     event_position_df = event_position_df,
                     scenario=args,
                     include_play_button=True,
-                    return_df_only=False
-            ), use_container_width=True)
+                    return_df_only=False,
+                    plotly_height=900,
+                    plotly_width=1600,
+                    override_x_max=700,
+                    override_y_max=675,
+                    icon_and_text_size=24,
+                    display_stage_labels=False,
+                    add_background_image="https://raw.githubusercontent.com/Bergam0t/Teaching_DES_Concepts_Streamlit/main/resources/Full%20Model%20Background%20Image%20-%20Horizontal%20Layout.drawio.png",
+            ), 
+            use_container_width=False)
 
             # Uncomment if debugging animated event log
             # st.write(

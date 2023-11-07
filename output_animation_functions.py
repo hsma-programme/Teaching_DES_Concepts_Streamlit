@@ -114,9 +114,15 @@ def animate_activity_log(
         scenario,
         rep=1,
         plotly_height=900,
+        plotly_width=None,
         wrap_queues_at = None,
         include_play_button=False,
-        return_df_only=False      
+        return_df_only=False,
+        add_background_image=None,
+        display_stage_labels=True,
+        icon_and_text_size=24,
+        override_x_max=None,
+        override_y_max=None       
         ):
     """_summary_
 
@@ -172,6 +178,18 @@ def animate_activity_log(
     
     if return_df_only:
         return full_patient_df_plus_pos
+    
+    
+    if override_x_max is not None:
+        x_max = override_x_max
+    else:
+        x_max = event_position_df['x'].max()*1.25
+
+    if override_y_max is not None:
+        y_max = override_x_max
+    else:
+        y_max = event_position_df['y'].max()*1.1
+
 
 
     full_patient_df_plus_pos['size'] = 24
@@ -191,27 +209,29 @@ def animate_activity_log(
             #    symbol="rep",
             #    symbol_sequence=["⚽"],
             #symbol_map=dict(rep_choice = "⚽"),
-            range_x=[0, event_position_df['x'].max()*1.25], 
-            range_y=[0, [0, event_position_df['y'].max()*1.1]],
+            range_x=[0, x_max], 
+            range_y=[0, y_max],
             height=plotly_height,
+            width=plotly_width
             #    size="size"
             )
 
 
     
     # Now add labels identifying each stage
-    fig.add_trace(go.Scatter(
-        x=event_position_df['x'].to_list(),
-        y=event_position_df['y'].to_list(),
-        mode="text",
-        name="",
-        text=event_position_df['label'].to_list(),
-        textposition="middle right",
-        hoverinfo='none'
-    ))
+    if display_stage_labels:
+        fig.add_trace(go.Scatter(
+            x=[pos+10 for pos in event_position_df['x'].to_list()],
+            y=event_position_df['y'].to_list(),
+            mode="text",
+            name="",
+            text=event_position_df['label'].to_list(),
+            textposition="middle right",
+            hoverinfo='none'
+        ))
 
     # Update the size of the icons and labels
-    fig.update_traces(textfont_size=24)
+    fig.update_traces(textfont_size=icon_and_text_size)
 
     events_with_resources = event_position_df[event_position_df['resource'].notnull()].copy()
     
@@ -240,9 +260,27 @@ def animate_activity_log(
         # textposition="middle right"
     ))
 
+    if add_background_image is not None:
+        fig.add_layout_image(
+            dict(
+                source=add_background_image,
+                xref="x domain",
+                yref="y domain",
+                x=1,
+                y=1,
+                sizex=1,
+                sizey=1,
+                xanchor="right",
+                yanchor="top",
+                sizing="stretch",
+                opacity=0.5,
+                layer="below")
+    )
+
+
     fig.update_xaxes(showticklabels=False, showgrid=False, zeroline=False)
     fig.update_yaxes(showticklabels=False, showgrid=False, zeroline=False)
-    fig.update_layout(yaxis_title=None, xaxis_title=None)
+    fig.update_layout(yaxis_title=None, xaxis_title=None, showlegend=False)
 
     if not include_play_button:
         fig["layout"].pop("updatemenus")
