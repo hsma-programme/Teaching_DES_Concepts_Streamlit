@@ -40,10 +40,10 @@ from distribution_classes import (
 # Distribution parameters
 
 # sign-in/triage parameters
-DEFAULT_TRIAGE_MEAN = 3.0
+DEFAULT_TRIAGE_MEAN = 6.0
 
 # registration parameters
-DEFAULT_REG_MEAN = 5.0
+DEFAULT_REG_MEAN = 8.0
 DEFAULT_REG_VAR = 2.0
 
 # examination parameters
@@ -749,7 +749,7 @@ class NonTraumaPathway(object):
             self.full_event_log.append(
                 {'patient': self.identifier,
                  'pathway': 'Non-Trauma',
-                 'event_type': 'resource_use_end',
+                 'event_type': 'resource_use',
                  'event': 'MINORS_registration_begins',
                  'time': self.env.now}
             )
@@ -1761,6 +1761,286 @@ class TreatmentCentreModelSimpleNurseStepOnly:
 # UNFINISHED
 
 class SimplePathway(object):
+    '''
+    Encapsulates the process a patient with minor injuries and illness.
+
+    These patients are arrived, then seen and treated by a nurse as soon as one is available.
+    No place-based resources are considered in this pathway.
+
+    Following treatment they are discharged.
+    '''
+
+    def __init__(self, identifier, env, args, full_event_log):
+        '''
+        Constructor method
+
+        Params:
+        -----
+        identifier: int
+            a numeric identifier for the patient.
+
+        env: simpy.Environment
+            the simulation environment
+
+        args: Scenario
+            Container class for the simulation parameters
+
+        '''
+        self.identifier = identifier
+        self.env = env
+        self.args = args
+        self.full_event_log = full_event_log
+
+        # metrics
+        self.arrival = -np.inf
+        self.wait_treat = -np.inf
+        self.total_time = -np.inf
+
+        self.treat_duration = -np.inf
+
+    def execute(self):
+        '''
+        simulates the simplest minor treatment process for a patient
+
+        1. Arrive
+        2. Examined/treated by nurse when one available
+        3. Discharged
+        '''
+        # record the time of arrival and entered the triage queue
+        self.arrival = self.env.now
+        self.full_event_log.append(
+            {'patient': self.identifier,
+             'pathway': 'Simplest',
+             'event_type': 'arrival_departure',
+             'event': 'arrival',
+             'time': self.env.now}
+        )
+
+        # request examination resource
+        start_wait = self.env.now
+        self.full_event_log.append(
+            {'patient': self.identifier,
+             'pathway': 'Simplest',
+             'event': 'treatment_wait_begins',
+             'event_type': 'queue',
+             'time': self.env.now}
+        )
+
+        with self.args.treatment.request() as req:
+            yield req
+
+            # record the waiting time for registration
+            self.wait_treat = self.env.now - start_wait
+            trace(f'treatment of patient {self.identifier} begins '
+                  f'{self.env.now:.3f}')
+            self.full_event_log.append(
+                {'patient': self.identifier,
+                 'pathway': 'Simplest',
+                 'event': 'treatment_begins',
+                 'event_type': 'resource_use',
+                 'time': self.env.now}
+            )
+
+            # sample examination duration.
+            self.treat_duration = self.args.treat_dist.sample()
+            yield self.env.timeout(self.treat_duration)
+
+            trace(f'patient {self.identifier} nurse exam/treatment complete '
+                  f'at {self.env.now:.3f};'
+                  f'waiting time was {self.wait_treat:.3f}')
+            self.full_event_log.append(
+                {'patient': self.identifier,
+                 'pathway': 'Simplest',
+                 'event': 'treatment_complete',
+                 'event_type': 'resource_use_end',
+                 'time': self.env.now}
+            )
+
+        # total time in system
+        self.total_time = self.env.now - self.arrival
+        self.full_event_log.append(
+            {'patient': self.identifier,
+            'pathway': 'Simplest',
+            'event': 'depart',
+            'event_type': 'arrival_departure',
+            'time': self.env.now}
+        )
+
+
+
+class TreatmentCentreModelSimpleBranchedPathway:
+    '''
+    The treatment centre model
+
+    Patients arrive at random to a treatment centre, see a nurse, then either require treatment or depart the system immediately.
+
+    The main class that a user interacts with to run the model is
+    `TreatmentCentreModel`.  This implements a `.run()` method, contains a simple
+    algorithm for the non-stationary poission process for patients arrivals and
+    inits instances of the nurse pathway.
+
+    '''
+
+    def __init__(self, args):
+        self.env = simpy.Environment()
+        self.args = args
+        self.init_resources()
+
+        self.patients = []
+
+        self.rc_period = None
+        self.results = None
+
+        self.full_event_log = []
+        self.utilisation_audit = []
+
+    def init_resources(self):
+        '''
+        Init the number of resources
+        and store in the arguments container object
+
+        Resource list:
+            1. Nurses/treatment bays (same thing in this model)
+
+        '''
+        # examination
+        self.args.treatment = simpy.Resource(self.env,
+                                        capacity=self.args.n_cubicles_1)
+
+    def run(self, results_collection_period=DEFAULT_RESULTS_COLLECTION_PERIOD):
+        '''
+        Conduct a single run of the model in its current
+        configuration
+
+
+        Parameters:
+        ----------
+        results_collection_period, float, optional
+            default = DEFAULT_RESULTS_COLLECTION_PERIOD
+
+        warm_up, float, optional (default=0)
+
+            length of initial transient period to truncate
+            from results.
+
+        Returns:
+        --------
+            None
+        '''
+        # setup the arrival generator process
+        self.env.process(self.arrivals_generator())
+
+        # resources_list = [
+        #     {'resource_name': 'treatment_cubicle_or_nurse',
+        #         'resource_object': self.args.n_cubicles_1}
+        # ]
+
+        # self.env.process(
+        #     self.interval_audit_utilisation(
+        #         resources=resources_list,
+        #         interval=5
+        #     )
+        # )
+
+        # store rc perio
+        self.rc_period = results_collection_period
+
+        # run
+        self.env.run(until=results_collection_period)
+
+    def interval_audit_utilisation(self, resources, interval=1):
+        '''
+        Record utilisation at defined intervals. 
+
+        Needs to be passed to env.process when running model
+
+        Parameters:
+        ------
+        resource: SimPy resource object
+            The resource to monitor
+            OR 
+            a list of dictionaries containing simpy resource objects in the format
+            [{'resource_name':'my_resource', 'resource_object': resource}]
+
+        interval: int:
+            Time between audits. 
+            1 unit of time is 1 day in this model.  
+        '''
+
+        while True:
+            # Record time
+            if isinstance(resources, list):
+                for i in range(len(resources)):
+                    self.utilisation_audit.append({
+                        'resource_name': resources[i]['resource_name'],
+                        'simulation_time': self.env.now,  # The current simulation time
+                        # The number of users
+                        'number_utilised': resources[i]['resource_object'].count,
+                        'number_available': resources[i]['resource_object'].capacity,
+                        # The number of queued processes
+                        'number_queued': len(resources[i]['resource_object'].queue),
+                    })
+
+            else:
+                self.utilisation_audit.append({
+                    # 'simulation_time': resource._env.now,
+                    'simulation_time': self.env.now,  # The current simulation time
+                    'number_utilised': resources.count,  # The number of users
+                    'number_available': resources.capacity,
+                    # The number of queued processes
+                    'number_queued': len(resources.queue),
+                })
+
+            # Trigger next audit after interval
+            yield self.env.timeout(interval)
+
+    def arrivals_generator(self):
+        '''
+        Simulate the arrival of patients to the model
+
+        Patients follow the SimplePathway process.
+
+        Non stationary arrivals implemented via Thinning acceptance-rejection
+        algorithm.
+        '''
+        for patient_count in itertools.count():
+
+            # this give us the index of dataframe to use
+            t = int(self.env.now // 60) % self.args.arrivals.shape[0]
+            lambda_t = self.args.arrivals['arrival_rate'].iloc[t]
+
+            # set to a large number so that at least 1 sample taken!
+            u = np.Inf
+
+            interarrival_time = 0.0
+
+            # reject samples if u >= lambda_t / lambda_max
+            while u >= (lambda_t / self.args.lambda_max):
+                interarrival_time += self.args.arrival_dist.sample()
+                u = self.args.thinning_rng.sample()
+
+            # iat
+            yield self.env.timeout(interarrival_time)
+
+            trace(f'patient {patient_count} arrives at: {self.env.now:.3f}')
+            # self.full_event_log.append(
+            #     {'patient': patient_count,
+            #      'pathway': 'Simplest',
+            #      'event': 'arrival',
+            #      'event_type': 'arrival_departure',
+            #      'time': self.env.now}
+            # )
+
+            # Generate the patient
+            new_patient = SimplePathway(patient_count, self.env, self.args, self.full_event_log)
+            self.patients.append(new_patient)
+            # start the pathway process for the patient
+            self.env.process(new_patient.execute())
+
+
+# UNFINISHED
+
+class SimpleBranchedPathway(object):
     '''
     Encapsulates the process a patient with minor injuries and illness.
 

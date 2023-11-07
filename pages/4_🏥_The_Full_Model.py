@@ -258,7 +258,8 @@ with tab3:
                 full_event_log=full_event_log[
                     (full_event_log['rep']==1) &
                     ((full_event_log['event_type']=='queue') | (full_event_log['event_type']=='resource_use')  | (full_event_log['event_type']=='arrival_departure'))
-                ]
+                ],
+                every_x_minutes=5
             )
         # st.write(results.reset_index())
 
@@ -318,25 +319,25 @@ with tab3:
                 # {'event': 'arrival', 'x':  10, 'y': 250, 'label': "Arrival" },
                 
                 # Triage - minor and trauma                
-                {'event': 'triage_wait_begins', 'x':  160, 'y': 500, 'label': "Waiting for<br>Triage"  },
-                {'event': 'triage_begins', 'x':  160, 'y': 300, 'resource':'n_triage', 'label': "Being Triaged" },
+                {'event': 'triage_wait_begins', 'x':  160, 'y': 400, 'label': "Waiting for<br>Triage"  },
+                {'event': 'triage_begins', 'x':  160, 'y': 315, 'resource':'n_triage', 'label': "Being Triaged" },
             
                 # Minors (non-trauma) pathway 
-                {'event': 'MINORS_registration_wait_begins', 'x':  300, 'y': 620, 'label': "Waiting for<br>Registration"  },
-                {'event': 'MINORS_registration_begins', 'x':  300, 'y': 500, 'resource':'n_reg', 'label':'Being<br>Registered'  },
+                {'event': 'MINORS_registration_wait_begins', 'x':  310, 'y': 580, 'label': "Waiting for<br>Registration"  },
+                {'event': 'MINORS_registration_begins', 'x':  300, 'y': 510, 'resource':'n_reg', 'label':'Being<br>Registered'  },
 
-                {'event': 'MINORS_examination_wait_begins', 'x':  465, 'y': 620, 'label': "Waiting for<br>Examination"  },
-                {'event': 'MINORS_examination_begins', 'x':  465, 'y': 500, 'resource':'n_exam', 'label': "Being<br>Examined" },
+                {'event': 'MINORS_examination_wait_begins', 'x':  475, 'y': 580, 'label': "Waiting for<br>Examination"  },
+                {'event': 'MINORS_examination_begins', 'x':  465, 'y': 510, 'resource':'n_exam', 'label': "Being<br>Examined" },
 
-                {'event': 'MINORS_treatment_wait_begins', 'x':  630, 'y': 620, 'label': "Waiting for<br>Treatment"  },
-                {'event': 'MINORS_treatment_begins', 'x':  630, 'y': 500, 'resource':'n_cubicles_1', 'label': "Being<br>Treated" },
+                {'event': 'MINORS_treatment_wait_begins', 'x':  640, 'y': 580, 'label': "Waiting for<br>Treatment"  },
+                {'event': 'MINORS_treatment_begins', 'x':  630, 'y': 510, 'resource':'n_cubicles_1', 'label': "Being<br>Treated" },
 
                 # Trauma pathway
-                {'event': 'TRAUMA_stabilisation_wait_begins', 'x': 300, 'y': 100, 'label': "Waiting for<br>Stabilisation" },
-                {'event': 'TRAUMA_stabilisation_begins', 'x': 300, 'y': 185, 'resource':'n_trauma', 'label': "Being<br>Stabilised" },
+                {'event': 'TRAUMA_stabilisation_wait_begins', 'x': 300, 'y': 90, 'label': "Waiting for<br>Stabilisation" },
+                {'event': 'TRAUMA_stabilisation_begins', 'x': 300, 'y': 210, 'resource':'n_trauma', 'label': "Being<br>Stabilised" },
 
-                {'event': 'TRAUMA_treatment_wait_begins', 'x': 630, 'y': 100, 'label': "Waiting for<br>Treatment" },
-                {'event': 'TRAUMA_treatment_begins', 'x': 630, 'y': 185, 'resource':'n_cubicles_2', 'label': "Being<br>Treated" }
+                {'event': 'TRAUMA_treatment_wait_begins', 'x': 630, 'y': 90, 'label': "Waiting for<br>Treatment" },
+                {'event': 'TRAUMA_treatment_begins', 'x': 630, 'y': 210, 'resource':'n_cubicles_2', 'label': "Being<br>Treated" }
             ])
 
             st.plotly_chart(animate_activity_log(
@@ -351,6 +352,7 @@ with tab3:
                     override_y_max=675,
                     icon_and_text_size=24,
                     display_stage_labels=False,
+                    wrap_queues_at=10,
                     add_background_image="https://raw.githubusercontent.com/Bergam0t/Teaching_DES_Concepts_Streamlit/main/resources/Full%20Model%20Background%20Image%20-%20Horizontal%20Layout.drawio.png",
             ), 
             use_container_width=False)
