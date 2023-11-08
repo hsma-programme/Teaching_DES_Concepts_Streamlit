@@ -323,21 +323,21 @@ with tab3:
                 {'event': 'triage_begins', 'x':  160, 'y': 315, 'resource':'n_triage', 'label': "Being Triaged" },
             
                 # Minors (non-trauma) pathway 
-                {'event': 'MINORS_registration_wait_begins', 'x':  310, 'y': 580, 'label': "Waiting for<br>Registration"  },
-                {'event': 'MINORS_registration_begins', 'x':  300, 'y': 510, 'resource':'n_reg', 'label':'Being<br>Registered'  },
+                {'event': 'MINORS_registration_wait_begins', 'x':  300, 'y': 145, 'label': "Waiting for<br>Registration"  },
+                {'event': 'MINORS_registration_begins', 'x':  300, 'y': 85, 'resource':'n_reg', 'label':'Being<br>Registered'  },
 
-                {'event': 'MINORS_examination_wait_begins', 'x':  475, 'y': 580, 'label': "Waiting for<br>Examination"  },
-                {'event': 'MINORS_examination_begins', 'x':  465, 'y': 510, 'resource':'n_exam', 'label': "Being<br>Examined" },
+                {'event': 'MINORS_examination_wait_begins', 'x':  465, 'y': 145, 'label': "Waiting for<br>Examination"  },
+                {'event': 'MINORS_examination_begins', 'x':  465, 'y': 85, 'resource':'n_exam', 'label': "Being<br>Examined" },
 
-                {'event': 'MINORS_treatment_wait_begins', 'x':  640, 'y': 580, 'label': "Waiting for<br>Treatment"  },
-                {'event': 'MINORS_treatment_begins', 'x':  630, 'y': 510, 'resource':'n_cubicles_1', 'label': "Being<br>Treated" },
+                {'event': 'MINORS_treatment_wait_begins', 'x':  630, 'y': 145, 'label': "Waiting for<br>Treatment"  },
+                {'event': 'MINORS_treatment_begins', 'x':  630, 'y': 85, 'resource':'n_cubicles_1', 'label': "Being<br>Treated" },
 
                 # Trauma pathway
-                {'event': 'TRAUMA_stabilisation_wait_begins', 'x': 300, 'y': 90, 'label': "Waiting for<br>Stabilisation" },
-                {'event': 'TRAUMA_stabilisation_begins', 'x': 300, 'y': 210, 'resource':'n_trauma', 'label': "Being<br>Stabilised" },
+                {'event': 'TRAUMA_stabilisation_wait_begins', 'x': 300, 'y': 560, 'label': "Waiting for<br>Stabilisation" },
+                {'event': 'TRAUMA_stabilisation_begins', 'x': 300, 'y': 500, 'resource':'n_trauma', 'label': "Being<br>Stabilised" },
 
-                {'event': 'TRAUMA_treatment_wait_begins', 'x': 630, 'y': 90, 'label': "Waiting for<br>Treatment" },
-                {'event': 'TRAUMA_treatment_begins', 'x': 630, 'y': 210, 'resource':'n_cubicles_2', 'label': "Being<br>Treated" }
+                {'event': 'TRAUMA_treatment_wait_begins', 'x': 630, 'y': 560, 'label': "Waiting for<br>Treatment" },
+                {'event': 'TRAUMA_treatment_begins', 'x': 630, 'y': 500, 'resource':'n_cubicles_2', 'label': "Being<br>Treated" }
             ])
 
             st.plotly_chart(animate_activity_log(
