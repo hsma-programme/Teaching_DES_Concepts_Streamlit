@@ -10,16 +10,16 @@
     <title>stlite app</title>
     <link
       rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/@stlite/mountable@0.39.0/build/stlite.css"
+      href="https://cdn.jsdelivr.net/npm/@stlite/mountable@0.42.0/build/stlite.css"
     />
   </head>
   <body>
     <div id="root"></div>
-    <script src="https://cdn.jsdelivr.net/npm/@stlite/mountable@0.39.0/build/stlite.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@stlite/mountable@0.42.0/build/stlite.js"></script>
     <script>
       stlite.mount(
   {
-    requirements: ["plotly", "pandas", "simpy"],
+    // requirements: ["pandas", "simpy"],
     entrypoint: "Introduction.py",
     files: {
       "Introduction.py": `
@@ -114,19 +114,7 @@ st.markdown(
 
 
 `
-// ,
-//       "pages/1_🚶‍♂️_Simulating_Arrivals.py": `
-// import streamlit as st
 
-// st.set_page_config(page_title="Simulating Arrivals")
-// st.title("Simulating Arrivals")
-// `,
-//       "pages/4_🏥_The_Full_Model.py": `
-// import streamlit as st
-
-// st.set_page_config(page_title="The Full Model")
-// st.title("The Full Model")
-// `,
     },
   },
   document.getElementById("root")
