@@ -72,8 +72,7 @@ DEFAULT_PROB_TRAUMA = 0.12
 # The data for arrival rates varies between clinic opening at 6am and closure at
 # 12am.
 
-NSPP_PATH = 'https://raw.githubusercontent.com/TomMonks/' \
-    + 'open-science-for-sim/main/src/notebooks/01_foss_sim/data/ed_arrivals.csv'
+NSPP_PATH = 'resources/ed_arrivals.csv'
 
 OVERRIDE_ARRIVAL_LAMBDA = False
 MANUAL_ARRIVAL_LAMBDA_VALUE = 1
@@ -159,6 +158,17 @@ def trace(msg):
     if TRACE:
         print(msg)
 
+class ResourceWithID():
+    """
+    A resource class where each resouce has a unique ID
+    """
+
+    next_id = 1
+
+    def __init__(self):
+
+        self.id = ResourceWithID.next_id
+        ResourceWithID.next_id += 1
 
 # def patch_resource(resource, pre=None, post=None):
 #     """
@@ -506,7 +516,9 @@ class TraumaPathway:
                  'pathway': 'Trauma',
                  'event_type': 'resource_use',
                  'event': 'triage_begins',
-                 'time': self.env.now}
+                 'time': self.env.now,
+                 'resource_id': self.args.triage.users.index(req)
+                 }
             )
 
             # sample triage duration.
@@ -533,7 +545,9 @@ class TraumaPathway:
                  'pathway': 'Trauma',
                  'event_type': 'resource_use',
                  'event': 'TRAUMA_stabilisation_begins',
-                 'time': self.env.now}
+                 'time': self.env.now,
+                 'resource_id': self.args.trauma.users.index(req)
+                 }
             )
 
             # record the waiting time for trauma
@@ -568,7 +582,9 @@ class TraumaPathway:
                  'pathway': 'Trauma',
                  'event_type': 'resource_use',
                  'event': 'TRAUMA_treatment_begins',
-                 'time': self.env.now}
+                 'time': self.env.now,
+                 'resource_id': self.args.cubicle_2.users.index(req)
+                 }
             )
 
             # sample treatment duration.
@@ -711,7 +727,9 @@ class NonTraumaPathway(object):
                  'pathway': 'Non-Trauma',
                  'event_type': 'resource_use',
                  'event': 'triage_begins',
-                 'time': self.env.now}
+                 'time': self.env.now,
+                 'resource_id': self.triage.users.index(req)
+                 }
             )
 
             # sample triage duration.
@@ -740,7 +758,9 @@ class NonTraumaPathway(object):
 
         # request registration clerk
         with self.args.registration.request() as req:
+            req_id = req
             yield req
+            
 
             # record the waiting time for registration
             self.wait_reg = self.env.now - start_wait
@@ -751,7 +771,11 @@ class NonTraumaPathway(object):
                  'pathway': 'Non-Trauma',
                  'event_type': 'resource_use',
                  'event': 'MINORS_registration_begins',
-                 'time': self.env.now}
+                 'time': self.env.now,
+                 'resource_id': self.args.registration.users.index(req_id),
+                 'resource_users': str(self.args.registration.users),
+                 'request': str(req)
+                 }
             )
 
             # sample registration duration.
@@ -793,7 +817,9 @@ class NonTraumaPathway(object):
                  'pathway': 'Non-Trauma',
                  'event': 'MINORS_examination_begins',
                  'event_type': 'resource_use',
-                 'time': self.env.now}
+                 'time': self.env.now,
+                 'resource_id': self.args.exam.users.index(req)
+                 }
             )
 
             # sample examination duration.
@@ -847,7 +873,9 @@ class NonTraumaPathway(object):
                      'pathway': 'Non-Trauma',
                      'event': 'MINORS_treatment_begins',
                      'event_type': 'resource_use',
-                     'time': self.env.now}
+                     'time': self.env.now,
+                     'resource_id': self.args.cubicle_1.users.index(req)
+                 }
                 )
 
                 # sample treatment duration.
@@ -922,6 +950,7 @@ class TreatmentCentreModel:
         6. trauma cubicles (2)
 
         '''
+
         # sign/in triage
         self.args.triage = simpy.Resource(self.env,
                                           capacity=self.args.n_triage)
@@ -1838,7 +1867,9 @@ class SimplePathway(object):
                  'pathway': 'Simplest',
                  'event': 'treatment_begins',
                  'event_type': 'resource_use',
-                 'time': self.env.now}
+                 'time': self.env.now,
+                 'resource_id': self.args.treatment.users.index(req)
+                 }
             )
 
             # sample examination duration.
@@ -2118,7 +2149,9 @@ class SimpleBranchedPathway(object):
                  'pathway': 'Simplest',
                  'event': 'treatment_begins',
                  'event_type': 'resource_use',
-                 'time': self.env.now}
+                 'time': self.env.now,
+                 'resource_id': self.args.treatment.users.index(req)
+                 }
             )
 
             # sample examination duration.
@@ -2145,3 +2178,5 @@ class SimpleBranchedPathway(object):
             'event_type': 'arrival_departure',
             'time': self.env.now}
         )
+
+
