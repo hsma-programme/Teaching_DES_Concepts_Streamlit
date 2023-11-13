@@ -205,11 +205,11 @@ with tab3:
             detailed_outputs = multiple_replications(
                 args,
                 n_reps=n_reps,
-                rc_period=30*60*24,
+                rc_period=15*60*24,
                 return_detailed_logs=True
             )
 
-            my_bar.progress(0.4, text="Collating Simulation Outputs...")
+            my_bar.progress(40, text="Collating Simulation Outputs...")
 
 
             results = pd.concat([detailed_outputs[i]['results']['summary_df'].assign(rep= i+1)
@@ -218,7 +218,7 @@ with tab3:
             full_event_log = pd.concat([detailed_outputs[i]['results']['full_event_log'].assign(rep= i+1)
                                         for i in range(n_reps)])
             
-            my_bar.progress(0.4, text="Logging Results...")
+            my_bar.progress(60, text="Logging Results...")
 
             # print(len(st.session_state['session_results']))
             # results_for_state = pd.DataFrame(results.median()).T.drop(['Rep'], axis=1)
@@ -264,7 +264,7 @@ with tab3:
             #     ]
             # )
 
-            my_bar.progress(0.8, text="Creating Animations...")
+            my_bar.progress(80, text="Creating Animations...")
 
             animation_dfs_log = reshape_for_animations(
                 full_event_log=full_event_log[
@@ -276,7 +276,7 @@ with tab3:
 
         del full_event_log
         gc.collect()
-        my_bar.progress(1, text="Simulation Complete!")
+        my_bar.progress(100, text="Simulation Complete!")
         # st.write(results.reset_index())
 
         # st.write(pd.wide_to_long(results, stubnames=['util', 'wait'],
