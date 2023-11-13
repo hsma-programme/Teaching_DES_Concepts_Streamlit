@@ -198,6 +198,7 @@ with tab3:
         # add a spinner and then display success box
         with st.spinner('Simulating the minor injuries unit...'):
             await asyncio.sleep(0.1)
+            st.toast("Simulating the minor injuries unit", icon=None)
             # run multiple replications of experment
             detailed_outputs = multiple_replications(
                 args,
@@ -205,6 +206,8 @@ with tab3:
                 rc_period=30*60*24,
                 return_detailed_logs=True
             )
+
+            st.toast("Collecting the Results", icon=None)
 
             results = pd.concat([detailed_outputs[i]['results']['summary_df'].assign(rep= i+1)
                                         for i in range(n_reps)]).set_index('rep')
@@ -280,7 +283,8 @@ with tab3:
         tab_playground_results_1, tab_playground_results_2, tab_playground_results_3  = st.tabs([
             'Utilisation and Wait Metrics',
             'Animated Model',
-            'Utilisation over Time'])
+            'Utilisation over Time'
+            ])
 
         # st.subheader("Look at Average Results Across Replications")
 
