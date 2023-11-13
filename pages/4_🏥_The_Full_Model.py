@@ -196,7 +196,7 @@ with tab3:
 
         # add a spinner and then display success box
         with st.spinner('Simulating the minor injuries unit...'):
-            await asyncio.sleep(0.1)
+            asyncio.sleep(0.1)
             # run multiple replications of experment
             detailed_outputs = multiple_replications(
                 args,
