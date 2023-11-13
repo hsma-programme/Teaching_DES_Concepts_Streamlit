@@ -11,6 +11,7 @@ from model_classes import Scenario, multiple_replications
 from output_animation_functions import reshape_for_animations, animate_queue_activity_bar_chart, animate_activity_log
 # from st_pages import show_pages_from_config, add_page_title
 import plotly.express as px
+import gc
 
 st.set_page_config(
      page_title="The Full Model",
@@ -236,17 +237,18 @@ with tab3:
 
             results_for_state = results_for_state[column_order]
 
-
             current_state = st.session_state['session_results']
 
             current_state.append(results_for_state)
+            del results_for_state
 
             st.session_state['session_results'] = current_state
 
             # print(len(st.session_state['session_results']))
 
-            full_utilisation_audit = pd.concat([detailed_outputs[i]['results']['utilisation_audit'].assign(Rep= i+1)
-                                    for i in range(n_reps)])
+            # UTILISATION AUDIT - BRING BACK WHEN NEEDED
+            # full_utilisation_audit = pd.concat([detailed_outputs[i]['results']['utilisation_audit'].assign(Rep= i+1)
+            #                         for i in range(n_reps)])
             
             # animation_dfs_queue = reshape_for_animations(
             #     full_event_log[
@@ -262,25 +264,27 @@ with tab3:
                 ],
                 every_x_minutes=5
             )
+
+        del full_event_log
+        gc.collect()
         # st.write(results.reset_index())
 
-        # st.write(pd.wide_to_long(results, stubnames=['util', 'wait'], i="rep", j="metric_type",         
+        # st.write(pd.wide_to_long(results, stubnames=['util', 'wait'],
+        #                          i="rep", j="metric_type",
         #                          sep='_', suffix='.*'))
 
         # st.write(results.reset_index().melt(id_vars="rep").set_index('variable').filter(like="util", axis=0))
 
         # Add in a box plot showing utilisation
-        
-        tab_playground_results_1, tab_playground_results_2, tab_playground_results_3, tab_playground_results_4, tab_playground_results_5  = st.tabs(['Utilisation and Wait Metrics',
-                                                                                        'Animated Model',
-                                                                                        'Animated Resource Utilisation',
-                                                                                        'Animated Queue Sizes',
-                                                                                        'Utilisation over Time'])
-        
+
+        tab_playground_results_1, tab_playground_results_2, tab_playground_results_3  = st.tabs([
+            'Utilisation and Wait Metrics',
+            'Animated Model',
+            'Utilisation over Time'])
+
         # st.subheader("Look at Average Results Across Replications")
 
         with tab_playground_results_1:
-            
 
             col_res_1, col_res_2 = st.columns(2)
 
@@ -377,95 +381,10 @@ with tab3:
         # st.write(animation_dfs_log['full_patient_df'].sort_values(['minute', 'event'])[['minute', 'event', 'patient', 'resource_id', 'resource_users', 'request']]
                 #  )
 
+    with tab_playground_results_3:
+        st.markdown("Placeholder")
 
-        with tab_playground_results_3:
-            st.markdown("Placeholder")
-
-        with tab_playground_results_4:
-            st.markdown("Placeholder")
-            # st.plotly_chart(
-                
-            #     animate_queue_activity_bar_chart(
-            #         minute_counts_df_complete=animation_dfs_queue['minute_counts_df_complete'],
-            #         event_order= ['arrival', 
-            #                       'triage_wait_begins', 
-
-            #                       'MINORS_registration_wait_begins',            
-            #                       'MINORS_examination_wait_begins',
-                                  
-
-            #                       'TRAUMA_stabilisation_wait_begins', 
-                                  
-            #                       'MINORS_treatment_wait_begins', 
-            #                       'TRAUMA_treatment_wait_begins'
-            #                         ]
-            #         ),
-                    
-            #         use_container_width=True
-            #         )
-            
-            
-
-        with tab_playground_results_5:
-            st.markdown("Placeholder")
-            # tab1a, tab1b = st.tabs(["Facet by Replication", "Facet by Resource"])
-
-            # with tab1a:
-            #     fig_util_line_chart = px.line(full_utilisation_audit,
-            #             x="simulation_time",
-            #             y="number_utilised", 
-            #             color= "resource_name",
-            #             facet_col="Rep", 
-            #             facet_col_wrap=2,
-            #             height=900
-            #             )
-            #     fig_util_line_chart.update_traces(line=dict(width=0.5))
-            #     # write(results.filter(like="wait", axis=1).merge(results.filter(like="util", axis=1),left_index=True,right_index=True).reset_index().melt(id_vars=["rep"]))
-
-            #     st.plotly_chart(
-            #         fig_util_line_chart,
-            #         use_container_width=True
-            #     )
-
-            #     with tab1b:
-            #         fig_util_line_chart = px.line(full_utilisation_audit,
-            #             x="simulation_time",
-            #             y="number_utilised", 
-            #             color= "Rep",
-            #             facet_col="resource_name", 
-            #             facet_col_wrap=1,
-            #             height=900
-            #             )
-            #         fig_util_line_chart.update_traces(line=dict(width=0.5))
-            #         # write(results.filter(like="wait", axis=1).merge(results.filter(like="util", axis=1),left_index=True,right_index=True).reset_index().melt(id_vars=["rep"]))
-
-            #         st.plotly_chart(
-            #             fig_util_line_chart,
-            #             use_container_width=True
-            #         )
-
-
-
-        
-
-# results_pivoted = pd.concat([results.filter(like="wait", axis=1).reset_index().melt(id_vars=["rep"]).assign(what="Wait"),
-#            results.filter(like="util", axis=1).reset_index().melt(id_vars=["rep"]).assign(what="Utilisation")])
-
-# results_pivoted['metric_group'] = results_pivoted['variable'].str.extract("(\d{2})")
-
-# st.plotly_chart(
-
-#             px.box(
-#                 results.filter(like="wait", axis=1) \
-#                     .merge(results.filter(like="util", axis=1),left_index=True,right_index=True) \
-#                     .reset_index() \
-#                     .melt(id_vars=["rep"])
-                
-#             )
-
-#         )
-
-
+# Create area for exploring all session results
 with tab4:
     if len(st.session_state['session_results']) > 0:
 
