@@ -248,12 +248,12 @@ with tab3:
             full_utilisation_audit = pd.concat([detailed_outputs[i]['results']['utilisation_audit'].assign(Rep= i+1)
                                     for i in range(n_reps)])
             
-            animation_dfs_queue = reshape_for_animations(
-                full_event_log[
-                    (full_event_log['rep']==1) &
-                    ((full_event_log['event_type']=='queue') | (full_event_log['event_type']=='arrival_departure'))
-                ]
-            )
+            # animation_dfs_queue = reshape_for_animations(
+            #     full_event_log[
+            #         (full_event_log['rep']==1) &
+            #         ((full_event_log['event_type']=='queue') | (full_event_log['event_type']=='arrival_departure'))
+            #     ]
+            # )
 
             animation_dfs_log = reshape_for_animations(
                 full_event_log=full_event_log[
@@ -382,66 +382,67 @@ with tab3:
             st.markdown("Placeholder")
 
         with tab_playground_results_4:
-
-            st.plotly_chart(
+            st.markdown("Placeholder")
+            # st.plotly_chart(
                 
-                animate_queue_activity_bar_chart(
-                    minute_counts_df_complete=animation_dfs_queue['minute_counts_df_complete'],
-                    event_order= ['arrival', 
-                                  'triage_wait_begins', 
+            #     animate_queue_activity_bar_chart(
+            #         minute_counts_df_complete=animation_dfs_queue['minute_counts_df_complete'],
+            #         event_order= ['arrival', 
+            #                       'triage_wait_begins', 
 
-                                  'MINORS_registration_wait_begins',            
-                                  'MINORS_examination_wait_begins',
+            #                       'MINORS_registration_wait_begins',            
+            #                       'MINORS_examination_wait_begins',
                                   
 
-                                  'TRAUMA_stabilisation_wait_begins', 
+            #                       'TRAUMA_stabilisation_wait_begins', 
                                   
-                                  'MINORS_treatment_wait_begins', 
-                                  'TRAUMA_treatment_wait_begins'
-                                    ]
-                    ),
+            #                       'MINORS_treatment_wait_begins', 
+            #                       'TRAUMA_treatment_wait_begins'
+            #                         ]
+            #         ),
                     
-                    use_container_width=True
-                    )
+            #         use_container_width=True
+            #         )
             
             
 
         with tab_playground_results_5:
-            tab1a, tab1b = st.tabs(["Facet by Replication", "Facet by Resource"])
+            st.markdown("Placeholder")
+            # tab1a, tab1b = st.tabs(["Facet by Replication", "Facet by Resource"])
 
-            with tab1a:
-                fig_util_line_chart = px.line(full_utilisation_audit,
-                        x="simulation_time",
-                        y="number_utilised", 
-                        color= "resource_name",
-                        facet_col="Rep", 
-                        facet_col_wrap=2,
-                        height=900
-                        )
-                fig_util_line_chart.update_traces(line=dict(width=0.5))
-                # write(results.filter(like="wait", axis=1).merge(results.filter(like="util", axis=1),left_index=True,right_index=True).reset_index().melt(id_vars=["rep"]))
+            # with tab1a:
+            #     fig_util_line_chart = px.line(full_utilisation_audit,
+            #             x="simulation_time",
+            #             y="number_utilised", 
+            #             color= "resource_name",
+            #             facet_col="Rep", 
+            #             facet_col_wrap=2,
+            #             height=900
+            #             )
+            #     fig_util_line_chart.update_traces(line=dict(width=0.5))
+            #     # write(results.filter(like="wait", axis=1).merge(results.filter(like="util", axis=1),left_index=True,right_index=True).reset_index().melt(id_vars=["rep"]))
 
-                st.plotly_chart(
-                    fig_util_line_chart,
-                    use_container_width=True
-                )
+            #     st.plotly_chart(
+            #         fig_util_line_chart,
+            #         use_container_width=True
+            #     )
 
-                with tab1b:
-                    fig_util_line_chart = px.line(full_utilisation_audit,
-                        x="simulation_time",
-                        y="number_utilised", 
-                        color= "Rep",
-                        facet_col="resource_name", 
-                        facet_col_wrap=1,
-                        height=900
-                        )
-                    fig_util_line_chart.update_traces(line=dict(width=0.5))
-                    # write(results.filter(like="wait", axis=1).merge(results.filter(like="util", axis=1),left_index=True,right_index=True).reset_index().melt(id_vars=["rep"]))
+            #     with tab1b:
+            #         fig_util_line_chart = px.line(full_utilisation_audit,
+            #             x="simulation_time",
+            #             y="number_utilised", 
+            #             color= "Rep",
+            #             facet_col="resource_name", 
+            #             facet_col_wrap=1,
+            #             height=900
+            #             )
+            #         fig_util_line_chart.update_traces(line=dict(width=0.5))
+            #         # write(results.filter(like="wait", axis=1).merge(results.filter(like="util", axis=1),left_index=True,right_index=True).reset_index().melt(id_vars=["rep"]))
 
-                    st.plotly_chart(
-                        fig_util_line_chart,
-                        use_container_width=True
-                    )
+            #         st.plotly_chart(
+            #             fig_util_line_chart,
+            #             use_container_width=True
+            #         )
 
 
 
