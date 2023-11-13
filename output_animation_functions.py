@@ -146,34 +146,48 @@ def animate_activity_log(
     
     
 
-    full_patient_df = full_patient_df[full_patient_df['rep'] == rep].sort_values(['event','minute','time'])
+    full_patient_df = full_patient_df[full_patient_df['rep'] == rep].sort_values([
+        'event','minute','time'
+        ])
 
-    full_patient_df['count'] = full_patient_df.groupby(['event','minute','rep'])['minute'].transform('count')
-    full_patient_df['rank'] = full_patient_df.groupby(['event','minute','rep'])['minute'].rank(method='first')
+    full_patient_df['count'] = full_patient_df.groupby(['event','minute','rep'])['minute'] \
+                               .transform('count')
+    # Order patients within event/minute/rep to determine their eventual position in the line
+    full_patient_df['rank'] = full_patient_df.groupby(['event','minute','rep'])['minute'] \
+                              .rank(method='first')
+
+    full_patient_df_plus_pos = full_patient_df.merge(event_position_df, on="event", how='left') \
+                             .sort_values(["rep", "event", "minute", "time"])
 
 
-    full_patient_df_plus_pos = full_patient_df.merge(event_position_df, on="event", how='left').sort_values(["rep", "event", "minute", "time"])
+    resource_use = full_patient_df_plus_pos[full_patient_df_plus_pos['event_type'] == "resource_use"].copy()
+    resource_use['y_final'] =  resource_use['y']
+    # resource_use['x_final'] = resource_use['x'] - (resource_use['resource_id']+1)*10
+    resource_use['x_final'] = resource_use['x'] - resource_use['rank']*10
 
-    full_patient_df_plus_pos['y_final'] =  full_patient_df_plus_pos['y']
-    
-    full_patient_df_plus_pos['x_final'] = full_patient_df_plus_pos['x'] - full_patient_df_plus_pos['rank']*10
+    queues = full_patient_df_plus_pos[full_patient_df_plus_pos['event_type']=='queue']
+    queues['y_final'] =  queues['y']
+    queues['x_final'] = queues['x'] - queues['rank']*10
+
     if wrap_queues_at is not None:
-        queues = full_patient_df_plus_pos[full_patient_df_plus_pos['event_type']=='queue']
-
         queues['row'] = np.floor((queues['rank']) / (wrap_queues_at+1))
         queues['x_final'] = queues['x_final'] + (wrap_queues_at*queues['row']*10)
         queues['y_final'] = queues['y_final'] + (queues['row'] * 30)
 
-        full_patient_df_plus_pos = pd.concat([queues, full_patient_df_plus_pos[full_patient_df_plus_pos['event_type']!='queue']])
+    full_patient_df_plus_pos = pd.concat([queues, resource_use])
+
 
     # full_patient_df_plus_pos['icon'] = '🙍'
 
     individual_patients = full_patient_df['patient'].drop_duplicates().sort_values()
-    icon_list = ['🧔🏼', '🧑🏾‍🦯', '👨🏻‍🦰', '🧑🏻', '👩🏿‍🦱', '🧑🏻‍🍼', '👳🏽', '👩🏼‍🦳', '👨🏿‍🦳', '🧑🏻‍🦱', '🧍🏽‍♀️', '🧑🏼‍🔬', '👩🏻‍🦰', '🧕🏿', '🧑‍🦽', '👴🏾',
-                 '🧑🏼‍🦱', '👷🏾', '🧑🏻‍🦲', '🧑🏿‍💼', '🧔🏾', '🧕🏻', '👨🏾‍🎓', '👴🏻', '🧍🏼‍♂️', '👧🏿', '🙎🏻', '🧑🏿‍🦱', '👱🏻', '🙋🏾‍♀️', '🧑🏼‍🔧', '🧑🏿‍🦽', '🧑🏽‍🦳',
-                 '🧑‍🦼', '🙋🏽‍♂️', '👩🏿‍🎓', '🤷🏻', '👶🏾', '🧑🏻‍✈️', '🙎🏾', '👶🏻', '👴🏿', '👨🏻‍🦳', '👩🏽', '🧑🏻‍🦳', '👩🏽‍🎓', '👱🏻‍♀️', '👲🏼', '🧕🏾', 
-                 '🧑‍🦯', '🧔🏿', '👳🏿', '🧑🏿‍🍼', '👩🏽‍🦰', '🧑🏾‍🦲', '🧍🏾‍♂️', '👧🏼', '🤷🏿‍♂️', '🧑🏻‍✈️', '👱🏾‍♂️', '👨🏻‍🎓', '👵🏼', '🤵🏿', '👳🏻', '🙋🏼',
-                 '👩🏻‍🎓', '🧑🏻‍🌾', '👩🏿‍🔧', '🤵🏻', '🧑🏼‍💼', '🧑🏿‍✈️', '🎅🏼'
+    icon_list = ['🧔🏼', '🧑🏾‍🦯', '👨🏻‍🦰', '🧑🏻', '👩🏿‍🦱', '🧑🏻‍🍼', '👳🏽', '👩🏼‍🦳', '👨🏿‍🦳',
+                 '🧑🏻‍🦱', '🧍🏽‍♀️', '🧑🏼‍🔬', '👩🏻‍🦰', '🧕🏿', '🧑‍🦽', '👴🏾', '🧑🏼‍🦱', '👷🏾',
+                 '🧑🏻‍🦲', '🧑🏿‍💼', '🧔🏾', '🧕🏻', '👨🏾‍🎓', '👴🏻', '🧍🏼‍♂️', '👧🏿', '🙎🏻',
+                 '🧑🏿‍🦱', '👱🏻', '🙋🏾‍♀️', '🧑🏼‍🔧', '🧑🏿‍🦽', '🧑🏽‍🦳', '🧑‍🦼', '🙋🏽‍♂️', '👩🏿‍🎓',
+                 '🤷🏻', '👶🏾', '🧑🏻‍✈️', '🙎🏾', '👶🏻', '👴🏿', '👨🏻‍🦳', '👩🏽', '🧑🏻‍🦳',
+                 '👩🏽‍🎓', '👱🏻‍♀️', '👲🏼', '🧕🏾', '🧑‍🦯', '🧔🏿', '👳🏿', '🧑🏿‍🍼', '👩🏽‍🦰',
+                 '🧑🏾‍🦲', '🧍🏾‍♂️', '👧🏼', '🤷🏿‍♂️', '🧑🏻‍✈️', '👱🏾‍♂️', '👨🏻‍🎓', '👵🏼', '🤵🏿', 
+                 '👳🏻', '🙋🏼', '👩🏻‍🎓', '🧑🏻‍🌾', '👩🏿‍🔧', '🤵🏻', '🧑🏼‍💼', '🧑🏿‍✈️', '🎅🏼'
     ]
 
     full_icon_list = icon_list * int(np.ceil(len(individual_patients)/len(icon_list)))
@@ -214,7 +228,7 @@ def animate_activity_log(
             # lots of points failing to appear
             #color="event", 
             hover_name="event",
-            hover_data=["patient", "pathway", "time", "minute"],
+            hover_data=["patient", "pathway", "time", "minute", "resource_id"],
             #    symbol="rep",
             #    symbol_sequence=["⚽"],
             #symbol_map=dict(rep_choice = "⚽"),
