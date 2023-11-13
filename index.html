@@ -22,7 +22,49 @@
     // requirements: ["pandas", "simpy"],
     entrypoint: "Introduction.py",
     files: {
-        url: "Introduction.py"
+      "Introduction.py": `
+      import streamlit as st
+
+st.set_page_config(
+    page_title="Introduction",
+    page_icon="👋",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
+
+with open("style.css") as css:
+    st.markdown( f'<style>{css.read()}</style>' , unsafe_allow_html= True)
+
+st.title("Welcome to the Discrete Event Simulation Playground! 👋")
+
+
+st.markdown(
+"""
+## References
+
+1. *Monks.T, Harper.A, Anagnoustou. A, Allen.M, Taylor.S. (2022) Open Science for Computer Simulation*
+2. *Nelson. B.L. (2013). [Foundations and methods of stochastic simulation](https://www.amazon.co.uk/Foundations-Methods-Stochastic-Simulation-International/dp/1461461596/ref=sr_1_1?dchild=1&keywords=foundations+and+methods+of+stochastic+simulation&qid=1617050801&sr=8-1). Springer.* 
+3. https://health-data-science-or.github.io/simpy-streamlit-tutorial/
+"""    
+)
+
+`,
+"pages/1_🚶‍♂️_Simulating_Arrivals.py": {
+        url: "https://raw.githubusercontent.com/Bergam0t/Teaching_DES_Concepts_Streamlit/main/pages/1_%F0%9F%9A%B6%E2%80%8D%E2%99%82%EF%B8%8F_Simulating_Arrivals.py"
+      },
+
+      
+"helper_functions.py": {
+        url: "https://raw.githubusercontent.com/Bergam0t/Teaching_DES_Concepts_Streamlit/main/helper_functions.py"
+      },
+
+      
+"model_classes.py": {
+        url: "https://raw.githubusercontent.com/Bergam0t/Teaching_DES_Concepts_Streamlit/main/model_classes.py"
+      },
+    
+    
+
     },
   },
   document.getElementById("root")
