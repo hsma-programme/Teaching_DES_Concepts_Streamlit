@@ -198,7 +198,9 @@ with tab3:
         # add a spinner and then display success box
         with st.spinner('Simulating the minor injuries unit...'):
             await asyncio.sleep(0.1)
-            st.toast("Simulating the minor injuries unit", icon=None)
+
+            my_bar = st.progress(0, text="Simulating the minor injuries unit...")
+
             # run multiple replications of experment
             detailed_outputs = multiple_replications(
                 args,
@@ -207,7 +209,8 @@ with tab3:
                 return_detailed_logs=True
             )
 
-            st.toast("Collecting the Results", icon=None)
+            my_bar.progress(0.4, text="Collating Simulation Outputs...")
+
 
             results = pd.concat([detailed_outputs[i]['results']['summary_df'].assign(rep= i+1)
                                         for i in range(n_reps)]).set_index('rep')
@@ -215,6 +218,7 @@ with tab3:
             full_event_log = pd.concat([detailed_outputs[i]['results']['full_event_log'].assign(rep= i+1)
                                         for i in range(n_reps)])
             
+            my_bar.progress(0.4, text="Logging Results...")
 
             # print(len(st.session_state['session_results']))
             # results_for_state = pd.DataFrame(results.median()).T.drop(['Rep'], axis=1)
@@ -260,6 +264,8 @@ with tab3:
             #     ]
             # )
 
+            my_bar.progress(0.8, text="Creating Animations...")
+
             animation_dfs_log = reshape_for_animations(
                 full_event_log=full_event_log[
                     (full_event_log['rep']==1) &
@@ -270,6 +276,7 @@ with tab3:
 
         del full_event_log
         gc.collect()
+        my_bar.progress(1, text="Simulation Complete!")
         # st.write(results.reset_index())
 
         # st.write(pd.wide_to_long(results, stubnames=['util', 'wait'],
