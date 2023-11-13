@@ -4,7 +4,7 @@ A Streamlit application based on Monks and
 Allows users to interact with an increasingly more complex treatment simulation 
 '''
 import streamlit as st
-
+import asyncio
 from helper_functions import read_file_contents, add_logo, mermaid
 from model_classes import *
 # from st_pages import show_pages_from_config, add_page_title
@@ -199,10 +199,12 @@ with tab3:
             button_run_pressed = st.button("Run simulation")
             
             
+            
             # if button_run_pressed:
-
+                
             #     # add a spinner and then display success box
             #     with st.spinner('Simulating the minor injuries unit...'):
+                    #   await asyncio.sleep(0.1)
             #         # run multiple replications of experment
             #         detailed_outputs = multiple_replications(
             #             args,

@@ -8,6 +8,7 @@ import streamlit as st
 import numpy as np
 import plotly.express as px
 import pandas as pd
+import asyncio
 
 from helper_functions import read_file_contents, add_logo, mermaid
 from model_classes import Scenario, multiple_replications
@@ -204,6 +205,7 @@ with col1_2:
 
         # add a spinner and then display success box
         with st.spinner('Simulating the minor injuries unit...'):
+            await asyncio.sleep(0.1)
             # run multiple replications of experment
             # results = multiple_replications(
             #     args,
