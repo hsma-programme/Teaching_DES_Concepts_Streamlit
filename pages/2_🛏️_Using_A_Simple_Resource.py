@@ -74,20 +74,52 @@ with tab1:
         """
     )
 
-    st.markdown(read_file_contents('resources/first_simple_resource.md'))
+    st.markdown(
+"""
+For now, we'll assume all of our patients are roughly equally injured - but there might still be some variation in how long it takes to treat them. Some might need a few stitches, some might just need a quick bit of advice. 
+
+This time, we're going to sample from a different distribution - the normal distribution. A few people won't take very long to fix up, while a few might take quite a long time - but most of the people will take an amount of time that's somewhere in the middle. 
+
+[ADD EXAMPLE NORMAL DISTRIBUTION]
+
+We're going to start measuring a few more things now
+- how much of each resource's time is spent with patients **(known as resource utilisation)**
+- how long each patient waits before they get allocated a resource
+- what percentage of patients meet a target of being treated within 2 hours of turning up to our treatment centre
+"""
+
+
+    )
 
 with tab2:
-    st.markdown(read_file_contents('resources/first_simple_resource_exercise.md'))
+    st.markdown(
+"""
+### Things to Try Out
+
+- Keeping the default values, run the model and take a look at the animated flow of patients through the system. What do you notice about
+    - the number of nurses in use
+    - the size of the queue for treatmetn at different times
+
+- What happens when you play around with the number of nurses we have available? 
+    - Look at the queues, but look at the resource utilisation too. The resource utilisation tells us how much of the time each nurse is busy rather than waiting for a patient to turn up. 
+    - Can you find a middle ground where the nurse is being used a good amount without the queues building up?
+
+- What happens to the average utilisation and waits when you change 
+    - the average length of time it takes each patient to be seen?
+    - the variability in the length of time it takes each patient to be seen?
+
+"""
+    )
 
 
 with tab3:
     col1, col2 = st.columns([0.5, 1.5])
 
     with col1:
-        nurses = st.slider("How Many Rooms/Nurses Are Available?", 1, 10, step=1, value=3)
+        nurses = st.slider("How Many Rooms/Nurses Are Available?", 1, 10, step=1, value=7)
 
         consult_time = st.slider("How long (in minutes) does a consultation take on average?",
-                                    5, 120, step=5, value=30)
+                                    5, 120, step=5, value=50)
 
         consult_time_sd = st.slider("How much (in minutes) does the time for a consultation usually vary by?",
                                     5, 30, step=5, value=10)
@@ -196,16 +228,16 @@ with tab3:
                             ((full_event_log['event_type']=='queue') | (full_event_log['event_type']=='resource_use')  | (full_event_log['event_type']=='arrival_departure'))
                         ]
                     )
-if button_run_pressed:
-    st.subheader("Animated Model Output")
-    with st.spinner('Generating the animated patient log...'):
-        st.plotly_chart(animate_activity_log(
-                            animation_dfs_log['full_patient_df'],
-                            event_position_df = event_position_df,
-                            scenario=args,
-                            include_play_button=True,
-                            return_df_only=False,
-                            plotly_height=500
-                    ), use_container_width=True)
+    if button_run_pressed:
+        st.subheader("Animated Model Output")
+        with st.spinner('Generating the animated patient log...'):
+            st.plotly_chart(animate_activity_log(
+                                animation_dfs_log['full_patient_df'],
+                                event_position_df = event_position_df,
+                                scenario=args,
+                                include_play_button=True,
+                                return_df_only=False,
+                                plotly_height=500
+                        ), use_container_width=True)
 
                 # st.write(results)

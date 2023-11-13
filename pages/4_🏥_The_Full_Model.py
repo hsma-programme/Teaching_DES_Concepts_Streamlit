@@ -373,6 +373,8 @@ with tab3:
             # )
 
         # st.write(animation_dfs_log['full_patient_df'].sort_values('minute'))
+        # st.write(animation_dfs_log['full_patient_df'].sort_values(['minute', 'event'])[['minute', 'event', 'patient', 'resource_id', 'resource_users', 'request']]
+                #  )
 
 
         with tab_playground_results_3:
