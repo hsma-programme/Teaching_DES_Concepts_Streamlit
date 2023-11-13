@@ -22,35 +22,7 @@
     // requirements: ["pandas", "simpy"],
     entrypoint: "Introduction.py",
     files: {
-      "Introduction.py": `
-      import streamlit as st
-
-st.set_page_config(
-    page_title="Introduction",
-    page_icon="👋",
-    layout="wide",
-    initial_sidebar_state="expanded",
-)
-
-with open("style.css") as css:
-    st.markdown( f'<style>{css.read()}</style>' , unsafe_allow_html= True)
-
-st.title("Welcome to the Discrete Event Simulation Playground! 👋")
-
-
-st.markdown(
-"""
-## References
-
-1. *Monks.T, Harper.A, Anagnoustou. A, Allen.M, Taylor.S. (2022) Open Science for Computer Simulation*
-2. *Nelson. B.L. (2013). [Foundations and methods of stochastic simulation](https://www.amazon.co.uk/Foundations-Methods-Stochastic-Simulation-International/dp/1461461596/ref=sr_1_1?dchild=1&keywords=foundations+and+methods+of+stochastic+simulation&qid=1617050801&sr=8-1). Springer.* 
-3. https://health-data-science-or.github.io/simpy-streamlit-tutorial/
-"""    
-)
-
-
-`
-
+        url: "Introduction.py"
     },
   },
   document.getElementById("root")
