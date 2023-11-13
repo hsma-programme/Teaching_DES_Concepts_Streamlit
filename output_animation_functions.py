@@ -59,7 +59,7 @@ def reshape_for_animations(full_event_log, every_x_minutes=10):
 
                     # Now count how many people are in each state
                     # CHECK - I THINK THIS IS PROBABLY DOUBLE COUNTING PEOPLE BECAUSE OF THE PATHWAY AND EVENT TYPE. JUST JOIN PATHWAY/EVENT TYPE BACK IN INSTEAD?
-                    state_counts_minute = most_recent_events_minute_ungrouped[['event']].value_counts().reset_index().assign(minute=minute, rep=rep)
+                    state_counts_minute = most_recent_events_minute_ungrouped[['event']].value_counts().rename("count").reset_index().assign(minute=minute, rep=rep)
                     
                     minute_dfs.append(state_counts_minute)
 
