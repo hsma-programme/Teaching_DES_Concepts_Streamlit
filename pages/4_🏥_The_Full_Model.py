@@ -378,9 +378,15 @@ with tab3:
 
         with tab_playground_results_1:
 
+            in_range_util = sum((results.mean().filter(like="util")<0.85) & (results.mean().filter(like="util") > 0.65))
+            in_range_wait = sum((results.mean().filter(like="wait")<120))
+                                
+
             col_res_a, col_res_b = st.columns([1,1])
 
             with col_res_a:
+                st.metric(label=":bed: **Utilisation Metrics in Ideal Range**", value="{} of {}".format(in_range_util, len(results.mean().filter(like="util"))))
+
                 #util_fig_simple = px.bar(results.mean().filter(like="util"), opacity=0.5)
                 st.markdown(
                     """
@@ -427,6 +433,8 @@ with tab3:
             
             with col_res_b:
                 #util_fig_simple = px.bar(results.mean().filter(like="wait"), opacity=0.5)
+                st.metric(label=":clock2: **Wait Metrics in Ideal Range**", value="{} of {}".format(in_range_wait, len(results.mean().filter(like="wait"))))
+
                 st.markdown(
                     """
                     The emergency department wants to ensure people wait no longer than 2 hours (120 minutes) at any point in the process.
@@ -438,6 +446,7 @@ with tab3:
                 wait_fig_simple = go.Figure()
                 wait_fig_simple.add_hrect(y0=0, y1=60*2, fillcolor="#5DFDA0", 
                                           opacity=0.3, line_width=0)
+                
                 wait_fig_simple.add_bar(x=results.mean().filter(like="wait").index.tolist(),
                                         y=results.mean().filter(like="wait").tolist())
 
@@ -557,12 +566,12 @@ with tab4:
         with col_a:
             # st.write(all_run_results.drop(all_run_results.filter(regex='\d+').columns,axis=1).groupby('Model Run').median().T)
             st.write(all_run_results.groupby('Model Run').median().T)
-        with col_b:
-            # st.write(all_run_results.filter(regex='\d+', axis=1).groupby('Model Run').median().T)
-            st.write("Placeholder")
 
-        scenario_tab_1, scenario_tab_2 = st.tabs(["Simple Metrics", 
-                                                  "Advanced Metrics"])
+
+        scenario_tab_1, scenario_tab_2, scenario_tab_3 = st.tabs([
+            "Simple Metrics", 
+            "Advanced Metrics",
+            "Detailed Breakdown"])
         
 
         with scenario_tab_1:
@@ -694,7 +703,8 @@ with tab4:
                     y="variable", 
                     x="value",
                     color="Model Run",
-                    points="all")
+                    points="all", 
+                    height=800)
                 
                 all_run_wait_box.update_yaxes(labelalias={
                     "01a_triage_wait": "Triage", 
@@ -733,12 +743,17 @@ with tab4:
                     y="variable", 
                     x="value",
                     color="Model Run",
-                    points="all"),
+                    points="all",
+                    height=800),
                     use_container_width=True
                     )
 
                 # st.write(all_run_results.filter(like="wait", axis=1)
                 #             .merge(all_run_results.filter(like="throughput", axis=1), 
                 #                 left_index=True, right_index=True))
+        with scenario_tab_3:
+            st.write(all_run_results)
+
+            st.write(all_run_results.groupby('Model Run').median().T)
     else:
         st.markdown("No scenarios yet run. Go to the 'Playground' tab and click 'Run simulation'.")
