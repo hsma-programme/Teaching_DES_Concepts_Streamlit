@@ -12,6 +12,7 @@ from output_animation_functions import reshape_for_animations, animate_queue_act
 # from st_pages import show_pages_from_config, add_page_title
 import plotly.express as px
 import gc
+import plotly.graph_objects as go
 
 st.set_page_config(
      page_title="The Full Model",
@@ -120,8 +121,11 @@ with tab2:
 
     st.markdown(
         """
-        - Try changing the number of resources you have available so that your system has an average utilisation of over 80% while meeting the 4 hour target 90% of the time.
-        - Imagine you have a maximum of 15 rooms and cubicles. With a probability that a new arrival is a trauma patient of 0.3, and the probability that a non-trauma patient will need treament of 0.7, what is the best configuration of rooms you can find to keep the average treatment time low across both pathways?
+        - Run the animated model output. Are the queues consistent throughout the day?
+        
+        - Try changing the number of resources you have available so that all resources in your ED have an average utilisation of between 65% and 85% while the wait for treatment is under 4 hours. Is it possible to balance these requirements?
+
+        - Imagine you have a maximum of 15 rooms and cubicles. What is the best configuration of rooms you can find to keep the average wait times as low as possible across both trauma and non-trauma pathways?
         """
     )
 
@@ -156,7 +160,7 @@ with tab3:
 
     with col1:
         st.subheader("Triage")
-        n_triage = st.slider("Number of Triage Cubicles", 1, 10, step=1, value=3)
+        n_triage = st.slider("Number of Triage Cubicles", 1, 10, step=1, value=4)
         prob_trauma = st.slider("Probability that a new arrival is a trauma patient", 0.0, 1.0, step=0.01, value=0.3)
 
     with col2:
@@ -166,7 +170,7 @@ with tab3:
 
     with col3:
         st.subheader("Non-Trauma Pathway")
-        n_reg = st.slider("Number of Registration Cubicles", 1, 10, step=1, value=2)
+        n_reg = st.slider("Number of Registration Cubicles", 1, 10, step=1, value=3)
         n_exam = st.slider("Number of Examination Rooms for non-trauma patients", 1, 10, step=1, value=3)
 
     with col4: 
@@ -174,10 +178,25 @@ with tab3:
         n_cubicles_1 = st.slider("Number of Treatment Cubicles for Non-Trauma", 1, 10, step=1, value=2)
         non_trauma_treat_p = st.slider("Probability that a non-trauma patient will need treatment", 0.0, 1.0, step=0.01, value=0.7)
 
-    st.write("Total rooms in use is {}".format(n_cubicles_1+n_cubicles_2+n_exam+n_trauma+n_triage+n_reg))
+
+    col5, col6 = st.columns(2)
+    with col5:
+        st.write("Total rooms in use is {}".format(n_cubicles_1+n_cubicles_2+n_exam+n_trauma+n_triage+n_reg))
+    with col6:
+        with st.expander("Advanced Parameters"):
+            seed = st.number_input("Set a random number for the computer to start from",
+                            1, 10000000,
+                            step=1, value=42)
+            
+            n_reps = st.slider("How many times should the simulation run? WARNING: Fast/modern computer required to take this above 5 replications.",
+                            1, 10,
+                            step=1, value=3)
+            run_time_days = st.slider("How many days should we run the simulation for each time?",
+                        1, 60,
+                        step=1, value=10)
 
     args = Scenario(
-        random_number_set=42,
+        random_number_set=seed,
                  n_triage=n_triage,
                  n_reg=n_reg,
                  n_exam=n_exam,
@@ -186,9 +205,7 @@ with tab3:
                  n_cubicles_2=n_cubicles_2,
                  non_trauma_treat_p=non_trauma_treat_p,
                  prob_trauma=prob_trauma)
-
-    n_reps = 8
-
+    
     # A user must press a streamlit button to run the model
     button_run_pressed = st.button("Run simulation")
     
@@ -205,7 +222,7 @@ with tab3:
             detailed_outputs = multiple_replications(
                 args,
                 n_reps=n_reps,
-                rc_period=15*60*24,
+                rc_period=run_time_days*60*24,
                 return_detailed_logs=True
             )
 
@@ -287,49 +304,16 @@ with tab3:
 
         # Add in a box plot showing utilisation
 
-        tab_playground_results_1, tab_playground_results_2, tab_playground_results_3  = st.tabs([
-            'Utilisation and Wait Metrics',
+        tab_playground_results_1, tab_playground_results_2, tab_playground_results_3, tab_playground_results_4  = st.tabs([
             'Animated Model',
+            'Utilisation and Wait Metrics',
+            'Advanced Utilisation and Wait Metrics',
             'Utilisation over Time'
             ])
 
         # st.subheader("Look at Average Results Across Replications")
 
         with tab_playground_results_1:
-
-            col_res_1, col_res_2 = st.columns(2)
-
-            with col_res_1:
-                st.subheader("Utilisation Metrics")
-
-                st.plotly_chart(px.box(
-                    results.reset_index().melt(id_vars="rep").set_index('variable').filter(like="util", axis=0).reset_index(), 
-                    y="variable", 
-                    x="value",
-                    points="all",
-                    range_x=[0, 1]),
-                    use_container_width=True
-                    )
-                
-                st.write(results.filter(like="util", axis=1).merge(results.filter(like="throughput", axis=1),left_index=True,right_index=True))
-                
-            with col_res_2:
-                st.subheader("Wait Metrics")
-                # Add in a box plot showing waits
-                st.plotly_chart(px.box(
-                    results.reset_index().melt(id_vars="rep").set_index('variable').filter(like="wait", axis=0).reset_index(), 
-                    y="variable", 
-                    x="value",
-                    points="all"),
-                    use_container_width=True
-                    )
-
-                st.write(results.filter(like="wait", axis=1)
-                        .merge(results.filter(like="throughput", axis=1), 
-                                left_index=True, right_index=True))
-
-
-        with tab_playground_results_2:
             
             event_position_df = pd.DataFrame([
                 # {'event': 'arrival', 'x':  10, 'y': 250, 'label': "Arrival" },
@@ -392,7 +376,125 @@ with tab3:
         # st.write(animation_dfs_log['full_patient_df'].sort_values(['minute', 'event'])[['minute', 'event', 'patient', 'resource_id', 'resource_users', 'request']]
                 #  )
 
+        with tab_playground_results_2:
+
+            col_res_a, col_res_b = st.columns([1,1])
+
+            with col_res_a:
+                #util_fig_simple = px.bar(results.mean().filter(like="util"), opacity=0.5)
+                st.markdown(
+                    """
+                    The emergency department wants to aim for an average of 65% to 85% utilisation across all resources in the emergency department. 
+                    The green box shows this ideal range. If the bars overlap with the green box, utilisation is ideal. 
+                    If utilisation is below this, you might want to **reduce** the number of those resources available. 
+                    If utilisation is above this point, you may want to **increase** the number of that type of resource available.
+                    """
+                )
+                util_fig_simple = go.Figure()
+                # Add optimum range
+                util_fig_simple.add_hrect(y0=0.65, y1=0.85,
+                                          fillcolor="#5DFDA0", opacity=0.25,  line_width=0)
+                # Add extreme range (above)
+                util_fig_simple.add_hrect(y0=0.85, y1=1,
+                                          fillcolor="#D45E5E", opacity=0.25, line_width=0)
+                # Add suboptimum range (below)
+                util_fig_simple.add_hrect(y0=0.4, y1=0.65,
+                                          fillcolor="#FDD049", opacity=0.25, line_width=0)
+                # Add extreme range (below)
+                util_fig_simple.add_hrect(y0=0, y1=0.4,
+                                          fillcolor="#D45E5E", opacity=0.25, line_width=0)
+
+                util_fig_simple.add_bar(x=results.mean().filter(like="util").index.tolist(),
+                                        y=results.mean().filter(like="util").tolist())
+
+                util_fig_simple.update_layout(yaxis_tickformat = '.3f%')
+                util_fig_simple.update_yaxes(title_text='Resource Utilisation (%)',
+                                             range=[-0.05, 1.1])
+                # util_fig_simple.data = util_fig_simple.data[::-1]
+                util_fig_simple.update_xaxes(labelalias={
+                    "01b_triage_util": "Triage<br>Bays", 
+                    "02b_registration_util": "Registration<br>Cubicles",
+                    "03b_examination_util": "Examination<br>Bays",
+                    "04b_treatment_util(non_trauma)": "Treatment<br>Bays<br>(non-trauma)",
+                    "06b_trauma_util": "Stabilisation<br>Bays",
+                    "07b_treatment_util(trauma)": "Treatment<br>Bays<br>(trauma)"
+                }, tickangle=0)
+                st.plotly_chart(
+                    util_fig_simple,
+                    use_container_width=True
+                )
+
+            
+            with col_res_b:
+                #util_fig_simple = px.bar(results.mean().filter(like="wait"), opacity=0.5)
+                st.markdown(
+                    """
+                    The emergency department wants to ensure people wait no longer than 2 hours (120 minutes) at any point in the process.
+                    This needs to be balanced with the utilisation graphs on the left.
+                    The green box shows waits of less than two hours. If the bars fall within this range, the number of resources does not need to be changed.
+                    """
+                )
+
+                wait_fig_simple = go.Figure()
+                wait_fig_simple.add_hrect(y0=0, y1=60*2, fillcolor="#5DFDA0", 
+                                          opacity=0.3, line_width=0)
+                wait_fig_simple.add_bar(x=results.mean().filter(like="wait").index.tolist(),
+                                        y=results.mean().filter(like="wait").tolist())
+
+                wait_fig_simple.update_xaxes(labelalias={
+                    "01a_triage_wait": "Triage", 
+                    "02a_registration_wait": "Registration",
+                    "03a_examination_wait": "Examination",
+                    "04a_treatment_wait(non_trauma)": "Treatment<br>(non-trauma)",
+                    "06a_trauma_wait": "Stabilisation",
+                    "07a_treatment_wait(trauma)": "Treatment<br>(trauma)"
+                }, tickangle=0)
+                # wait_fig_simple.data = wait_fig_simple.data[::-1]
+                wait_fig_simple.update_yaxes(title_text='Wait for Treatment Stage (Minutes)')
+
+                st.plotly_chart(
+                    wait_fig_simple,
+                    use_container_width=True
+                )
+
+
         with tab_playground_results_3:
+
+            col_res_1, col_res_2 = st.columns(2)
+
+            with col_res_1:
+                st.subheader("Utilisation Metrics")
+
+                st.plotly_chart(px.box(
+                    results.reset_index().melt(id_vars="rep").set_index('variable').filter(like="util", axis=0).reset_index(), 
+                    y="variable", 
+                    x="value",
+                    points="all",
+                    range_x=[0, 1]),
+                    use_container_width=True
+                    )
+                
+                st.write(results.filter(like="util", axis=1).merge(results.filter(like="throughput", axis=1),left_index=True,right_index=True))
+                
+            with col_res_2:
+                st.subheader("Wait Metrics")
+                # Add in a box plot showing waits
+                st.plotly_chart(px.box(
+                    results.reset_index().melt(id_vars="rep").set_index('variable').filter(like="wait", axis=0).reset_index(), 
+                    y="variable", 
+                    x="value",
+                    points="all"),
+                    use_container_width=True
+                    )
+
+                st.write(results.filter(like="wait", axis=1)
+                        .merge(results.filter(like="throughput", axis=1), 
+                                left_index=True, right_index=True))
+
+
+        
+
+        with tab_playground_results_4:
             st.markdown("Placeholder")
 
 # Create area for exploring all session results
