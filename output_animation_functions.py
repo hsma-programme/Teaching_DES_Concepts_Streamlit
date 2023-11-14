@@ -2,7 +2,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
 import numpy as np
-
+import datetime as dt
 
 def reshape_for_animations(full_event_log, every_x_minutes=10):
     minute_dfs = list()
@@ -122,7 +122,8 @@ def animate_activity_log(
         display_stage_labels=True,
         icon_and_text_size=24,
         override_x_max=None,
-        override_y_max=None       
+        override_y_max=None,
+        time_display_units=None       
         ):
     """_summary_
 
@@ -213,7 +214,9 @@ def animate_activity_log(
     else:
         y_max = event_position_df['y'].max()*1.1
 
-
+    if time_display_units == "dhm":
+        full_patient_df_plus_pos['minute'] = dt.date.today() + pd.DateOffset(days=165) +  pd.TimedeltaIndex(full_patient_df_plus_pos['minute'], unit='m')
+        full_patient_df_plus_pos['minute'] = full_patient_df_plus_pos['minute'].apply(lambda x: dt.datetime.strftime(x, '%d-%m-%Y %H:%M'))
 
     full_patient_df_plus_pos['size'] = 24
     # First add the animated traces for the different resources

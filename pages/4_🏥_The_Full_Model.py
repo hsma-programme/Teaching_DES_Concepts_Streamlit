@@ -353,6 +353,7 @@ with tab3:
                     icon_and_text_size=24,
                     display_stage_labels=False,
                     wrap_queues_at=10,
+                    time_display_units="dhm",
                     add_background_image="https://raw.githubusercontent.com/Bergam0t/Teaching_DES_Concepts_Streamlit/main/resources/Full%20Model%20Background%20Image%20-%20Horizontal%20Layout.drawio.png",
             ), 
             use_container_width=False)
