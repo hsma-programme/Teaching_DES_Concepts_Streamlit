@@ -158,18 +158,22 @@ def trace(msg):
     if TRACE:
         print(msg)
 
-class ResourceWithID():
-    """
-    A resource class where each resouce has a unique ID
-    """
+class CustomResource(simpy.Resource):
+    def __init__(self, env, capacity, id_attribute=None):
+        super().__init__(env, capacity)
+        self.id_attribute = id_attribute
 
-    next_id = 1
+    def request(self, *args, **kwargs):
+        # Add logic to handle the ID attribute when a request is made
+        # For example, you can assign an ID to the requester
+        # self.id_attribute = assign_id_logic()
+        return super().request(*args, **kwargs)
 
-    def __init__(self):
-
-        self.id = ResourceWithID.next_id
-        ResourceWithID.next_id += 1
-
+    def release(self, *args, **kwargs):
+        # Add logic to handle the ID attribute when a release is made
+        # For example, you can reset the ID attribute
+        # reset_id_logic(self.id_attribute)
+        return super().release(*args, **kwargs)
 # def patch_resource(resource, pre=None, post=None):
 #     """
 #     Part of the required code for event-based auditing of resources (so records each time
@@ -952,27 +956,27 @@ class TreatmentCentreModel:
         '''
 
         # sign/in triage
-        self.args.triage = simpy.Resource(self.env,
+        self.args.triage = CustomResource(self.env,
                                           capacity=self.args.n_triage)
 
         # registration
-        self.args.registration = simpy.Resource(self.env,
+        self.args.registration = CustomResource(self.env,
                                                 capacity=self.args.n_reg)
 
         # examination
-        self.args.exam = simpy.Resource(self.env,
+        self.args.exam = CustomResource(self.env,
                                         capacity=self.args.n_exam)
 
         # trauma
-        self.args.trauma = simpy.Resource(self.env,
+        self.args.trauma = CustomResource(self.env,
                                           capacity=self.args.n_trauma)
 
         # non-trauma treatment
-        self.args.cubicle_1 = simpy.Resource(self.env,
+        self.args.cubicle_1 = CustomResource(self.env,
                                              capacity=self.args.n_cubicles_1)
 
         # trauma treatment
-        self.args.cubicle_2 = simpy.Resource(self.env,
+        self.args.cubicle_2 = CustomResource(self.env,
                                              capacity=self.args.n_cubicles_2)
 
     def run(self, results_collection_period=DEFAULT_RESULTS_COLLECTION_PERIOD):
@@ -1653,7 +1657,7 @@ class TreatmentCentreModelSimpleNurseStepOnly:
 
         '''
         # examination
-        self.args.treatment = simpy.Resource(self.env,
+        self.args.treatment = CustomResource(self.env,
                                         capacity=self.args.n_cubicles_1)
 
     def run(self, results_collection_period=DEFAULT_RESULTS_COLLECTION_PERIOD):
@@ -1935,7 +1939,7 @@ class TreatmentCentreModelSimpleBranchedPathway:
 
         '''
         # examination
-        self.args.treatment = simpy.Resource(self.env,
+        self.args.treatment = CustomResource(self.env,
                                         capacity=self.args.n_cubicles_1)
 
     def run(self, results_collection_period=DEFAULT_RESULTS_COLLECTION_PERIOD):
