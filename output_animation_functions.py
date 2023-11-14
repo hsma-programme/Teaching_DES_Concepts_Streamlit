@@ -123,7 +123,9 @@ def animate_activity_log(
         icon_and_text_size=24,
         override_x_max=None,
         override_y_max=None,
-        time_display_units=None       
+        time_display_units=None,
+        # show_animated_clock=False,
+        # animated_clock_coordinates = [50, 50]       
         ):
     """_summary_
 
@@ -216,15 +218,18 @@ def animate_activity_log(
 
     if time_display_units == "dhm":
         full_patient_df_plus_pos['minute'] = dt.date.today() + pd.DateOffset(days=165) +  pd.TimedeltaIndex(full_patient_df_plus_pos['minute'], unit='m')
-        full_patient_df_plus_pos['minute'] = full_patient_df_plus_pos['minute'].apply(lambda x: dt.datetime.strftime(x, '%d-%m-%Y %H:%M'))
-
+        # https://strftime.org/
+        full_patient_df_plus_pos['minute_display'] = full_patient_df_plus_pos['minute'].apply(lambda x: dt.datetime.strftime(x, '%d %B %Y\n%H:%M'))
+        full_patient_df_plus_pos['minute'] = full_patient_df_plus_pos['minute'].apply(lambda x: dt.datetime.strftime(x, '%Y-%m-%d %H:%M'))
+    else:
+        full_patient_df_plus_pos['minute_display'] = full_patient_df_plus_pos['minute'] 
     full_patient_df_plus_pos['size'] = 24
     # First add the animated traces for the different resources
     fig = px.scatter(
             full_patient_df_plus_pos.sort_values('minute'), 
             x="x_final", 
             y="y_final", 
-            animation_frame="minute", 
+            animation_frame="minute_display", 
             animation_group="patient",
             text="icon",
             # Can't have colours because it causes bugs with
@@ -235,13 +240,27 @@ def animate_activity_log(
             #    symbol="rep",
             #    symbol_sequence=["⚽"],
             #symbol_map=dict(rep_choice = "⚽"),
-            range_x=[0, x_max], 
+            range_x=[0, x_max],
             range_y=[0, y_max],
             height=plotly_height,
             width=plotly_width
             #    size="size"
             )
 
+    # if show_animated_clock:
+    #     fig2 = px.scatter(
+    #         pd.DataFrame({'minute': full_patient_df_plus_pos.sort_values('minute')['minute'],
+    #                       'minute_display': full_patient_df_plus_pos.sort_values('minute')['minute_display'],
+    #          'x': animated_clock_coordinates[0],
+    #          'y': animated_clock_coordinates[1]}), 
+    #         x="x",
+    #         y="y",
+    #         animation_frame="minute_display",
+    #         animation_group="minute_display",
+    #         text="minute_display")
+        
+    #     # From https://community.plotly.com/t/many-traces-on-same-plot-in-plotly-express/27694
+    #     fig.add_trace(fig2.data[0])
 
     
     # Now add labels identifying each stage
@@ -306,7 +325,15 @@ def animate_activity_log(
 
     fig.update_xaxes(showticklabels=False, showgrid=False, zeroline=False)
     fig.update_yaxes(showticklabels=False, showgrid=False, zeroline=False)
-    fig.update_layout(yaxis_title=None, xaxis_title=None, showlegend=False)
+    fig.update_layout(yaxis_title=None, xaxis_title=None, showlegend=False,
+                          sliders=[dict(
+        currentvalue=dict(
+            font=dict(size=35) ,
+             prefix="" # Adjust the font size as needed
+        ))]
+        )
+
+
 
     if not include_play_button:
         fig["layout"].pop("updatemenus")
