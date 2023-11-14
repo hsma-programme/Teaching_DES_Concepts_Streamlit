@@ -13,6 +13,7 @@ from output_animation_functions import reshape_for_animations, animate_queue_act
 import plotly.express as px
 import gc
 import plotly.graph_objects as go
+import base64
 
 st.set_page_config(
      page_title="The Full Model",
@@ -340,7 +341,7 @@ with tab3:
                 {'event': 'TRAUMA_treatment_begins', 'x': 630, 'y': 500, 'resource':'n_cubicles_2', 'label': "Being<br>Treated" }
             ])
 
-            st.plotly_chart(animate_activity_log(
+            animated_plot = animate_activity_log(
                     animation_dfs_log['full_patient_df'],
                     event_position_df = event_position_df,
                     scenario=args,
@@ -357,8 +358,23 @@ with tab3:
                     # show_animated_clock=True,
                     # animated_clock_coordinates = [100, 50],
                     add_background_image="https://raw.githubusercontent.com/Bergam0t/Teaching_DES_Concepts_Streamlit/main/resources/Full%20Model%20Background%20Image%20-%20Horizontal%20Layout.drawio.png",
-            ), 
-            use_container_width=False)
+            ) 
+
+            st.plotly_chart(animated_plot,
+                            use_container_width=False)
+
+            # st.markdown(
+            #     f'<a href="data:text/html;base64,{base64.b64encode(animated_plot.to_html(full_html=False, include_plotlyjs="cdn").encode()).decode()}" download="plot.html">Download Plot</a>',
+            #     unsafe_allow_html=True
+            # )
+
+            st.download_button(
+                label="Download Plot as HTML",
+                data=animated_plot.to_html(full_html=False, include_plotlyjs="cdn"),
+                file_name="plot.html",
+                mime="text/html"
+            )
+
 
             # Uncomment if debugging animated event log
             # st.write(
