@@ -305,15 +305,15 @@ with tab3:
         # Add in a box plot showing utilisation
 
         tab_playground_results_1, tab_playground_results_2, tab_playground_results_3, tab_playground_results_4  = st.tabs([
-            'Animated Model',
             'Utilisation and Wait Metrics',
+            'Animated Model',
             'Advanced Utilisation and Wait Metrics',
             'Utilisation over Time'
             ])
 
         # st.subheader("Look at Average Results Across Replications")
 
-        with tab_playground_results_1:
+        with tab_playground_results_2:
             
             event_position_df = pd.DataFrame([
                 # {'event': 'arrival', 'x':  10, 'y': 250, 'label': "Arrival" },
@@ -376,7 +376,7 @@ with tab3:
         # st.write(animation_dfs_log['full_patient_df'].sort_values(['minute', 'event'])[['minute', 'event', 'patient', 'resource_id', 'resource_users', 'request']]
                 #  )
 
-        with tab_playground_results_2:
+        with tab_playground_results_1:
 
             col_res_a, col_res_b = st.columns([1,1])
 
@@ -407,7 +407,7 @@ with tab3:
                 util_fig_simple.add_bar(x=results.mean().filter(like="util").index.tolist(),
                                         y=results.mean().filter(like="util").tolist())
 
-                util_fig_simple.update_layout(yaxis_tickformat = '.3f%')
+                util_fig_simple.update_layout(yaxis_tickformat = '.3%')
                 util_fig_simple.update_yaxes(title_text='Resource Utilisation (%)',
                                              range=[-0.05, 1.1])
                 # util_fig_simple.data = util_fig_simple.data[::-1]
@@ -460,30 +460,75 @@ with tab3:
 
         with tab_playground_results_3:
 
+            st.markdown("""
+                        We can use box plots to explore the effect of the random variation within each model run.
+                        This can give us a better idea of how robust the system is. 
+                        """)
+
             col_res_1, col_res_2 = st.columns(2)
 
             with col_res_1:
-                st.subheader("Utilisation Metrics")
+                st.subheader("Average Utilisation")
 
-                st.plotly_chart(px.box(
+                utilisation_boxplot = px.box(
                     results.reset_index().melt(id_vars="rep").set_index('variable').filter(like="util", axis=0).reset_index(), 
                     y="variable", 
                     x="value",
                     points="all",
-                    range_x=[0, 1]),
+                    range_x=[0, 1])
+                
+                utilisation_boxplot.add_vrect(x0=0.65, x1=0.85,
+                                          fillcolor="#5DFDA0", opacity=0.25,  line_width=0)
+                # Add extreme range (above)
+                utilisation_boxplot.add_vrect(x0=0.85, x1=1,
+                                          fillcolor="#D45E5E", opacity=0.25, line_width=0)
+                # Add suboptimum range (below)
+                utilisation_boxplot.add_vrect(x0=0.4, x1=0.65,
+                                          fillcolor="#FDD049", opacity=0.25, line_width=0)
+                # Add extreme range (below)
+                utilisation_boxplot.add_vrect(x0=0, x1=0.4,
+                                          fillcolor="#D45E5E", opacity=0.25, line_width=0)
+
+                utilisation_boxplot.update_yaxes(labelalias={
+                    "01b_triage_util": "Triage<br>Bays", 
+                    "02b_registration_util": "Registration<br>Cubicles",
+                    "03b_examination_util": "Examination<br>Bays",
+                    "04b_treatment_util(non_trauma)": "Treatment<br>Bays<br>(non-trauma)",
+                    "06b_trauma_util": "Stabilisation<br>Bays",
+                    "07b_treatment_util(trauma)": "Treatment<br>Bays<br>(trauma)"
+                }, tickangle=0)
+
+                
+
+                st.plotly_chart(utilisation_boxplot,
                     use_container_width=True
                     )
                 
                 st.write(results.filter(like="util", axis=1).merge(results.filter(like="throughput", axis=1),left_index=True,right_index=True))
                 
             with col_res_2:
-                st.subheader("Wait Metrics")
-                # Add in a box plot showing waits
-                st.plotly_chart(px.box(
+                st.subheader("Average Waits")
+
+                wait_boxplot = px.box(
                     results.reset_index().melt(id_vars="rep").set_index('variable').filter(like="wait", axis=0).reset_index(), 
                     y="variable", 
                     x="value",
-                    points="all"),
+                    points="all")
+
+                wait_boxplot.update_yaxes(labelalias={
+                    "01a_triage_wait": "Triage", 
+                    "02a_registration_wait": "Registration",
+                    "03a_examination_wait": "Examination",
+                    "04a_treatment_wait(non_trauma)": "Treatment<br>(non-trauma)",
+                    "06a_trauma_wait": "Stabilisation",
+                    "07a_treatment_wait(trauma)": "Treatment<br>(trauma)"
+                }, tickangle=0)
+
+                wait_boxplot.add_vrect(x0=0, x1=60*2, fillcolor="#5DFDA0", 
+                                          opacity=0.3, line_width=0)
+
+                # Add in a box plot showing waits
+                st.plotly_chart(wait_boxplot,
                     use_container_width=True
                     )
 
@@ -497,9 +542,12 @@ with tab3:
         with tab_playground_results_4:
             st.markdown("Placeholder")
 
+#################################################
 # Create area for exploring all session results
+#################################################
 with tab4:
     if len(st.session_state['session_results']) > 0:
+
 
         all_run_results = pd.concat(st.session_state['session_results'])
 
@@ -507,61 +555,190 @@ with tab4:
         col_a, col_b = st.columns(2)
         
         with col_a:
-            
             # st.write(all_run_results.drop(all_run_results.filter(regex='\d+').columns,axis=1).groupby('Model Run').median().T)
             st.write(all_run_results.groupby('Model Run').median().T)
         with col_b:
             # st.write(all_run_results.filter(regex='\d+', axis=1).groupby('Model Run').median().T)
             st.write("Placeholder")
 
-        col_res_1, col_res_2 = st.columns(2)
-
+        scenario_tab_1, scenario_tab_2 = st.tabs(["Simple Metrics", 
+                                                  "Advanced Metrics"])
         
 
-        with col_res_1:
-            st.subheader("Utilisation Metrics")
+        with scenario_tab_1:
 
-            st.plotly_chart(px.box(
-                all_run_results.reset_index().melt(id_vars=["Model Run", "rep"]).set_index('variable').filter(like="util", axis=0).reset_index(), 
-                y="variable", 
-                x="value",
-                color="Model Run",
-                points="all",
-                range_x=[0, 1]),
-                use_container_width=True
-                )
+#             st.write(
+# all_run_results.groupby('Model Run').median().T.reset_index(drop=False).melt(id_vars="index", var_name="model_run"),                    x="variable", 
+#             )
+            col_x, col_y = st.columns(2)
+
+            with col_x:
+                st.subheader("Utilisation")
+
+                all_run_util_bar = px.bar(
+                        all_run_results.groupby('Model Run').median().T.filter(like="util", axis=0).reset_index(drop=False).melt(id_vars="index", var_name="model_run"),              
+                        x="value",
+                        y="index",
+                        barmode='group',
+                        color="model_run",
+                        range_x=[0, 1])
+                
+                all_run_util_bar.add_vrect(x0=0.65, x1=0.85,
+                                          fillcolor="#5DFDA0", opacity=0.25,  line_width=0)
+                # Add extreme range (above)
+                all_run_util_bar.add_vrect(x0=0.85, x1=1,
+                                          fillcolor="#D45E5E", opacity=0.25, line_width=0)
+                # Add suboptimum range (below)
+                all_run_util_bar.add_vrect(x0=0.4, x1=0.65,
+                                          fillcolor="#FDD049", opacity=0.25, line_width=0)
+                # Add extreme range (below)
+                all_run_util_bar.add_vrect(x0=0, x1=0.4,
+                                          fillcolor="#D45E5E", opacity=0.25, line_width=0)
+
+                all_run_util_bar.update_yaxes(labelalias={
+                    "01b_triage_util": "Triage<br>Bays", 
+                    "02b_registration_util": "Registration<br>Cubicles",
+                    "03b_examination_util": "Examination<br>Bays",
+                    "04b_treatment_util(non_trauma)": "Treatment<br>Bays<br>(non-trauma)",
+                    "06b_trauma_util": "Stabilisation<br>Bays",
+                    "07b_treatment_util(trauma)": "Treatment<br>Bays<br>(trauma)"
+                }, tickangle=0)
+
+                st.plotly_chart(
+                    all_run_util_bar,
+                        use_container_width=True
+                        )
+                
+            with col_y:
+                st.subheader("Waits")
+
+                all_run_wait_bar = px.bar(
+                        all_run_results.groupby('Model Run').median().T.filter(like="wait", axis=0).reset_index(drop=False).melt(id_vars="index", var_name="model_run"),              
+                        x="value",
+                        y="index",
+                        barmode='group',
+                        color="model_run",
+                        )
+                
+                all_run_wait_bar.update_yaxes(labelalias={
+                    "01a_triage_wait": "Triage", 
+                    "02a_registration_wait": "Registration",
+                    "03a_examination_wait": "Examination",
+                    "04a_treatment_wait(non_trauma)": "Treatment<br>(non-trauma)",
+                    "06a_trauma_wait": "Stabilisation",
+                    "07a_treatment_wait(trauma)": "Treatment<br>(trauma)"
+                }, tickangle=0)
+
+                all_run_wait_bar.add_vrect(x0=0, x1=60*2, fillcolor="#5DFDA0", 
+                                          opacity=0.3, line_width=0)
+
+                st.plotly_chart(all_run_wait_bar,
+                        use_container_width=True
+                        )
+        
+        # Repeat but with boxplots instead so variability within model runs can be
+        # better explored
+        with scenario_tab_2:
+
+            col_res_1, col_res_2 = st.columns(2)
+
             
-            # st.write(all_run_results.filter(like="util", axis=1).merge(all_run_results.filter(like="throughput", axis=1),left_index=True,right_index=True))
-            
-        with col_res_2:
-            st.subheader("Wait Metrics")
-            # Add in a box plot showing waits
-            st.plotly_chart(px.box(
-                all_run_results.reset_index().melt(id_vars=["Model Run", "rep"]).set_index('variable').filter(like="wait", axis=0).reset_index(), 
-            #                 left_index=True, right_index=True), 
-                y="variable", 
-                x="value",
-                color="Model Run",
-                points="all"),
-                use_container_width=True
+
+            with col_res_1:
+                st.subheader("Utilisation")
+
+                all_run_util_box = px.box(
+                    all_run_results.reset_index().melt(id_vars=["Model Run", "rep"]).set_index('variable').filter(like="util", axis=0).reset_index(), 
+                    y="variable", 
+                    x="value",
+                    color="Model Run",
+                    points="all",
+                    range_x=[0, 1])
+
+                all_run_util_box.add_vrect(x0=0.65, x1=0.85,
+                                          fillcolor="#5DFDA0", opacity=0.25,  line_width=0)
+                # Add extreme range (above)
+                all_run_util_box.add_vrect(x0=0.85, x1=1,
+                                          fillcolor="#D45E5E", opacity=0.25, line_width=0)
+                # Add suboptimum range (below)
+                all_run_util_box.add_vrect(x0=0.4, x1=0.65,
+                                          fillcolor="#FDD049", opacity=0.25, line_width=0)
+                # Add extreme range (below)
+                all_run_util_box.add_vrect(x0=0, x1=0.4,
+                                          fillcolor="#D45E5E", opacity=0.25, line_width=0)
+
+                all_run_util_box.update_yaxes(labelalias={
+                    "01b_triage_util": "Triage<br>Bays", 
+                    "02b_registration_util": "Registration<br>Cubicles",
+                    "03b_examination_util": "Examination<br>Bays",
+                    "04b_treatment_util(non_trauma)": "Treatment<br>Bays<br>(non-trauma)",
+                    "06b_trauma_util": "Stabilisation<br>Bays",
+                    "07b_treatment_util(trauma)": "Treatment<br>Bays<br>(trauma)"
+                }, tickangle=0)
+
+                st.plotly_chart(all_run_util_box,
+                    use_container_width=True
+                    )
+                
+
+
+
+                # st.write(all_run_results.filter(like="util", axis=1).merge(all_run_results.filter(like="throughput", axis=1),left_index=True,right_index=True))
+                
+            with col_res_2:
+                st.subheader("Waits")
+
+                all_run_wait_box = px.box(
+                    all_run_results.reset_index().melt(id_vars=["Model Run", "rep"]).set_index('variable').filter(like="wait", axis=0).reset_index(), 
+                #                 left_index=True, right_index=True), 
+                    y="variable", 
+                    x="value",
+                    color="Model Run",
+                    points="all")
+                
+                all_run_wait_box.update_yaxes(labelalias={
+                    "01a_triage_wait": "Triage", 
+                    "02a_registration_wait": "Registration",
+                    "03a_examination_wait": "Examination",
+                    "04a_treatment_wait(non_trauma)": "Treatment<br>(non-trauma)",
+                    "06a_trauma_wait": "Stabilisation",
+                    "07a_treatment_wait(trauma)": "Treatment<br>(trauma)"
+                }, tickangle=0)
+
+                all_run_wait_box.add_vrect(x0=0, x1=60*2, fillcolor="#5DFDA0", 
+                                          opacity=0.3, line_width=0)
+                # Add in a box plot showing waits
+                st.plotly_chart(all_run_wait_box,
+                    use_container_width=True
+                    )
+
+            col_res_3, col_res_4 = st.columns(2)
+
+            with col_res_3:
+                st.subheader("Throughput")
+                st.markdown(
+                    """
+                    This is the percentage of clients who entered the system
+                    who had left by the time the model stopped running.
+                    Higher values are better - low values suggest a big backlog of people getting stuck in the system
+                    for a long time.
+                    """
                 )
+                all_run_results['perc_throughput'] = all_run_results['09_throughput']/all_run_results['00_arrivals']
 
-        col_res_3, col_res_4 = st.columns(2)
+                
+                # Add in a box plot showing waits
+                st.plotly_chart(px.box(
+                    all_run_results.reset_index().melt(id_vars=["Model Run", "rep"]).set_index('variable').filter(like="perc_throughput", axis=0).reset_index(),  
+                    y="variable", 
+                    x="value",
+                    color="Model Run",
+                    points="all"),
+                    use_container_width=True
+                    )
 
-        with col_res_3:
-            st.subheader("Throughput")
-            # Add in a box plot showing waits
-            st.plotly_chart(px.box(
-                all_run_results.reset_index().melt(id_vars=["Model Run", "rep"]).set_index('variable').filter(like="throughput", axis=0).reset_index(),  
-                y="variable", 
-                x="value",
-                color="Model Run",
-                points="all"),
-                use_container_width=True
-                )
-
-            # st.write(all_run_results.filter(like="wait", axis=1)
-            #             .merge(all_run_results.filter(like="throughput", axis=1), 
-            #                 left_index=True, right_index=True))
+                # st.write(all_run_results.filter(like="wait", axis=1)
+                #             .merge(all_run_results.filter(like="throughput", axis=1), 
+                #                 left_index=True, right_index=True))
     else:
         st.markdown("No scenarios yet run. Go to the 'Playground' tab and click 'Run simulation'.")
