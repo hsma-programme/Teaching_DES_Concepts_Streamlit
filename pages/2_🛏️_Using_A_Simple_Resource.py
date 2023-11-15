@@ -238,7 +238,12 @@ with tab3:
                                 scenario=args,
                                 include_play_button=True,
                                 return_df_only=False,
-                                plotly_height=500
+                                plotly_height=500,
+                                wrap_queues_at=10,
+                                time_display_units="dhm"
                         ), use_container_width=True)
 
-                # st.write(results)
+            st.write(results)
+
+
+            st.write(full_event_log)
