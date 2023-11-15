@@ -243,7 +243,7 @@ with tab3:
                                 time_display_units="dhm"
                         ), use_container_width=True)
 
-            st.write(results)
+            # st.write(results)
 
 
-            st.write(full_event_log)
+            # st.write(full_event_log)
