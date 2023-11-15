@@ -200,23 +200,21 @@ with tab3:
                 
                 full_event_log = pd.concat([detailed_outputs[i]['results']['full_event_log'].assign(rep= i+1)
                                             for i in range(n_reps)])
-                
-       
 
-            event_position_df = pd.DataFrame([
-                            {'event': 'arrival', 'x':  50, 'y': 300, 'label': "Arrival" },
+                event_position_df = pd.DataFrame([
+                                {'event': 'arrival', 'x':  50, 'y': 300, 'label': "Arrival" },
+                                
+                                # Triage - minor and trauma                
+                                {'event': 'treatment_wait_begins', 'x':  190, 'y': 170, 'label': "Waiting for Treatment"  },
+                                {'event': 'treatment_begins', 'x':  190, 'y': 110, 'resource':'n_cubicles_1', 'label': "Being Treated" },
                             
-                            # Triage - minor and trauma                
-                            {'event': 'treatment_wait_begins', 'x':  190, 'y': 170, 'label': "Waiting for Treatment"  },
-                            {'event': 'treatment_begins', 'x':  190, 'y': 110, 'resource':'n_cubicles_1', 'label': "Being Treated" },
-                        
-                        ])
-            animation_dfs_log = reshape_for_animations(
-                        full_event_log=full_event_log[
-                            (full_event_log['rep']==1) &
-                            ((full_event_log['event_type']=='queue') | (full_event_log['event_type']=='resource_use')  | (full_event_log['event_type']=='arrival_departure'))
-                        ],
-                        every_x_minutes=5
+                            ])
+                animation_dfs_log = reshape_for_animations(
+                            full_event_log=full_event_log[
+                                (full_event_log['rep']==1) &
+                                ((full_event_log['event_type']=='queue') | (full_event_log['event_type']=='resource_use')  | (full_event_log['event_type']=='arrival_departure'))
+                            ],
+                            every_x_minutes=5
                     )
     if button_run_pressed:
         tab1, tab2, tab3 = st.tabs(
@@ -224,6 +222,11 @@ with tab3:
             )  
 
         with tab1:
+
+            st.write(results)
+
+
+
             st.subheader("Animated Model Output")
             with st.spinner('Generating the animated patient log...'):
                 st.plotly_chart(animate_activity_log(
@@ -302,7 +305,7 @@ with tab3:
 
                 st.markdown(
                     """
-                    The emergency department wants to ensure people wait no longer than 2 hours (120 minutes) at any point in the process.
+                    The emergency department wants to ensure people wait no longer than 2 hours (120 minutes) to be seen.
                     This needs to be balanced with the utilisation graphs on the left.
                     The green box shows waits of less than two hours. If the bars fall within this range, the number of resources does not need to be changed.
                     """
@@ -312,8 +315,8 @@ with tab3:
                 wait_fig_simple.add_hrect(y0=0, y1=60*2, fillcolor="#5DFDA0", 
                                           opacity=0.3, line_width=0)
                 
-                wait_fig_simple.add_bar(x=results.mean().filter(like="wait").index.tolist(),
-                                        y=results.mean().filter(like="wait").tolist())
+                wait_fig_simple.add_bar(x=results.mean().filter(like="01a").index.tolist(),
+                                        y=results.mean().filter(like="01a").tolist())
 
                 wait_fig_simple.update_xaxes(labelalias={
                     "01a_triage_wait": "Triage", 
@@ -328,6 +331,43 @@ with tab3:
 
                 st.plotly_chart(
                     wait_fig_simple,
+                    use_container_width=True
+                )
+
+            col_res_c, col_res_d = st.columns(2)
+
+            with col_res_c:
+                #util_fig_simple = px.bar(results.mean().filter(like="wait"), opacity=0.5)
+                st.metric(label=":clock2: **Wait Target Met**", value="{} of {}".format(in_range_wait, len(results.mean().filter(like="wait"))))
+
+                st.markdown(
+                    """
+                    The emergency department wants to ensure people wait no longer than 2 hours (120 minutes) to be seen.
+                    This needs to be balanced with the utilisation graphs on the left.
+                    The green box shows waits of less than two hours. If the bars fall within this range, the number of resources does not need to be changed.
+                    """
+                )
+
+                wait_target_simple = go.Figure()
+                wait_target_simple.add_hrect(y0=0.85, y1=1, fillcolor="#5DFDA0", 
+                                          opacity=0.3, line_width=0)
+                
+                wait_target_simple.add_bar(x=results.median().filter(like="01c").index.tolist(),
+                                        y=results.median().filter(like="01c").tolist())
+
+                # wait_fig_simple.update_xaxes(labelalias={
+                #     "01a_triage_wait": "Triage", 
+                #     "02a_registration_wait": "Registration",
+                #     "03a_examination_wait": "Examination",
+                #     "04a_treatment_wait(non_trauma)": "Treatment<br>(non-trauma)",
+                #     "06a_trauma_wait": "Stabilisation",
+                #     "07a_treatment_wait(trauma)": "Treatment<br>(trauma)"
+                # }, tickangle=0)
+                # wait_fig_simple.data = wait_fig_simple.data[::-1]
+                wait_target_simple.update_yaxes(title_text='Average % of patients where 2 hour wait target met')
+
+                st.plotly_chart(
+                    wait_target_simple,
                     use_container_width=True
                 )
 
@@ -405,6 +445,32 @@ with tab3:
                     use_container_width=True
                 )
 
+            st.markdown("""
+                        ### Wait Targets
+                        This is the percentage of clients who met the 2 hour wait target.
+                        """)
+
+            wait_target_box = px.box(
+                    results.reset_index().melt(id_vars=["rep"]).set_index('variable').filter(like="1c", axis=0).reset_index(), 
+                    y="variable", 
+                    x="value",
+                    points="all",
+                    height=200,
+                    range_x=[0, 1.1]
+                    )
+            
+            wait_target_box.update_layout(yaxis_title="", xaxis_title="Throughput in Model Run")
+
+            wait_target_box.update_yaxes(labelalias={
+                "09_throughput": "Throughput"
+            }, tickangle=0)
+
+
+            st.plotly_chart(wait_target_box,
+                    use_container_width=True
+                )
+            
+            
             st.markdown("""
                         ### Throughput
                         This is the percentage of clients who entered the system who had left by the time the model stopped running.
