@@ -1274,7 +1274,7 @@ class SimulationSummary:
                             '09_throughput': self.get_throughput(self.model.patients)
                             }
             
-        if self.args.model == "simple_with_branch":
+        elif self.args.model == "simple_with_branch":
 
             self.patient_log = self.model.patients
 
