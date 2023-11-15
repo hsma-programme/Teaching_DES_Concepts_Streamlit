@@ -521,7 +521,7 @@ class TraumaPathway:
                  'event_type': 'resource_use',
                  'event': 'triage_begins',
                  'time': self.env.now,
-                 'resource_id': self.args.triage.users.index(req)
+                 'resource_id': self.args.triage.id_attribute
                  }
             )
 
@@ -1657,8 +1657,20 @@ class TreatmentCentreModelSimpleNurseStepOnly:
 
         '''
         # examination
-        self.args.treatment = CustomResource(self.env,
-                                        capacity=self.args.n_cubicles_1)
+        # self.args.treatment = CustomResource(self.env,
+        #                                 capacity=self.args.n_cubicles_1)
+        
+        self.args.treatment = simpy.Store(self.env)
+
+        for i in range(self.args.n_cubicles_1):
+            self.args.treatment.put(
+                CustomResource(
+                    self.env,
+                    capacity=1,
+                    id_attribute = i+1)
+                )
+
+
 
     def run(self, results_collection_period=DEFAULT_RESULTS_COLLECTION_PERIOD):
         '''
@@ -1795,7 +1807,7 @@ class TreatmentCentreModelSimpleNurseStepOnly:
 
 class SimplePathway(object):
     '''
-    Encapsulates the process a patient with minor injuries and illness.
+    Encapsulates the process for a patient with minor injuries and illness.
 
     These patients are arrived, then seen and treated by a nurse as soon as one is available.
     No place-based resources are considered in this pathway.
@@ -1859,37 +1871,41 @@ class SimplePathway(object):
              'time': self.env.now}
         )
 
-        with self.args.treatment.request() as req:
-            yield req
+        # Seize a treatment resource when available
+        treatment_resource = yield self.args.treatment.get()
+            
+        # record the waiting time for registration
+        self.wait_treat = self.env.now - start_wait
+        trace(f'treatment of patient {self.identifier} begins '
+                f'{self.env.now:.3f}')
+        self.full_event_log.append(
+            {'patient': self.identifier,
+                'pathway': 'Simplest',
+                'event': 'treatment_begins',
+                'event_type': 'resource_use',
+                'time': self.env.now,
+                'resource_id': treatment_resource.id_attribute
+                }
+        )
 
-            # record the waiting time for registration
-            self.wait_treat = self.env.now - start_wait
-            trace(f'treatment of patient {self.identifier} begins '
-                  f'{self.env.now:.3f}')
-            self.full_event_log.append(
-                {'patient': self.identifier,
-                 'pathway': 'Simplest',
-                 'event': 'treatment_begins',
-                 'event_type': 'resource_use',
-                 'time': self.env.now,
-                 'resource_id': self.args.treatment.users.index(req)
-                 }
-            )
+        # sample examination duration.
+        self.treat_duration = self.args.treat_dist.sample()
+        yield self.env.timeout(self.treat_duration)
 
-            # sample examination duration.
-            self.treat_duration = self.args.treat_dist.sample()
-            yield self.env.timeout(self.treat_duration)
-
-            trace(f'patient {self.identifier} nurse exam/treatment complete '
-                  f'at {self.env.now:.3f};'
-                  f'waiting time was {self.wait_treat:.3f}')
-            self.full_event_log.append(
-                {'patient': self.identifier,
-                 'pathway': 'Simplest',
-                 'event': 'treatment_complete',
-                 'event_type': 'resource_use_end',
-                 'time': self.env.now}
-            )
+        trace(f'patient {self.identifier} nurse exam/treatment complete '
+                f'at {self.env.now:.3f};'
+                f'waiting time was {self.wait_treat:.3f}')
+        self.full_event_log.append(
+            {'patient': self.identifier,
+                'pathway': 'Simplest',
+                'event': 'treatment_complete',
+                'event_type': 'resource_use_end',
+                'time': self.env.now,
+                'resource_id': treatment_resource.id_attribute}
+        )
+    
+        # Resource is no longer in use, so put it back in
+        self.args.treatment.put(treatment_resource) 
 
         # total time in system
         self.total_time = self.env.now - self.arrival
