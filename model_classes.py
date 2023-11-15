@@ -1273,6 +1273,37 @@ class SimulationSummary:
                             '08_total_time': mean_total,
                             '09_throughput': self.get_throughput(self.model.patients)
                             }
+            
+        if self.args.model == "simple_with_branch":
+
+            self.patient_log = self.model.patients
+
+            # mean waiting time for examination (non_trauma)
+            mean_wait_exam = self.get_mean_metric('wait_exam',
+                                                self.model.patients)
+
+            # examination utilisation (non-trauma)
+            exam_util = self.get_resource_util('exam_duration',
+                                            self.args.n_exam,
+                                            self.model.patients)
+
+            mean_treat_wait = self.get_mean_metric('wait_treat', self.model.patients)
+
+            # triage utilisation (both types of patient)
+            treat_util = self.get_resource_util('treat_duration',
+                                                self.args.n_cubicles_1,
+                                                self.model.patients)
+
+            mean_total = self.get_mean_metric('total_time', self.model.patients)
+
+            self.results = {'00_arrivals': len(self.model.patients),
+                            '01a_examination_wait': mean_wait_exam,
+                            '01b_examination_util': exam_util,
+                            '02a_treatment_wait': mean_treat_wait,
+                            '02b_treatment_util': treat_util,
+                            '08_total_time': mean_total,
+                            '09_throughput': self.get_throughput(self.model.patients)
+                            }
                             
 
         else:
@@ -1512,6 +1543,8 @@ def single_run(scenario, rc_period=DEFAULT_RESULTS_COLLECTION_PERIOD,
         model = TreatmentCentreModel(scenario)
     if scenario.model == "simplest":
         model = TreatmentCentreModelSimpleNurseStepOnly(scenario)
+    if scenario.model == "simple_with_branch":
+        model = TreatmentCentreModelSimpleBranchedPathway(scenario)
 
     # run the model
     model.run(results_collection_period=rc_period)
@@ -1694,6 +1727,11 @@ def scenario_summary_frame(scenario_results):
     summary.columns = columns
     return summary
 
+
+
+####################################################################
+# Classes for 'using a simple resource' page
+####################################################################
 
 class TreatmentCentreModelSimpleNurseStepOnly:
     '''
@@ -1993,6 +2031,13 @@ class SimplePathway(object):
 
 
 
+
+
+
+#####################################################################
+# Classes for 'adding an optional step' page
+#####################################################################
+
 class TreatmentCentreModelSimpleBranchedPathway:
     '''
     The treatment centre model
@@ -2032,6 +2077,18 @@ class TreatmentCentreModelSimpleBranchedPathway:
         # self.args.treatment = CustomResource(self.env,
         #                                 capacity=self.args.n_cubicles_1)
 
+        # Create examination bays
+        self.args.exam = simpy.Store(self.env)
+
+        for i in range(self.args.n_exam):
+            self.args.exam.put(
+                CustomResource(
+                    self.env,
+                    capacity=1,
+                    id_attribute = i+1)
+                )
+
+        # Create treatment bays   
         self.args.treatment = simpy.Store(self.env)
 
         for i in range(self.args.n_cubicles_1):
@@ -2041,6 +2098,7 @@ class TreatmentCentreModelSimpleBranchedPathway:
                     capacity=1,
                     id_attribute = i+1)
                 )
+
 
     def run(self, results_collection_period=DEFAULT_RESULTS_COLLECTION_PERIOD):
         '''
@@ -2065,69 +2123,12 @@ class TreatmentCentreModelSimpleBranchedPathway:
         # setup the arrival generator process
         self.env.process(self.arrivals_generator())
 
-        # resources_list = [
-        #     {'resource_name': 'treatment_cubicle_or_nurse',
-        #         'resource_object': self.args.n_cubicles_1}
-        # ]
-
-        # self.env.process(
-        #     self.interval_audit_utilisation(
-        #         resources=resources_list,
-        #         interval=5
-        #     )
-        # )
-
         # store rc perio
         self.rc_period = results_collection_period
 
         # run
         self.env.run(until=results_collection_period)
 
-    def interval_audit_utilisation(self, resources, interval=1):
-        '''
-        Record utilisation at defined intervals. 
-
-        Needs to be passed to env.process when running model
-
-        Parameters:
-        ------
-        resource: SimPy resource object
-            The resource to monitor
-            OR 
-            a list of dictionaries containing simpy resource objects in the format
-            [{'resource_name':'my_resource', 'resource_object': resource}]
-
-        interval: int:
-            Time between audits. 
-            1 unit of time is 1 day in this model.  
-        '''
-
-        while True:
-            # Record time
-            if isinstance(resources, list):
-                for i in range(len(resources)):
-                    self.utilisation_audit.append({
-                        'resource_name': resources[i]['resource_name'],
-                        'simulation_time': self.env.now,  # The current simulation time
-                        # The number of users
-                        'number_utilised': resources[i]['resource_object'].count,
-                        'number_available': resources[i]['resource_object'].capacity,
-                        # The number of queued processes
-                        'number_queued': len(resources[i]['resource_object'].queue),
-                    })
-
-            else:
-                self.utilisation_audit.append({
-                    # 'simulation_time': resource._env.now,
-                    'simulation_time': self.env.now,  # The current simulation time
-                    'number_utilised': resources.count,  # The number of users
-                    'number_available': resources.capacity,
-                    # The number of queued processes
-                    'number_queued': len(resources.queue),
-                })
-
-            # Trigger next audit after interval
-            yield self.env.timeout(interval)
 
     def arrivals_generator(self):
         '''
@@ -2167,7 +2168,7 @@ class TreatmentCentreModelSimpleBranchedPathway:
             # )
 
             # Generate the patient
-            new_patient = SimplePathway(patient_count, self.env, self.args, self.full_event_log)
+            new_patient = SimpleBranchedPathway(patient_count, self.env, self.args, self.full_event_log)
             self.patients.append(new_patient)
             # start the pathway process for the patient
             self.env.process(new_patient.execute())
@@ -2175,12 +2176,13 @@ class TreatmentCentreModelSimpleBranchedPathway:
 
 # UNFINISHED
 
+
 class SimpleBranchedPathway(object):
     '''
     Encapsulates the process a patient with minor injuries and illness.
 
     These patients are arrived, then seen and treated by a nurse as soon as one is available.
-    No place-based resources are considered in this pathway.
+    Some patients may then require treatment.
 
     Following treatment they are discharged.
     '''
@@ -2208,9 +2210,11 @@ class SimpleBranchedPathway(object):
 
         # metrics
         self.arrival = -np.inf
+        self.wait_exam = -np.inf
         self.wait_treat = -np.inf
         self.total_time = -np.inf
 
+        self.exam_duration = -np.inf
         self.treat_duration = -np.inf
 
     def execute(self):
@@ -2219,13 +2223,15 @@ class SimpleBranchedPathway(object):
 
         1. Arrive
         2. Examined/treated by nurse when one available
-        3. Discharged
+        3. Sample to see whether treatment is required
+        4. Treated if required
+        5. Discharged either after examination or after treatment depending on outcome of 3
         '''
         # record the time of arrival and entered the triage queue
         self.arrival = self.env.now
         self.full_event_log.append(
             {'patient': self.identifier,
-             'pathway': 'Simplest',
+             'pathway': 'simple_with_branch',
              'event_type': 'arrival_departure',
              'event': 'arrival',
              'time': self.env.now}
@@ -2235,43 +2241,110 @@ class SimpleBranchedPathway(object):
         start_wait = self.env.now
         self.full_event_log.append(
             {'patient': self.identifier,
-             'pathway': 'Simplest',
+             'pathway': 'simple_with_branch',
              'event': 'treatment_wait_begins',
              'event_type': 'queue',
              'time': self.env.now}
         )
 
-        with self.args.treatment.request() as req:
-            yield req
+        #########################################################
+        # All arrivals require examination
+        examination_resource = yield self.args.exam.get()
 
-            # record the waiting time for registration
-            self.wait_treat = self.env.now - start_wait
-            trace(f'treatment of patient {self.identifier} begins '
-                  f'{self.env.now:.3f}')
+        # record the waiting time for registration
+        self.wait_exam = self.env.now - start_wait
+        trace(f'treatment of patient {self.identifier} begins '
+                f'{self.env.now:.3f}')
+        self.full_event_log.append(
+            {'patient': self.identifier,
+                'pathway': 'simple_with_branch',
+                'event': 'treatment_begins',
+                'event_type': 'resource_use',
+                'time': self.env.now,
+                'resource_id': examination_resource.id_attribute
+                }
+        )
+
+        # sample examination duration.
+        self.exam_duration = self.args.exam_dist.sample()
+        yield self.env.timeout(self.exam_duration)
+
+        trace(f'patient {self.identifier} nurse exam/treatment complete '
+                f'at {self.env.now:.3f};'
+                f'waiting time was {self.wait_treat:.3f}')
+        self.full_event_log.append(
+            {'patient': self.identifier,
+                'pathway': 'simple_with_branch',
+                'event': 'treatment_complete',
+                'event_type': 'resource_use_end',
+                'time': self.env.now,
+                'resource_id': examination_resource.id_attribute}
+        )
+
+        # Resource is no longer in use, so put it back in the store
+        self.args.exam.put(examination_resource) 
+        #########################################################
+
+        # sample if patient requires treatment?
+        self.require_treat = self.args.nt_p_treat_dist.sample()  #pylint: disable=attribute-defined-outside-init
+
+        if self.require_treat:
+
             self.full_event_log.append(
                 {'patient': self.identifier,
-                 'pathway': 'Simplest',
-                 'event': 'treatment_begins',
-                 'event_type': 'resource_use',
-                 'time': self.env.now,
-                 'resource_id': self.args.treatment.users.index(req)
-                 }
-            )
-
-            # sample examination duration.
-            self.treat_duration = self.args.treat_dist.sample()
-            yield self.env.timeout(self.treat_duration)
-
-            trace(f'patient {self.identifier} nurse exam/treatment complete '
-                  f'at {self.env.now:.3f};'
-                  f'waiting time was {self.wait_treat:.3f}')
-            self.full_event_log.append(
-                {'patient': self.identifier,
-                 'pathway': 'Simplest',
-                 'event': 'treatment_complete',
-                 'event_type': 'resource_use_end',
+                 'pathway': 'simple_with_branch',
+                 'event': 'requires_treatment',
+                 'event_type': 'attribute_assigned',
                  'time': self.env.now}
             )
+
+            # record the time that entered the treatment queue
+            start_wait = self.env.now
+            self.full_event_log.append(
+                {'patient': self.identifier,
+                 'pathway': 'simple_with_branch',
+                 'event': 'treatment_wait_begins',
+                 'event_type': 'queue',
+                 'time': self.env.now}
+            )
+            ###################################################
+            # request treatment cubicle
+
+            non_trauma_treatment_resource = yield self.args.treatment.get()
+
+            # record the waiting time for treatment
+            self.wait_treat = self.env.now - start_wait
+            trace(f'treatment of patient {self.identifier} begins '
+                    f'{self.env.now:.3f}')
+            self.full_event_log.append(
+                {'patient': self.identifier,
+                    'pathway': 'simple_with_branch',
+                    'event': 'treatment_begins',
+                    'event_type': 'resource_use',
+                    'time': self.env.now,
+                    'resource_id': non_trauma_treatment_resource.id_attribute
+                }
+            )
+
+            # sample treatment duration.
+            self.treat_duration = self.args.nt_treat_dist.sample()
+            yield self.env.timeout(self.treat_duration)
+
+            trace(f'patient {self.identifier} treatment complete '
+                    f'at {self.env.now:.3f};'
+                    f'waiting time was {self.wait_treat:.3f}')
+            self.full_event_log.append(
+                {'patient': self.identifier,
+                    'pathway': 'simple_with_branch',
+                    'event': 'treatment_ends',
+                    'event_type': 'resource_use_end',
+                    'time': self.env.now,
+                    'resource_id': non_trauma_treatment_resource.id_attribute}
+            )
+
+            # Resource is no longer in use, so put it back in the store
+            self.args.treatment.put(non_trauma_treatment_resource)
+        ##########################################################################
 
         # total time in system
         self.total_time = self.env.now - self.arrival
