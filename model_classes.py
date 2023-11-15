@@ -507,28 +507,43 @@ class TraumaPathway:
              'time': self.env.now}
         )
 
+        ###################################################
         # request sign-in/triage
-        with self.args.triage.request() as req:
-            yield req
-            # record the waiting time for triage
-            self.wait_triage = self.env.now - self.arrival
+        triage_resource = yield self.args.triage.get()
 
-            trace(f'patient {self.identifier} triaged to trauma '
-                  f'{self.env.now:.3f}')
-            self.full_event_log.append(
-                {'patient': self.identifier,
-                 'pathway': 'Trauma',
-                 'event_type': 'resource_use',
-                 'event': 'triage_begins',
-                 'time': self.env.now,
-                 'resource_id': self.args.triage.id_attribute
-                 }
-            )
+        # record the waiting time for triage
+        self.wait_triage = self.env.now - self.arrival
 
-            # sample triage duration.
-            self.triage_duration = self.args.triage_dist.sample()
-            yield self.env.timeout(self.triage_duration)
-            self.triage_complete()
+        trace(f'patient {self.identifier} triaged to trauma '
+                f'{self.env.now:.3f}')
+        self.full_event_log.append(
+            {'patient': self.identifier,
+             'pathway': 'Trauma',
+             'event_type': 'resource_use',
+             'event': 'triage_begins',
+             'time': self.env.now,
+             'resource_id': triage_resource.id_attribute
+            }
+        )
+
+        # sample triage duration.
+        self.triage_duration = self.args.triage_dist.sample()
+        yield self.env.timeout(self.triage_duration)
+        
+        trace(f'triage {self.identifier} complete {self.env.now:.3f}; '
+              f'waiting time was {self.wait_triage:.3f}')
+        self.full_event_log.append(
+            {'patient': self.identifier,
+             'pathway': 'Trauma',
+             'event_type': 'resource_use_end',
+             'event': 'triage_complete',
+             'time': self.env.now,
+             'resource_id': triage_resource.id_attribute}
+        )
+
+        # Resource is no longer in use, so put it back in the store 
+        self.args.triage.put(triage_resource) 
+        ###################################################
 
         # record the time that entered the trauma queue
         start_wait = self.env.now
@@ -540,28 +555,42 @@ class TraumaPathway:
              'time': self.env.now}
         )
 
+        ###################################################
         # request trauma room
-        with self.args.trauma.request() as req:
-            yield req
+        trauma_resource = yield self.args.trauma.get()
 
-            self.full_event_log.append(
-                {'patient': self.identifier,
-                 'pathway': 'Trauma',
-                 'event_type': 'resource_use',
-                 'event': 'TRAUMA_stabilisation_begins',
-                 'time': self.env.now,
-                 'resource_id': self.args.trauma.users.index(req)
-                 }
-            )
+        self.full_event_log.append(
+            {'patient': self.identifier,
+                'pathway': 'Trauma',
+                'event_type': 'resource_use',
+                'event': 'TRAUMA_stabilisation_begins',
+                'time': self.env.now,
+                'resource_id': trauma_resource.id_attribute
+                }
+        )
 
-            # record the waiting time for trauma
-            self.wait_trauma = self.env.now - start_wait
+        # record the waiting time for trauma
+        self.wait_trauma = self.env.now - start_wait
 
-            # sample stablisation duration.
-            self.trauma_duration = self.args.trauma_dist.sample()
-            yield self.env.timeout(self.trauma_duration)
+        # sample stablisation duration.
+        self.trauma_duration = self.args.trauma_dist.sample()
+        yield self.env.timeout(self.trauma_duration)
 
-            self.trauma_complete()
+        trace(f'stabilisation of patient {self.identifier} at '
+              f'{self.env.now:.3f}')
+        self.full_event_log.append(
+            {'patient': self.identifier,
+             'pathway': 'Trauma',
+             'event_type': 'resource_use_end',
+             'event': 'TRAUMA_stabilisation_complete',
+             'time': self.env.now,
+             'resource_id': trauma_resource.id_attribute
+            }
+        )
+        # Resource is no longer in use, so put it back in the store
+        self.args.trauma.put(trauma_resource)
+        
+        #######################################################
 
         # record the time that entered the treatment queue
         start_wait = self.env.now
@@ -573,65 +602,28 @@ class TraumaPathway:
              'time': self.env.now}
         )
 
+        ########################################################
         # request treatment cubicle
-        with self.args.cubicle_2.request() as req:
-            yield req
+        trauma_treatment_resource = yield self.args.cubicle_2.get()
 
-            # record the waiting time for trauma
-            self.wait_treat = self.env.now - start_wait
-            trace(f'treatment of patient {self.identifier} at '
-                  f'{self.env.now:.3f}')
-            self.full_event_log.append(
-                {'patient': self.identifier,
-                 'pathway': 'Trauma',
-                 'event_type': 'resource_use',
-                 'event': 'TRAUMA_treatment_begins',
-                 'time': self.env.now,
-                 'resource_id': self.args.cubicle_2.users.index(req)
-                 }
-            )
-
-            # sample treatment duration.
-            self.treat_duration = self.args.trauma_dist.sample()
-            yield self.env.timeout(self.treat_duration)
-
-            self.treatment_complete()
-
-        # total time in system
-        self.total_time = self.env.now - self.arrival
-
-    def triage_complete(self):
-        '''
-        Triage complete event
-        '''
-        trace(f'triage {self.identifier} complete {self.env.now:.3f}; '
-              f'waiting time was {self.wait_triage:.3f}')
+        # record the waiting time for trauma
+        self.wait_treat = self.env.now - start_wait
+        trace(f'treatment of patient {self.identifier} at '
+                f'{self.env.now:.3f}')
         self.full_event_log.append(
             {'patient': self.identifier,
-             'pathway': 'Trauma',
-             'event_type': 'resource_use_end',
-             'event': 'triage_complete',
-             'time': self.env.now}
+                'pathway': 'Trauma',
+                'event_type': 'resource_use',
+                'event': 'TRAUMA_treatment_begins',
+                'time': self.env.now,
+                'resource_id': trauma_treatment_resource.id_attribute
+                }
         )
 
-    def trauma_complete(self):
-        '''
-        Patient stay in trauma is complete.
-        '''
-        trace(f'stabilisation of patient {self.identifier} at '
-              f'{self.env.now:.3f}')
-        self.full_event_log.append(
-            {'patient': self.identifier,
-             'pathway': 'Trauma',
-             'event_type': 'resource_use_end',
-             'event': 'TRAUMA_stabilisation_complete',
-             'time': self.env.now}
-        )
+        # sample treatment duration.
+        self.treat_duration = self.args.trauma_dist.sample()
+        yield self.env.timeout(self.treat_duration)
 
-    def treatment_complete(self):
-        '''
-        Treatment complete event
-        '''
         trace(f'patient {self.identifier} treatment complete {self.env.now:.3f}; '
               f'waiting time was {self.wait_treat:.3f}')
         self.full_event_log.append(
@@ -639,7 +631,8 @@ class TraumaPathway:
              'pathway': 'Trauma',
              'event_type': 'resource_use_end',
              'event': 'TRAUMA_treatment_complete',
-             'time': self.env.now}
+             'time': self.env.now,
+             'resource_id': trauma_treatment_resource.id_attribute}
         )
         self.full_event_log.append(
             {'patient': self.identifier,
@@ -649,6 +642,13 @@ class TraumaPathway:
             'time': self.env.now}
         )
 
+        # Resource is no longer in use, so put it back in the store
+        self.args.cubicle_2.put(trauma_treatment_resource) 
+
+        #########################################################
+
+        # total time in system
+        self.total_time = self.env.now - self.arrival
 
 class NonTraumaPathway(object):
     '''
@@ -718,37 +718,42 @@ class NonTraumaPathway(object):
              'time': self.env.now}
         )
 
+        ###################################################
         # request sign-in/triage
-        with self.triage.request() as req:
-            yield req
+        triage_resource = yield self.args.triage.get()
 
-            # record the waiting time for triage
-            self.wait_triage = self.env.now - self.arrival
-            trace(f'patient {self.identifier} triaged to minors '
-                  f'{self.env.now:.3f}')
-            self.full_event_log.append(
-                {'patient': self.identifier,
-                 'pathway': 'Non-Trauma',
-                 'event_type': 'resource_use',
-                 'event': 'triage_begins',
-                 'time': self.env.now,
-                 'resource_id': self.triage.users.index(req)
-                 }
-            )
+        # record the waiting time for triage
+        self.wait_triage = self.env.now - self.arrival
+        trace(f'patient {self.identifier} triaged to minors '
+                f'{self.env.now:.3f}')
+        self.full_event_log.append(
+            {'patient': self.identifier,
+                'pathway': 'Non-Trauma',
+                'event_type': 'resource_use',
+                'event': 'triage_begins',
+                'time': self.env.now,
+                'resource_id': triage_resource.id_attribute
+                }
+        )
 
-            # sample triage duration.
-            self.triage_duration = self.args.triage_dist.sample()
-            yield self.env.timeout(self.triage_duration)
+        # sample triage duration.
+        self.triage_duration = self.args.triage_dist.sample()
+        yield self.env.timeout(self.triage_duration)
 
-            trace(f'triage {self.identifier} complete {self.env.now:.3f}; '
-                  f'waiting time was {self.wait_triage:.3f}')
-            self.full_event_log.append(
-                {'patient': self.identifier,
-                 'pathway': 'Non-Trauma',
-                 'event_type': 'resource_use_end',
-                 'event': 'triage_complete',
-                 'time': self.env.now}
-            )
+        trace(f'triage {self.identifier} complete {self.env.now:.3f}; '
+                f'waiting time was {self.wait_triage:.3f}')
+        self.full_event_log.append(
+            {'patient': self.identifier,
+                'pathway': 'Non-Trauma',
+                'event_type': 'resource_use_end',
+                'event': 'triage_complete',
+                'time': self.env.now,
+                'resource_id': triage_resource.id_attribute}
+        )
+
+        # Resource is no longer in use, so put it back in the store 
+        self.args.triage.put(triage_resource) 
+        #########################################################
 
         # record the time that entered the registration queue
         start_wait = self.env.now
@@ -760,42 +765,42 @@ class NonTraumaPathway(object):
              'time': self.env.now}
         )
 
+        #########################################################
         # request registration clerk
-        with self.args.registration.request() as req:
-            req_id = req
-            yield req
+        registration_resource = yield self.args.registration.get()
             
+        # record the waiting time for registration
+        self.wait_reg = self.env.now - start_wait
+        trace(f'registration of patient {self.identifier} at '
+                f'{self.env.now:.3f}')
+        self.full_event_log.append(
+            {'patient': self.identifier,
+                'pathway': 'Non-Trauma',
+                'event_type': 'resource_use',
+                'event': 'MINORS_registration_begins',
+                'time': self.env.now,
+                'resource_id': registration_resource.id_attribute
+                }
+        )
 
-            # record the waiting time for registration
-            self.wait_reg = self.env.now - start_wait
-            trace(f'registration of patient {self.identifier} at '
-                  f'{self.env.now:.3f}')
-            self.full_event_log.append(
-                {'patient': self.identifier,
-                 'pathway': 'Non-Trauma',
-                 'event_type': 'resource_use',
-                 'event': 'MINORS_registration_begins',
-                 'time': self.env.now,
-                 'resource_id': self.args.registration.users.index(req_id),
-                 'resource_users': str(self.args.registration.users),
-                 'request': str(req)
-                 }
-            )
+        # sample registration duration.
+        self.reg_duration = self.args.reg_dist.sample()
+        yield self.env.timeout(self.reg_duration)
 
-            # sample registration duration.
-            self.reg_duration = self.args.reg_dist.sample()
-            yield self.env.timeout(self.reg_duration)
-
-            trace(f'patient {self.identifier} registered at'
-                  f'{self.env.now:.3f}; '
-                  f'waiting time was {self.wait_reg:.3f}')
-            self.full_event_log.append(
-                {'patient': self.identifier,
-                 'pathway': 'Non-Trauma',
-                 'event': 'MINORS_registration_complete',
-                 'event_type': 'resource_use_end',
-                 'time': self.env.now}
-            )
+        trace(f'patient {self.identifier} registered at'
+                f'{self.env.now:.3f}; '
+                f'waiting time was {self.wait_reg:.3f}')
+        self.full_event_log.append(
+            {'patient': self.identifier,
+                'pathway': 'Non-Trauma',
+                'event': 'MINORS_registration_complete',
+                'event_type': 'resource_use_end',
+                'time': self.env.now,
+                'resource_id': registration_resource.id_attribute}
+        )
+        # Resource is no longer in use, so put it back in the store
+        self.args.registration.put(registration_resource)
+        ########################################################
 
         # record the time that entered the evaluation queue
         start_wait = self.env.now
@@ -808,38 +813,42 @@ class NonTraumaPathway(object):
              'time': self.env.now}
         )
 
+        #########################################################
         # request examination resource
-        with self.args.exam.request() as req:
-            yield req
+        examination_resource = yield self.args.exam.get()
 
-            # record the waiting time for examination to begin
-            self.wait_exam = self.env.now - start_wait
-            trace(f'examination of patient {self.identifier} begins '
-                  f'{self.env.now:.3f}')
-            self.full_event_log.append(
-                {'patient': self.identifier,
-                 'pathway': 'Non-Trauma',
-                 'event': 'MINORS_examination_begins',
-                 'event_type': 'resource_use',
-                 'time': self.env.now,
-                 'resource_id': self.args.exam.users.index(req)
-                 }
-            )
+        # record the waiting time for examination to begin
+        self.wait_exam = self.env.now - start_wait
+        trace(f'examination of patient {self.identifier} begins '
+                f'{self.env.now:.3f}')
+        self.full_event_log.append(
+            {'patient': self.identifier,
+                'pathway': 'Non-Trauma',
+                'event': 'MINORS_examination_begins',
+                'event_type': 'resource_use',
+                'time': self.env.now,
+                'resource_id': examination_resource.id_attribute
+                }
+        )
 
-            # sample examination duration.
-            self.exam_duration = self.args.exam_dist.sample()
-            yield self.env.timeout(self.exam_duration)
+        # sample examination duration.
+        self.exam_duration = self.args.exam_dist.sample()
+        yield self.env.timeout(self.exam_duration)
 
-            trace(f'patient {self.identifier} examination complete '
-                  f'at {self.env.now:.3f};'
-                  f'waiting time was {self.wait_exam:.3f}')
-            self.full_event_log.append(
-                {'patient': self.identifier,
-                 'pathway': 'Non-Trauma',
-                 'event': 'MINORS_examination_complete',
-                 'event_type': 'resource_use_end',
-                 'time': self.env.now}
-            )
+        trace(f'patient {self.identifier} examination complete '
+                f'at {self.env.now:.3f};'
+                f'waiting time was {self.wait_exam:.3f}')
+        self.full_event_log.append(
+            {'patient': self.identifier,
+                'pathway': 'Non-Trauma',
+                'event': 'MINORS_examination_complete',
+                'event_type': 'resource_use_end',
+                'time': self.env.now,
+                'resource_id': examination_resource.id_attribute}
+        )
+        # Resource is no longer in use, so put it back in
+        self.args.exam.put(examination_resource) 
+        ############################################################################
 
         # sample if patient requires treatment?
         self.require_treat = self.args.nt_p_treat_dist.sample()  #pylint: disable=attribute-defined-outside-init
@@ -863,39 +872,44 @@ class NonTraumaPathway(object):
                  'event_type': 'queue',
                  'time': self.env.now}
             )
-
+            ###################################################
             # request treatment cubicle
-            with self.args.cubicle_1.request() as req:
-                yield req
 
-                # record the waiting time for treatment
-                self.wait_treat = self.env.now - start_wait
-                trace(f'treatment of patient {self.identifier} begins '
-                      f'{self.env.now:.3f}')
-                self.full_event_log.append(
-                    {'patient': self.identifier,
-                     'pathway': 'Non-Trauma',
-                     'event': 'MINORS_treatment_begins',
-                     'event_type': 'resource_use',
-                     'time': self.env.now,
-                     'resource_id': self.args.cubicle_1.users.index(req)
-                 }
-                )
+            non_trauma_treatment_resource = yield self.args.cubicle_1.get()
 
-                # sample treatment duration.
-                self.treat_duration = self.args.nt_treat_dist.sample()
-                yield self.env.timeout(self.treat_duration)
+            # record the waiting time for treatment
+            self.wait_treat = self.env.now - start_wait
+            trace(f'treatment of patient {self.identifier} begins '
+                    f'{self.env.now:.3f}')
+            self.full_event_log.append(
+                {'patient': self.identifier,
+                    'pathway': 'Non-Trauma',
+                    'event': 'MINORS_treatment_begins',
+                    'event_type': 'resource_use',
+                    'time': self.env.now,
+                    'resource_id': non_trauma_treatment_resource.id_attribute
+                }
+            )
 
-                trace(f'patient {self.identifier} treatment complete '
-                      f'at {self.env.now:.3f};'
-                      f'waiting time was {self.wait_treat:.3f}')
-                self.full_event_log.append(
-                    {'patient': self.identifier,
-                     'pathway': 'Non-Trauma',
-                     'event': 'MINORS_treatment_ends',
-                     'event_type': 'resource_use_end',
-                     'time': self.env.now}
-                )
+            # sample treatment duration.
+            self.treat_duration = self.args.nt_treat_dist.sample()
+            yield self.env.timeout(self.treat_duration)
+
+            trace(f'patient {self.identifier} treatment complete '
+                    f'at {self.env.now:.3f};'
+                    f'waiting time was {self.wait_treat:.3f}')
+            self.full_event_log.append(
+                {'patient': self.identifier,
+                    'pathway': 'Non-Trauma',
+                    'event': 'MINORS_treatment_ends',
+                    'event_type': 'resource_use_end',
+                    'time': self.env.now,
+                    'resource_id': non_trauma_treatment_resource.id_attribute}
+            )
+
+            # Resource is no longer in use, so put it back in the store
+            self.args.cubicle_1.put(non_trauma_treatment_resource)
+        ##########################################################################
 
         # Return to what happens to all patients, regardless of whether they were sampled as needing treatment
         self.full_event_log.append(
@@ -956,28 +970,88 @@ class TreatmentCentreModel:
         '''
 
         # sign/in triage
-        self.args.triage = CustomResource(self.env,
-                                          capacity=self.args.n_triage)
+        # self.args.triage = CustomResource(self.env,
+        #                                   capacity=self.args.n_triage)
+        
+        self.args.triage = simpy.Store(self.env)
+
+        for i in range(self.args.n_triage):
+            self.args.triage.put(
+                CustomResource(
+                    self.env,
+                    capacity=1,
+                    id_attribute = i+1)
+                )
 
         # registration
-        self.args.registration = CustomResource(self.env,
-                                                capacity=self.args.n_reg)
+        # self.args.registration = CustomResource(self.env,
+        #                                         capacity=self.args.n_reg)
+
+        self.args.registration = simpy.Store(self.env)
+
+        for i in range(self.args.n_reg):
+            self.args.registration.put(
+                CustomResource(
+                    self.env,
+                    capacity=1,
+                    id_attribute = i+1)
+                )
 
         # examination
-        self.args.exam = CustomResource(self.env,
-                                        capacity=self.args.n_exam)
+        # self.args.exam = CustomResource(self.env,
+        #                                 capacity=self.args.n_exam)
+        
+        self.args.exam = simpy.Store(self.env)
+
+        for i in range(self.args.n_exam):
+            self.args.exam.put(
+                CustomResource(
+                    self.env,
+                    capacity=1,
+                    id_attribute = i+1)
+                )
 
         # trauma
-        self.args.trauma = CustomResource(self.env,
-                                          capacity=self.args.n_trauma)
+        # self.args.trauma = CustomResource(self.env,
+        #                                   capacity=self.args.n_trauma)
+        
+        self.args.trauma = simpy.Store(self.env)
+
+        for i in range(self.args.n_trauma):
+            self.args.trauma.put(
+                CustomResource(
+                    self.env,
+                    capacity=1,
+                    id_attribute = i+1)
+                )
 
         # non-trauma treatment
-        self.args.cubicle_1 = CustomResource(self.env,
-                                             capacity=self.args.n_cubicles_1)
+        # self.args.cubicle_1 = CustomResource(self.env,
+        #                                      capacity=self.args.n_cubicles_1)
+        
+        self.args.cubicle_1 = simpy.Store(self.env)
+
+        for i in range(self.args.n_cubicles_1):
+            self.args.cubicle_1.put(
+                CustomResource(
+                    self.env,
+                    capacity=1,
+                    id_attribute = i+1)
+                )
 
         # trauma treatment
-        self.args.cubicle_2 = CustomResource(self.env,
-                                             capacity=self.args.n_cubicles_2)
+        # self.args.cubicle_2 = CustomResource(self.env,
+        #                                      capacity=self.args.n_cubicles_2)
+        
+        self.args.cubicle_2 = simpy.Store(self.env)
+
+        for i in range(self.args.n_cubicles_2):
+            self.args.cubicle_2.put(
+                CustomResource(
+                    self.env,
+                    capacity=1,
+                    id_attribute = i+1)
+                )
 
     def run(self, results_collection_period=DEFAULT_RESULTS_COLLECTION_PERIOD):
         '''
@@ -1076,20 +1150,20 @@ class TreatmentCentreModel:
                         'resource_name': resources[i]['resource_name'],
                         'simulation_time': self.env.now,  # The current simulation time
                         # The number of users
-                        'number_utilised': resources[i]['resource_object'].count,
+                        'number_utilised': len(resources[i]['resource_object'].items),
                         'number_available': resources[i]['resource_object'].capacity,
                         # The number of queued processes
-                        'number_queued': len(resources[i]['resource_object'].queue),
+                        # 'number_queued': len(resources[i]['resource_object'].queue),
                     })
 
             else:
                 self.utilisation_audit.append({
                     # 'simulation_time': resource._env.now,
                     'simulation_time': self.env.now,  # The current simulation time
-                    'number_utilised': resources.count,  # The number of users
+                    'number_utilised': len(resources.items),  # The number of users
                     'number_available': resources.capacity,
                     # The number of queued processes
-                    'number_queued': len(resources.queue),
+                    # 'number_queued': len(resources.queue),
                 })
 
             # Trigger next audit after interval
@@ -1955,8 +2029,18 @@ class TreatmentCentreModelSimpleBranchedPathway:
 
         '''
         # examination
-        self.args.treatment = CustomResource(self.env,
-                                        capacity=self.args.n_cubicles_1)
+        # self.args.treatment = CustomResource(self.env,
+        #                                 capacity=self.args.n_cubicles_1)
+
+        self.args.treatment = simpy.Store(self.env)
+
+        for i in range(self.args.n_cubicles_1):
+            self.args.treatment.put(
+                CustomResource(
+                    self.env,
+                    capacity=1,
+                    id_attribute = i+1)
+                )
 
     def run(self, results_collection_period=DEFAULT_RESULTS_COLLECTION_PERIOD):
         '''
