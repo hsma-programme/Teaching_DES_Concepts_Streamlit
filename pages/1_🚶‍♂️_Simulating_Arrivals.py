@@ -9,6 +9,7 @@ import numpy as np
 import plotly.express as px
 import pandas as pd
 import asyncio
+import datetime as dt
 
 from helper_functions import read_file_contents, add_logo, mermaid
 from model_classes import Scenario, multiple_replications
@@ -152,140 +153,174 @@ with tab2:
     st.markdown(
 
         """
-        - Try changing the random number the computer uses without changing anything else. What happens to the number of patients? Does the animated bar chart look different?
-        - Try increasing the simulation runs. What happens to the shape of the histograms?
-        - Try running the simulation for fewer days. What happens to the animated bar chart compared to running the simulation for more days?
-        - Look at the scatter (dot) plots at the bottom of the page to understand how the arrival times of patients varies across different simulation runs and different days. 
+        - Try changing the slider with the title 'How many patients should arrive per day on average?'. Look at the graph below it. How do the labels on the horizontal axis change? Think about what effect this would have on your simulation.
+        
+        - Look at the scatter (dot) plots at the bottom of the page to understand how the arrival times of patients varies across different simulation runs and different days. Think about how this could be useful.
+
+        - Try changing the random number the computer uses without changing anything else. What happens to the number of patients? Do the bar charts and histograms look different?
+                
+        - Try running the simulation for under 5 days. What happens to the height of the bars in the bar chart compared to running the simulation for more days? Are the bars larger or smaller? 
+        
+        - Try increasing the number of simulation runs. What do you notice about the *shape* of the histograms? Where are the bars highest?
+
         """
 
     )
 
 with tab3:
-    col1_1, col1_2= st.columns([0.5, 1.5])
+    col1_1, col1_2= st.columns(2)
     # set number of resources
     with col1_1:
         seed = st.number_input("Set a random number for the computer to start from",
                         1, 100000,
-                        step=1, value=42)
-        
-        n_reps = st.slider("How many times should the simulation run?",
-                           1, 30,
-                           step=1, value=10)
+                        step=1, value=103)
+
         run_time_days = st.slider("How many days should we run the simulation for each time?",
                                   1, 60,
                                   step=1, value=15)
+        
+        n_reps = st.slider("How many times should the simulation run?",
+                           1, 25,
+                           step=1, value=10)
+        
+        
 
-     
+    with col1_2:
         mean_arrivals_per_day = st.slider("How many patients should arrive per day on average?",
                                           10, 1000,
                                           step=5, value=300)
+
         # Will need to convert mean arrivals per day into interarrival time and share that
         exp_dist = Exponential(mean=60/(mean_arrivals_per_day/24), random_seed=seed)
-        st.plotly_chart(px.histogram(exp_dist.sample(size=2500), 
+        exp_fig = px.histogram(exp_dist.sample(size=2500), 
                                 width=500, height=250,
                                 labels={
-                     "value": "Inter-Arrival Time (Minutes)",
-                     "count": " "
-                 }))
+                     "value": "Inter-Arrival Time (Minutes)"
+                 })
+        
+        exp_fig.update_layout(yaxis_title="")
+
+        exp_fig.layout.update(showlegend=False, 
+                              margin=dict(l=0, r=0, t=0, b=0))
+
+        st.plotly_chart(exp_fig,
+                        use_container_width=True,
+                        config = {'displayModeBar': False})
 
         # set number of replication
-with col1_2:     
-    args = Scenario(random_number_set=seed, 
-                    # We want to pass the interarrival time here
-                    # To get from daily arrivals to average interarrival time,
-                    # divide the number of arrivals by 24 to get arrivals per hour,
-                    # then divide 60 by this value to get the number of minutes
-                    manual_arrival_lambda=60/(mean_arrivals_per_day/24),
-                    override_arrival_lambda=True)
 
-    # A user must press a streamlit button to run the model
-    button_run_pressed = st.button("Run simulation")
-    
-    if button_run_pressed:
+args = Scenario(random_number_set=seed, 
+                # We want to pass the interarrival time here
+                # To get from daily arrivals to average interarrival time,
+                # divide the number of arrivals by 24 to get arrivals per hour,
+                # then divide 60 by this value to get the number of minutes
+                manual_arrival_lambda=60/(mean_arrivals_per_day/24),
+                override_arrival_lambda=True)
 
-        # add a spinner and then display success box
-        with st.spinner('Simulating the minor injuries unit...'):
-            await asyncio.sleep(0.1)
-            # run multiple replications of experment
-            # results = multiple_replications(
-            #     args,
-            #     n_reps=n_reps,
-            #     rc_period=run_time_days*60*24
-            # )
+# A user must press a streamlit button to run the model
+button_run_pressed = st.button("Run simulation")
 
-            detailed_outputs = multiple_replications(
-                args,
-                n_reps=n_reps,
-                rc_period=run_time_days*60*24,
-                return_detailed_logs=True
-
-            )
-
-            patient_log = pd.concat([detailed_outputs[i]['results']['full_event_log'].assign(Rep= i+1) 
-                         for i in range(n_reps)])
-
-            results = pd.concat([detailed_outputs[i]['results']['summary_df'].assign(rep= i+1)
-                                                for i in range(n_reps)]).set_index('rep')
-
-
-            patient_log = patient_log.assign(model_day = (patient_log.time/24/60).pipe(np.floor)+1)
-            patient_log = patient_log.assign(time_in_day= (patient_log.time - ((patient_log.model_day -1) * 24 * 60)).pipe(np.floor))
-            # patient_log = patient_log.assign(time_in_day_ (patient_log.time_in_day/60).pipe(np.floor))
-            patient_log['patient_full_id'] = patient_log['Rep'].astype(str) + '_' + patient_log['patient'].astype(str) 
-            patient_log['rank'] = patient_log['time_in_day'].rank(method='max')
-
-        #st.success('Done!')
-
-        st.subheader(
-            "Difference between average daily patients generated in first simulation run and subsequent simulation runs"
-            )
-
-        #progress_bar = st.progress(0)
-
-        # chart_mean_daily = st.bar_chart(results[['00_arrivals']].iloc[[0]]/run_time_days)
-        chart_mean_daily = st.bar_chart(
-            results[['00_arrivals']].iloc[[0]] / run_time_days - results[['00_arrivals']].iloc[[0]] / run_time_days,
-
-            height=250
-            
-            )
-        # chart_total = st.bar_chart(results[['00_arrivals']].iloc[[0]])
-
-        status_text_string = 'The first simulation generated a total of {} patients (an average of {} patients per day)'.format(
-            results[['00_arrivals']].iloc[0]['00_arrivals'].astype(int),
-            (results[['00_arrivals']].iloc[0]
-            ['00_arrivals']/run_time_days).round(1)
-        )
-        status_text = st.text(status_text_string)
-
-        for i in range(n_reps-1):
-            # Update progress bar.
-            # progress_bar.progress(n_reps/(i+1))
-            time.sleep(0.5)
-            new_rows = results[['00_arrivals']].iloc[[i+1]]
-
-            # Append data to the chart.
-            # chart_total.add_rows(new_rows)
-            # chart_mean_daily.add_rows(new_rows/run_time_days)
-            chart_mean_daily.add_rows(
-               ((results[['00_arrivals']].iloc[[i+1]]['00_arrivals']/run_time_days) -
-                (results[['00_arrivals']].iloc[0]['00_arrivals']/run_time_days)).round(1)
-            )
-
-            status_text_string = 'Simulation {} generated a total of {} patients (an average of {} patients per day)'.format(
-                    i+2,
-                    new_rows.iloc[0]['00_arrivals'].astype(int),
-                    (new_rows.iloc[0]['00_arrivals']/run_time_days).round(1)
-                ) + "\n" + status_text_string 
-            # Update status text.
-            status_text.text(status_text_string)
-
-        # st.table(pd.concat([
-        #         results[['00_arrivals']].astype('int'),
-        #         (results[['00_arrivals']]/run_time_days).round(0).astype('int')
-        #     ], axis=1, keys = ['Total Arrivals', 'Mean Daily Arrivals'])
-        #         )
 if button_run_pressed:
+
+    # add a spinner and then display success box
+    with st.spinner('Simulating the minor injuries unit...'):
+        await asyncio.sleep(0.1)
+        # run multiple replications of experment
+        # results = multiple_replications(
+        #     args,
+        #     n_reps=n_reps,
+        #     rc_period=run_time_days*60*24
+        # )
+
+        detailed_outputs = multiple_replications(
+            args,
+            n_reps=n_reps,
+            rc_period=run_time_days*60*24,
+            return_detailed_logs=True
+
+        )
+
+        patient_log = pd.concat([detailed_outputs[i]['results']['full_event_log'].assign(Rep= i+1) 
+                        for i in range(n_reps)])
+
+        results = pd.concat([detailed_outputs[i]['results']['summary_df'].assign(rep= i+1)
+                                            for i in range(n_reps)]).set_index('rep')
+
+
+        patient_log = patient_log.assign(model_day = (patient_log.time/24/60).pipe(np.floor)+1)
+        patient_log = patient_log.assign(time_in_day= (patient_log.time - ((patient_log.model_day -1) * 24 * 60)).pipe(np.floor))
+        # patient_log = patient_log.assign(time_in_day_ (patient_log.time_in_day/60).pipe(np.floor))
+        patient_log['patient_full_id'] = patient_log['Rep'].astype(str) + '_' + patient_log['patient'].astype(str) 
+        patient_log['rank'] = patient_log['time_in_day'].rank(method='max')
+
+    #st.success('Done!')
+
+    st.subheader(
+        "Difference between average daily patients generated across simulation runs"
+        )
+
+    st.markdown(
+        """
+        The graph below shows the variation in the number of patients generated per day (on average) in a single simulation run. 
+        This can help us understand how much variation we get between model runs when we don't change parameters, only the random seed.
+        
+        The height of each bar is relative to the **first** simulation run. 
+
+        A bar that is **positive** shows that **more** patients were generated on average per day in that simulation than in the first simulation.
+        
+        A bar that is **negative** shows that **fewer* patients were generated on average per day in that simulation than in the first simulation.
+        """
+    )
+
+    #progress_bar = st.progress(0)
+
+    # This all used to work nicely when running in standard streamlit, but in stlite the animated element no longer works
+    # So it's all a bit redundant and could be nicely simplified, but leaving for now as it works 
+
+    # chart_mean_daily = st.bar_chart(results[['00_arrivals']].iloc[[0]]/run_time_days)
+    chart_mean_daily = st.bar_chart(
+        results[['00_arrivals']].iloc[[0]] / run_time_days - results[['00_arrivals']].iloc[[0]] / run_time_days,
+
+        height=250
+        
+        )
+    # chart_total = st.bar_chart(results[['00_arrivals']].iloc[[0]])
+
+    status_text_string = 'The first simulation generated a total of {} patients (an average of {} patients per day)'.format(
+        results[['00_arrivals']].iloc[0]['00_arrivals'].astype(int),
+        (results[['00_arrivals']].iloc[0]
+        ['00_arrivals']/run_time_days).round(1)
+    )
+    status_text = st.text(status_text_string)
+
+    for i in range(n_reps-1):
+        # Update progress bar.
+        # progress_bar.progress(n_reps/(i+1))
+        time.sleep(0.5)
+        new_rows = results[['00_arrivals']].iloc[[i+1]]
+
+        # Append data to the chart.
+        # chart_total.add_rows(new_rows)
+        # chart_mean_daily.add_rows(new_rows/run_time_days)
+        chart_mean_daily.add_rows(
+            ((results[['00_arrivals']].iloc[[i+1]]['00_arrivals']/run_time_days) -
+            (results[['00_arrivals']].iloc[0]['00_arrivals']/run_time_days)).round(1)
+        )
+
+        status_text_string = 'Simulation {} generated a total of {} patients (an average of {} patients per day)'.format(
+                i+2,
+                new_rows.iloc[0]['00_arrivals'].astype(int),
+                (new_rows.iloc[0]['00_arrivals']/run_time_days).round(1)
+            ) + "\n" + status_text_string 
+        # Update status text.
+        status_text.text(status_text_string)
+
+    # st.table(pd.concat([
+    #         results[['00_arrivals']].astype('int'),
+    #         (results[['00_arrivals']]/run_time_days).round(0).astype('int')
+    #     ], axis=1, keys = ['Total Arrivals', 'Mean Daily Arrivals'])
+    #         )
+
     col_a_1, col_a_2 = st.columns(2)
 
     with col_a_1:
@@ -293,10 +328,26 @@ if button_run_pressed:
             "Histogram: Total Patients per Run"
         )
 
+        st.markdown(
+            """
+            This plot shows the variation in the **total** daily patients per run. 
+            
+            The horizontal axis shows the range of patients generated within a simulation run, and the height of the bar shows how many simulation runs had an output in that group."
+            """
+        )
+
+        total_fig = px.histogram(
+                    results[['00_arrivals']],
+                    nbins=int(np.ceil(n_reps/2))
+                    )
+        total_fig.layout.update(showlegend=False)
+
+        total_fig.update_layout(yaxis_title="Number of Simulation Runs",
+                                xaxis_title="Total Patients Generated in Run")
+
         st.plotly_chart(
-            px.histogram(
-                results[['00_arrivals']]
-                )
+            total_fig,
+            use_container_width=True
         )
         
     with col_a_2:
@@ -304,63 +355,74 @@ if button_run_pressed:
                 "Histogram: Average Daily Patients per Run"
         )
 
-        st.plotly_chart(
-            px.histogram(
-                (results[['00_arrivals']]/run_time_days).round(1)
-                )
+        st.markdown(
+            """
+            This plot shows the variation in the **average** daily patients per run. 
+            
+            The horizontal axis shows the range of patients generated within a simulation run, and the height of the bar shows how many simulation runs had an output in that group.
+            """
         )
-    
 
-    
-    #st.write(patient_log)
+        daily_average_fig = px.histogram(
+                (results[['00_arrivals']]/run_time_days).round(1),
+                    nbins=int(np.ceil(n_reps/2))
+                )
+        daily_average_fig.layout.update(showlegend=False)
+        
+        daily_average_fig.update_layout(yaxis_title="Number of Simulation Runs",
+                                xaxis_title="Average Daily Patients Generated in Run")
 
-    # Animated chart - 
-    # st.plotly_chart(px.scatter(
-    #     patient_log,
-    #     #patient_log[patient_log['event'] == 'arrival'], 
-    #     x="time_in_day", 
-    #     y="Rep", 
-    #     animation_frame="rank", 
-    #     animation_group="patient",
-    #     #size="pop", 
-    #     #color="Rep", 
-    #     #hover_name="patient",
-    #     #log_x=True, 
-    #     #size_max=55, 
-    #     range_x=[0, 24*60], 
-    #     range_y=[0,n_reps+1]))
+        st.plotly_chart(
+            daily_average_fig,
+            use_container_width=True
+        )
 
     st.markdown(
         """
         The plots below show the minute-by-minute arrivals of patients across different model replications and different days.
-        Only the first 10 replications and a maximum of 30 days are shown.
+        Only the first 10 replications and the first 5 days of the model are shown. 
 
-        Each dot is a single patient arriving.
+        Each dot is a single patient arriving. 
 
         From left to right within each plot, we start at one minute past midnight and move through the day until midnight. 
 
         Looking from the top to the bottom of each plot, we have the model replications. 
-        Each horizontal line represents a **full day** for one model replication.  
+        Each horizontal line of dots represents a **full day** for one model replication.  
         """ 
     )
 
     #facet_col_wrap_calculated = np.ceil(run_time_days/4).astype(int)
 
-    st.plotly_chart(px.scatter(
-            patient_log[(patient_log['event'] == 'arrival') & 
-                        (patient_log['Rep'] <= 10) & 
-                        (patient_log['model_day'] <= 30)],
-            #patient_log,
-            x="time_in_day", 
-            y="Rep",
-            range_x=[0, 24*60], 
-            range_y=[0, min(10, n_reps)+1],
-            facet_col='model_day', 
-            # facet_col_wrap=facet_col_wrap_calculated, # this causes an unbound_local_error when used so hard coding for now
-            facet_col_wrap = 4,
-            width=1200,
-            height=1500
-    ), use_container_width=True)
+    patient_log['minute'] = dt.date.today() + pd.DateOffset(days=165) +  pd.TimedeltaIndex(patient_log['time'], unit='m')
+    # https://strftime.org/
+    patient_log['minute_display'] = patient_log['minute'].apply(lambda x: dt.datetime.strftime(x, '%d %B %Y\n%H:%M'))
+    # patient_log['minute'] = patient_log['minute'].apply(lambda x: dt.datetime.strftime(x, '%Y-%m-%d %H:%M'))
+
+
+    for i in range(5):
+        st.markdown("### Day {}".format(i+1))
+
+        time_plot = px.scatter(
+                patient_log[(patient_log['event'] == 'arrival') & 
+                            (patient_log['Rep'] <= 10) & 
+                            (patient_log['model_day'] == i+1)].sort_values("minute"),
+                #patient_log,
+                x="minute", 
+                y="Rep",
+                # range_x=[0, 24*60], 
+                range_y=[0, min(10, n_reps)+1],
+                # facet_col='model_day', 
+                # facet_col_wrap=facet_col_wrap_calculated, # this causes an unbound_local_error when used so hard coding for now
+                # facet_col_wrap = 1,
+                width=1200,
+                height=300
+        )
+
+        time_plot.update_layout(yaxis_title="Simulation Run (Replication)",
+                                xaxis_title="Time")
+        st.plotly_chart(time_plot, use_container_width=True)
+
+               
 
 
 
