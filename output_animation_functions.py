@@ -166,7 +166,7 @@ def animate_activity_log(
     resource_use = full_patient_df_plus_pos[full_patient_df_plus_pos['event_type'] == "resource_use"].copy()
     resource_use['y_final'] =  resource_use['y']
     # resource_use['x_final'] = resource_use['x'] - (resource_use['resource_id']+1)*10
-    resource_use['x_final'] = resource_use['x'] - resource_use['rank']*10
+    resource_use['x_final'] = resource_use['x'] - resource_use['resource_id']*10
 
     queues = full_patient_df_plus_pos[full_patient_df_plus_pos['event_type']=='queue']
     queues['y_final'] =  queues['y']
