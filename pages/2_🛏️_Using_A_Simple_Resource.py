@@ -121,7 +121,7 @@ with tab2:
 
 
 with tab3:
-    col1, col2 = st.columns([0.5, 1.5])
+    col1, col2 = st.columns(2)
 
     with col1:
         nurses = st.slider("How Many Rooms/Nurses Are Available?", 1, 15, step=1, value=4)
@@ -132,6 +132,7 @@ with tab3:
         consult_time_sd = st.slider("How much (in minutes) does the time for a consultation usually vary by?",
                                     5, 30, step=5, value=10)
 
+    with col2:
         norm_dist = Normal(consult_time, consult_time_sd)
         norm_fig = px.histogram(norm_dist.sample(size=2500), height=150)
         
@@ -143,8 +144,6 @@ with tab3:
         st.plotly_chart(norm_fig,
                         use_container_width=True,
                         config = {'displayModeBar': False})
-
-
         
         with st.expander("Previous Parameters"):
 
@@ -166,9 +165,16 @@ with tab3:
             mean_arrivals_per_day = st.slider("How many patients should arrive per day on average?",
                                             10, 500,
                                             step=5, value=300)
+            
+    # A user must press a streamlit button to run the model
+    button_run_pressed = st.button("Run simulation")
+    
+    
+    if button_run_pressed:
 
-    with col2:
-        args = Scenario(
+        # add a spinner and then display success box
+        with st.spinner('Simulating the minor injuries unit...'):
+            args = Scenario(
                 random_number_set=seed,
                 n_cubicles_1=nurses,
                 override_arrival_lambda=True,
@@ -177,45 +183,36 @@ with tab3:
                 trauma_treat_mean=consult_time,
                 trauma_treat_var=consult_time_sd
                 )
+            await asyncio.sleep(0.1)
+            # run multiple replications of experment
+            detailed_outputs = multiple_replications(
+                args,
+                n_reps=n_reps,
+                rc_period=run_time_days*60*24,
+                return_detailed_logs=True
+            )
 
-        # A user must press a streamlit button to run the model
-        button_run_pressed = st.button("Run simulation")
-        
-        
-        if button_run_pressed:
+            results = pd.concat([detailed_outputs[i]['results']['summary_df'].assign(rep= i+1)
+                                        for i in range(n_reps)]).set_index('rep')
+            
+            full_event_log = pd.concat([detailed_outputs[i]['results']['full_event_log'].assign(rep= i+1)
+                                        for i in range(n_reps)])
 
-            # add a spinner and then display success box
-            with st.spinner('Simulating the minor injuries unit...'):
-                await asyncio.sleep(0.1)
-                # run multiple replications of experment
-                detailed_outputs = multiple_replications(
-                    args,
-                    n_reps=n_reps,
-                    rc_period=run_time_days*60*24,
-                    return_detailed_logs=True
-                )
-
-                results = pd.concat([detailed_outputs[i]['results']['summary_df'].assign(rep= i+1)
-                                            for i in range(n_reps)]).set_index('rep')
-                
-                full_event_log = pd.concat([detailed_outputs[i]['results']['full_event_log'].assign(rep= i+1)
-                                            for i in range(n_reps)])
-
-                event_position_df = pd.DataFrame([
-                                {'event': 'arrival', 'x':  50, 'y': 300, 'label': "Arrival" },
-                                
-                                # Triage - minor and trauma                
-                                {'event': 'treatment_wait_begins', 'x':  190, 'y': 170, 'label': "Waiting for Treatment"  },
-                                {'event': 'treatment_begins', 'x':  190, 'y': 110, 'resource':'n_cubicles_1', 'label': "Being Treated" },
+            event_position_df = pd.DataFrame([
+                            {'event': 'arrival', 'x':  50, 'y': 300, 'label': "Arrival" },
                             
-                            ])
-                animation_dfs_log = reshape_for_animations(
-                            full_event_log=full_event_log[
-                                (full_event_log['rep']==1) &
-                                ((full_event_log['event_type']=='queue') | (full_event_log['event_type']=='resource_use')  | (full_event_log['event_type']=='arrival_departure'))
-                            ],
-                            every_x_minutes=5
-                    )
+                            # Triage - minor and trauma                
+                            {'event': 'treatment_wait_begins', 'x':  190, 'y': 170, 'label': "Waiting for Treatment"  },
+                            {'event': 'treatment_begins', 'x':  190, 'y': 110, 'resource':'n_cubicles_1', 'label': "Being Treated" },
+                        
+                        ])
+            animation_dfs_log = reshape_for_animations(
+                        full_event_log=full_event_log[
+                            (full_event_log['rep']==1) &
+                            ((full_event_log['event_type']=='queue') | (full_event_log['event_type']=='resource_use')  | (full_event_log['event_type']=='arrival_departure'))
+                        ],
+                        every_x_minutes=5
+                )
     if button_run_pressed:
         tab1, tab2, tab3 = st.tabs(
                 ["Animated Log", "Simple Graphs", "Advanced Graphs"]
