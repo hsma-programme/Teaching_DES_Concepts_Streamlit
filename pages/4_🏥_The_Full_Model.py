@@ -6,14 +6,13 @@ Allows users to interact with an increasingly more complex treatment simulation
 import streamlit as st
 import pandas as pd
 import asyncio
-from helper_functions import read_file_contents, add_logo, mermaid
-from model_classes import Scenario, multiple_replications
-from output_animation_functions import reshape_for_animations, animate_queue_activity_bar_chart, animate_activity_log
-# from st_pages import show_pages_from_config, add_page_title
 import plotly.express as px
 import gc
 import plotly.graph_objects as go
-import base64
+
+from helper_functions import read_file_contents, add_logo, mermaid
+from model_classes import Scenario, multiple_replications
+from output_animation_functions import reshape_for_animations, animate_queue_activity_bar_chart, animate_activity_log
 
 st.set_page_config(
      page_title="The Full Model",
@@ -25,10 +24,6 @@ st.set_page_config(
 if 'session_results' not in st.session_state:
     st.session_state['session_results'] = []
 
-# add_page_title()
-
-# show_pages_from_config()
-
 add_logo()
 
 with open("style.css") as css:
@@ -37,7 +32,6 @@ with open("style.css") as css:
 ## We add in a title for our web app's page
 st.title("Discrete Event Simulation Playground")
 st.subheader("How can we optimise the full system?")
-
 
 
 tab1, tab2, tab3, tab4 = st.tabs(["Introduction", "Exercises", "Playground", "Compare Scenario Outputs"])
