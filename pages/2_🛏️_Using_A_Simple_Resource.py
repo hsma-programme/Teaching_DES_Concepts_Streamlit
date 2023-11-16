@@ -219,11 +219,7 @@ with tab3:
             )  
 
         with tab1:
-
-            st.write(results)
-
-
-
+            # st.write(results)
             st.subheader("Animated Model Output")
             with st.spinner('Generating the animated patient log...'):
                 st.plotly_chart(animate_activity_log(
@@ -283,16 +279,15 @@ with tab3:
                                              range=[-0.05, 1.1])
                 # util_fig_simple.data = util_fig_simple.data[::-1]
                 util_fig_simple.update_xaxes(labelalias={
-                    "01b_triage_util": "Triage<br>Bays", 
-                    "02b_registration_util": "Registration<br>Cubicles",
-                    "03b_examination_util": "Examination<br>Bays",
-                    "04b_treatment_util(non_trauma)": "Treatment<br>Bays<br>(non-trauma)",
-                    "06b_trauma_util": "Stabilisation<br>Bays",
-                    "07b_treatment_util(trauma)": "Treatment<br>Bays<br>(trauma)"
+                    "01b_treatment_util": "Treatment Bays", 
                 }, tickangle=0)
+                
+                util_fig_simple.update_layout(margin=dict(l=0, r=0, t=0, b=0))
+
                 st.plotly_chart(
                     util_fig_simple,
-                    use_container_width=True
+                    use_container_width=True,
+                    config = {'displayModeBar': False}
                 )
 
             
@@ -316,19 +311,17 @@ with tab3:
                                         y=results.mean().filter(like="01a").tolist())
 
                 wait_fig_simple.update_xaxes(labelalias={
-                    "01a_triage_wait": "Triage", 
-                    "02a_registration_wait": "Registration",
-                    "03a_examination_wait": "Examination",
-                    "04a_treatment_wait(non_trauma)": "Treatment<br>(non-trauma)",
-                    "06a_trauma_wait": "Stabilisation",
-                    "07a_treatment_wait(trauma)": "Treatment<br>(trauma)"
+                    "01a_treatment_wait": "Treatment"
                 }, tickangle=0)
                 # wait_fig_simple.data = wait_fig_simple.data[::-1]
                 wait_fig_simple.update_yaxes(title_text='Wait for Treatment Stage (Minutes)')
 
+                wait_fig_simple.update_layout(margin=dict(l=0, r=0, t=0, b=0))
+
                 st.plotly_chart(
                     wait_fig_simple,
-                    use_container_width=True
+                    use_container_width=True,
+                    config = {'displayModeBar': False}
                 )
 
             col_res_c, col_res_d = st.columns(2)
@@ -352,20 +345,18 @@ with tab3:
                 wait_target_simple.add_bar(x=results.median().filter(like="01c").index.tolist(),
                                         y=results.median().filter(like="01c").tolist())
 
-                # wait_fig_simple.update_xaxes(labelalias={
-                #     "01a_triage_wait": "Triage", 
-                #     "02a_registration_wait": "Registration",
-                #     "03a_examination_wait": "Examination",
-                #     "04a_treatment_wait(non_trauma)": "Treatment<br>(non-trauma)",
-                #     "06a_trauma_wait": "Stabilisation",
-                #     "07a_treatment_wait(trauma)": "Treatment<br>(trauma)"
-                # }, tickangle=0)
+                wait_fig_simple.update_xaxes(labelalias={
+                    "01c_treatment_wait_target_met": "Treatment Wait - Target Met" 
+                }, tickangle=0)
                 # wait_fig_simple.data = wait_fig_simple.data[::-1]
                 wait_target_simple.update_yaxes(title_text='Average % of patients where 2 hour wait target met')
 
+                wait_target_simple.update_layout(margin=dict(l=0, r=0, t=0, b=0))
+
                 st.plotly_chart(
                     wait_target_simple,
-                    use_container_width=True
+                    use_container_width=True,
+                    config = {'displayModeBar': False}
                 )
 
 
@@ -456,10 +447,10 @@ with tab3:
                     range_x=[0, 1.1]
                     )
             
-            wait_target_box.update_layout(yaxis_title="", xaxis_title="Throughput in Model Run")
+            wait_target_box.update_layout(yaxis_title="", xaxis_title="% of clients meeting waiting time target")
 
             wait_target_box.update_yaxes(labelalias={
-                "09_throughput": "Throughput"
+                "01c_treatment_wait_target_met": "Waiting Time Target<br>(% met)"
             }, tickangle=0)
 
 
