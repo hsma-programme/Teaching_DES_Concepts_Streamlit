@@ -188,7 +188,7 @@ with tab3:
     with col1_2:
         mean_arrivals_per_day = st.slider("How many patients should arrive per day on average?",
                                           10, 1000,
-                                          step=5, value=300)
+                                          step=5, value=200)
 
         # Will need to convert mean arrivals per day into interarrival time and share that
         exp_dist = Exponential(mean=60/(mean_arrivals_per_day/24), random_seed=seed)
@@ -214,8 +214,8 @@ args = Scenario(random_number_set=seed,
                 # To get from daily arrivals to average interarrival time,
                 # divide the number of arrivals by 24 to get arrivals per hour,
                 # then divide 60 by this value to get the number of minutes
-                manual_arrival_lambda=60/(mean_arrivals_per_day/24),
-                override_arrival_lambda=True)
+                manual_arrival_rate=60/(mean_arrivals_per_day/24),
+                override_arrival_rate=True)
 
 # A user must press a streamlit button to run the model
 button_run_pressed = st.button("Run simulation")
@@ -406,31 +406,14 @@ if button_run_pressed:
                 patient_log[(patient_log['event'] == 'arrival') & 
                             (patient_log['Rep'] <= 10) & 
                             (patient_log['model_day'] == i+1)].sort_values("minute"),
-                #patient_log,
                 x="minute", 
                 y="Rep",
-                # range_x=[0, 24*60], 
                 range_y=[0, min(10, n_reps)+1],
-                # facet_col='model_day', 
-                # facet_col_wrap=facet_col_wrap_calculated, # this causes an unbound_local_error when used so hard coding for now
-                # facet_col_wrap = 1,
                 width=1200,
-                height=300
+                height=300,
+                opacity=0.5
         )
 
         time_plot.update_layout(yaxis_title="Simulation Run (Replication)",
                                 xaxis_title="Time")
         st.plotly_chart(time_plot, use_container_width=True)
-
-               
-
-
-
-
-        
-
-
-    # st.print(
-    #     results[['10_full_patient_df']]
-    # )
-

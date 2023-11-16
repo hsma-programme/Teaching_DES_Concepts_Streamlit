@@ -74,8 +74,8 @@ DEFAULT_PROB_TRAUMA = 0.12
 
 NSPP_PATH = 'resources/ed_arrivals.csv'
 
-OVERRIDE_ARRIVAL_LAMBDA = False
-MANUAL_ARRIVAL_LAMBDA_VALUE = 1
+OVERRIDE_ARRIVAL_RATE = False
+MANUAL_ARRIVAL_RATE_VALUE = 1
 
 # Resource counts
 
@@ -246,8 +246,8 @@ class Scenario:
                  non_trauma_treat_p=DEFAULT_NON_TRAUMA_TREAT_P,
                  prob_trauma=DEFAULT_PROB_TRAUMA,
                  arrival_df=NSPP_PATH,
-                 override_arrival_lambda=OVERRIDE_ARRIVAL_LAMBDA,
-                 manual_arrival_lambda=MANUAL_ARRIVAL_LAMBDA_VALUE,
+                 override_arrival_rate=OVERRIDE_ARRIVAL_RATE,
+                 manual_arrival_rate=MANUAL_ARRIVAL_RATE_VALUE,
                  model="full"
                  ):
         '''
@@ -333,9 +333,9 @@ class Scenario:
         self.non_trauma_treat_var = non_trauma_treat_var
         self.non_trauma_treat_p = non_trauma_treat_p
         self.prob_trauma = prob_trauma
-        self.manual_arrival_lambda = manual_arrival_lambda
+        self.manual_arrival_rate = manual_arrival_rate
         self.arrival_df = arrival_df
-        self.override_arrival_lambda = override_arrival_lambda
+        self.override_arrival_rate = override_arrival_rate
         self.model = model
 
         self.init_sampling()
@@ -430,9 +430,9 @@ class Scenario:
         self.lambda_max = self.arrivals['arrival_rate'].max()  # pylint: disable=attribute-defined-outside-init
 
         # thinning exponential
-        if self.override_arrival_lambda is True:
+        if self.override_arrival_rate is True:
 
-            self.arrival_dist = Exponential(self.manual_arrival_lambda,  # pylint: disable=attribute-defined-outside-init
+            self.arrival_dist = Exponential(self.manual_arrival_rate,  # pylint: disable=attribute-defined-outside-init
                                             random_seed=self.seeds[8])
         else:
             self.arrival_dist = Exponential(60.0 / self.lambda_max,  # pylint: disable=attribute-defined-outside-init
@@ -1191,10 +1191,10 @@ class TreatmentCentreModel:
 
             interarrival_time = 0.0
 
-            # reject samples if u >= lambda_t / lambda_max
-            if self.args.override_arrival_lambda:
+            if self.args.override_arrival_rate:
                 interarrival_time += self.args.arrival_dist.sample()
             else:
+                # reject samples if u >= lambda_t / lambda_max
                 while u >= (lambda_t / self.args.lambda_max):
                     interarrival_time += self.args.arrival_dist.sample()
                     u = self.args.thinning_rng.sample()
@@ -1921,7 +1921,7 @@ class TreatmentCentreModelSimpleNurseStepOnly:
 
             interarrival_time = 0.0
 
-            if self.args.override_arrival_lambda:
+            if self.args.override_arrival_rate:
                 interarrival_time += self.args.arrival_dist.sample()
             else:
             # reject samples if u >= lambda_t / lambda_max
@@ -2183,10 +2183,10 @@ class TreatmentCentreModelSimpleBranchedPathway:
 
             interarrival_time = 0.0
 
-            # reject samples if u >= lambda_t / lambda_max
-            if self.args.override_arrival_lambda:
+            if self.args.override_arrival_rate:
                 interarrival_time += self.args.arrival_dist.sample()
             else:
+                # reject samples if u >= lambda_t / lambda_max
                 while u >= (lambda_t / self.args.lambda_max):
                     interarrival_time += self.args.arrival_dist.sample()
                     u = self.args.thinning_rng.sample()

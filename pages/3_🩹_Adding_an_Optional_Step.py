@@ -191,8 +191,8 @@ with tab3:
                     random_number_set=seed,
                     n_exam=nurses_advice,
                     n_cubicles_1=nurses_treat,
-                    override_arrival_lambda=True,
-                    manual_arrival_lambda=60/(mean_arrivals_per_day/24),
+                    override_arrival_rate=True,
+                    manual_arrival_rate=60/(mean_arrivals_per_day/24),
                     model="simple_with_branch",
                     trauma_treat_mean=consult_time,
                     trauma_treat_var=consult_time_sd
