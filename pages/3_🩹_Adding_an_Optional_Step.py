@@ -6,6 +6,7 @@ Allows users to interact with an increasingly more complex treatment simulation
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go
 import numpy as np
 import asyncio
 
@@ -270,7 +271,8 @@ with tab3:
                         full_event_log=full_event_log[
                             (full_event_log['rep']==1) &
                             ((full_event_log['event_type']=='queue') | (full_event_log['event_type']=='resource_use')  | (full_event_log['event_type']=='arrival_departure'))
-                        ]
+                        ],
+                        every_x_minutes=5
                     )
     if button_run_pressed:
         st.subheader("Animated Model Output")
@@ -280,8 +282,13 @@ with tab3:
                                 event_position_df = event_position_df,
                                 scenario=args,
                                 include_play_button=True,
+                                display_stage_labels=False,
                                 return_df_only=False,
-                                plotly_height=500,
+                                plotly_height=600,
+                                plotly_width=1000,
+                                override_x_max=700,
+                                override_y_max=675,
                                 wrap_queues_at=10,
-                                time_display_units="dhm"
-                        ), use_container_width=True)
+                                time_display_units="dhm",
+                                add_background_image="https://raw.githubusercontent.com/Bergam0t/Teaching_DES_Concepts_Streamlit/main/resources/Branched%20Model%20Background%20Image%20-%20Horizontal%20Layout.drawio.png",
+                        ), use_container_width=False)

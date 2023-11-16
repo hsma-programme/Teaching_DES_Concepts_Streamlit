@@ -438,9 +438,9 @@ class Scenario:
             self.arrival_dist = Exponential(60.0 / self.lambda_max,  # pylint: disable=attribute-defined-outside-init
                                             random_seed=self.seeds[8])
 
-        # thinning uniform rng
-        self.thinning_rng = Uniform(low=0.0, high=1.0,  # pylint: disable=attribute-defined-outside-init
-                                    random_seed=self.seeds[9])
+            # thinning uniform rng
+            self.thinning_rng = Uniform(low=0.0, high=1.0,  # pylint: disable=attribute-defined-outside-init
+                                        random_seed=self.seeds[9])
 
 
 # ## Patient Pathways Process Logic
@@ -1192,9 +1192,12 @@ class TreatmentCentreModel:
             interarrival_time = 0.0
 
             # reject samples if u >= lambda_t / lambda_max
-            while u >= (lambda_t / self.args.lambda_max):
+            if self.args.override_arrival_lambda:
                 interarrival_time += self.args.arrival_dist.sample()
-                u = self.args.thinning_rng.sample()
+            else:
+                while u >= (lambda_t / self.args.lambda_max):
+                    interarrival_time += self.args.arrival_dist.sample()
+                    u = self.args.thinning_rng.sample()
 
             # iat
             yield self.env.timeout(interarrival_time)
@@ -1918,10 +1921,13 @@ class TreatmentCentreModelSimpleNurseStepOnly:
 
             interarrival_time = 0.0
 
-            # reject samples if u >= lambda_t / lambda_max
-            while u >= (lambda_t / self.args.lambda_max):
+            if self.args.override_arrival_lambda:
                 interarrival_time += self.args.arrival_dist.sample()
-                u = self.args.thinning_rng.sample()
+            else:
+            # reject samples if u >= lambda_t / lambda_max
+                while u >= (lambda_t / self.args.lambda_max):
+                    interarrival_time += self.args.arrival_dist.sample()
+                    u = self.args.thinning_rng.sample()
 
             # iat
             yield self.env.timeout(interarrival_time)
@@ -2178,9 +2184,12 @@ class TreatmentCentreModelSimpleBranchedPathway:
             interarrival_time = 0.0
 
             # reject samples if u >= lambda_t / lambda_max
-            while u >= (lambda_t / self.args.lambda_max):
+            if self.args.override_arrival_lambda:
                 interarrival_time += self.args.arrival_dist.sample()
-                u = self.args.thinning_rng.sample()
+            else:
+                while u >= (lambda_t / self.args.lambda_max):
+                    interarrival_time += self.args.arrival_dist.sample()
+                    u = self.args.thinning_rng.sample()
 
             # iat
             yield self.env.timeout(interarrival_time)
