@@ -1260,6 +1260,10 @@ class SimulationSummary:
 
             mean_treat_wait = self.get_mean_metric('wait_treat', self.model.patients)
 
+            perc_treat_wait_target_met = self.get_perc_wait_target_met('wait_treat', 
+                                                                       self.model.patients, 
+                                                                       target=120)
+
             # triage utilisation (both types of patient)
             treat_util = self.get_resource_util('treat_duration',
                                                 self.args.n_cubicles_1,
@@ -1270,6 +1274,7 @@ class SimulationSummary:
             self.results = {'00_arrivals': len(self.model.patients),
                             '01a_treatment_wait': mean_treat_wait,
                             '01b_treatment_util': treat_util,
+                            '01c_treatment_wait_target_met': perc_treat_wait_target_met,
                             '08_total_time': mean_total,
                             '09_throughput': self.get_throughput(self.model.patients)
                             }
@@ -1410,6 +1415,28 @@ class SimulationSummary:
         mean = np.array([getattr(p, metric) for p in patients
                          if getattr(p, metric) > -np.inf]).mean()
         return mean
+    
+    def get_perc_wait_target_met(self, metric, patients, target):
+        '''
+        Calculate the percentage of patients where a target was met for 
+        the select cohort of patients,
+
+        Only calculates metrics for patients where it has been 
+        measured.
+
+        Params:
+        -------
+        metric: str
+            The name of the metric e.g. 'wait_treat'
+
+        patients: list
+            A list of patients
+        '''
+        met = len(np.array([getattr(p, metric) for p in patients
+                         if getattr(p, metric) < target]))
+        total = len(np.array([getattr(p, metric) for p in patients
+                         if getattr(p, metric) > -np.inf]))
+        return met/total
 
     def get_resource_util(self, metric, n_resources, patients):
         '''
