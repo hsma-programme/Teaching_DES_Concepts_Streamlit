@@ -165,7 +165,6 @@ def animate_activity_log(
 
     resource_use = full_patient_df_plus_pos[full_patient_df_plus_pos['event_type'] == "resource_use"].copy()
     resource_use['y_final'] =  resource_use['y']
-    # resource_use['x_final'] = resource_use['x'] - (resource_use['resource_id']+1)*10
     resource_use['x_final'] = resource_use['x'] - resource_use['resource_id']*10
 
     queues = full_patient_df_plus_pos[full_patient_df_plus_pos['event_type']=='queue']
@@ -223,6 +222,7 @@ def animate_activity_log(
         full_patient_df_plus_pos['minute'] = full_patient_df_plus_pos['minute'].apply(lambda x: dt.datetime.strftime(x, '%Y-%m-%d %H:%M'))
     else:
         full_patient_df_plus_pos['minute_display'] = full_patient_df_plus_pos['minute'] 
+    
     full_patient_df_plus_pos['size'] = 24
     # First add the animated traces for the different resources
     fig = px.scatter(
@@ -243,7 +243,8 @@ def animate_activity_log(
             range_x=[0, x_max],
             range_y=[0, y_max],
             height=plotly_height,
-            width=plotly_width
+            width=plotly_width,
+            opacity=0
             #    size="size"
             )
 
