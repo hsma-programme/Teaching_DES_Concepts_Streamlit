@@ -147,7 +147,7 @@ with tab3:
 
         norm_fig.layout.update(showlegend=False, 
                                 margin=dict(l=0, r=0, t=0, b=0))
-        st.markdown("### Consulation Time Distribution")
+        st.markdown("#### Consultation Time Distribution")
         st.plotly_chart(norm_fig,
                         use_container_width=True,
                         config = {'displayModeBar': False})
