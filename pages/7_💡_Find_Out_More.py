@@ -30,6 +30,8 @@ st.title("Discrete Event Simulation Playground")
 
 st.subheader("Simulation Modelling in the HSMA")
 
+gc.collect()
+
 st.markdown(
     """
     Joining the HSMA programme will give you access to 

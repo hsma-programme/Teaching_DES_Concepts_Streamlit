@@ -31,6 +31,8 @@ with open("style.css") as css:
 st.title("Discrete Event Simulation Playground")
 st.subheader("Using a Simple Resource: Sending Patients to be Treated")
 
+gc.collect()
+
 tab1, tab2, tab3 = st.tabs(["Introduction", "Exercise", "Playground"])
 
 with tab1:
@@ -134,14 +136,18 @@ with tab3:
                                     5, 30, step=5, value=10)
 
     with col2:
-        norm_dist = Normal(consult_time, consult_time_sd)
+        seed = st.number_input("🎲 Set a random number for the computer to start from",
+                            1, 10000000,
+                            step=1, value=42)
+
+        norm_dist = Normal(consult_time, consult_time_sd, random_seed=seed)
         norm_fig = px.histogram(norm_dist.sample(size=2500), height=150)
         
         norm_fig.update_layout(yaxis_title="", xaxis_title="Consultation Time<br>(Minutes)")
 
         norm_fig.layout.update(showlegend=False, 
                                 margin=dict(l=0, r=0, t=0, b=0))
-
+        st.markdown("### Consulation Time Distribution")
         st.plotly_chart(norm_fig,
                         use_container_width=True,
                         config = {'displayModeBar': False})
@@ -149,10 +155,6 @@ with tab3:
         with st.expander("Previous Parameters"):
 
             st.markdown("If you like, you can edit these parameters too!")
-
-            seed = st.number_input("🎲 Set a random number for the computer to start from",
-                            1, 10000000,
-                            step=1, value=42)
             
             n_reps = st.slider("🔁 How many times should the simulation run?",
                             1, 30,
@@ -241,7 +243,7 @@ with tab3:
                                     include_play_button=True,
                                     return_df_only=False,
                                     plotly_height=700,
-                                    plotly_width=1000,
+                                    plotly_width=1200,
                                     override_x_max=300,
                                     override_y_max=500,
                                     wrap_queues_at=10,
@@ -249,7 +251,7 @@ with tab3:
                                     display_stage_labels=False,
                                     add_background_image="https://raw.githubusercontent.com/hsma-programme/Teaching_DES_Concepts_Streamlit/main/resources/Simplest%20Model%20Background%20Image%20-%20Horizontal%20Layout.drawio.png",
 
-                            ), use_container_width=True)
+                            ), use_container_width=False)
                 
                 del animation_dfs_log
                 gc.collect()

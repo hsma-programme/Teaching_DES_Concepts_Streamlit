@@ -33,6 +33,8 @@ with open("style.css") as css:
 st.title("Discrete Event Simulation Playground")
 st.subheader("How can we optimise the full system?")
 
+gc.collect()
+
 tab1, tab2, tab3, tab4 = st.tabs(["Introduction", "Exercises", "Playground", "Compare Scenario Outputs"])
 with tab1:
     st.markdown("""

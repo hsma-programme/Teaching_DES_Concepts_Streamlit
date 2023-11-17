@@ -28,10 +28,12 @@ with open("style.css") as css:
 st.title("Discrete Event Simulation Playground")
 st.subheader("What's going on under the hood?")
 
+gc.collect()
+
 # Code from the intro to simpy session run in HSMA 5
 # https://github.com/hsma-programme/3a_introduction_to_discrete_event_simulation/blob/main/3A_Introduction_to_Discrete_Event_Simulation/Lecture_Examples/simple_simpy.py
 # TODO: Maybe change the env.now statements to be print instead
-# TODO: Go back through explanatins and see where we can simplify them. 
+# TODO: Go back through explanations and see where we can simplify them. 
 
 st.markdown(
     """

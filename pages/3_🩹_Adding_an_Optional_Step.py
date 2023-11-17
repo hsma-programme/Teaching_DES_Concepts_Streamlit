@@ -29,6 +29,8 @@ with open("style.css") as css:
 st.title("Discrete Event Simulation Playground")
 st.subheader("Making Patients Behave Differently: Adding in an Optional Step")
 
+gc.collect()
+
 tab1, tab2, tab3 = st.tabs(["Introduction", "Exercise", "Playground"])
 
 with tab1:
@@ -254,8 +256,8 @@ with tab3:
             event_position_df = pd.DataFrame([
                             {'event': 'arrival', 'x':  50, 'y': 300, 'label': "Arrival" },
                             # Examination
-                            {'event': 'examination_wait_begins', 'x':  270, 'y': 360, 'label': "Waiting for Examination"  },
-                            {'event': 'examination_begins', 'x':  270, 'y': 310, 'resource':'n_exam', 'label': "Being Examined" },
+                            {'event': 'examination_wait_begins', 'x':  275, 'y': 360, 'label': "Waiting for Examination"  },
+                            {'event': 'examination_begins', 'x':  275, 'y': 310, 'resource':'n_exam', 'label': "Being Examined" },
 
                             # Treatment (optional step)                
                             {'event': 'treatment_wait_begins', 'x':  420, 'y': 110, 'label': "Waiting for Treatment"  },
@@ -272,7 +274,7 @@ with tab3:
                                     display_stage_labels=False,
                                     return_df_only=False,
                                     plotly_height=700,
-                                    plotly_width=1000,
+                                    plotly_width=1200,
                                     override_x_max=500,
                                     override_y_max=400,
                                     wrap_queues_at=20,

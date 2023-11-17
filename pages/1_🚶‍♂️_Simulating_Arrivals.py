@@ -31,6 +31,8 @@ with open("style.css") as css:
 st.title("Discrete Event Simulation Playground")
 st.subheader("Simulating Patients Arriving at the Centre")
 
+gc.collect()
+
 tab1, tab2, tab3 = st.tabs(["Introduction", "Exercise", "Playground"])
 
 with tab1:
@@ -404,6 +406,7 @@ if button_run_pressed:
                             (patient_log['model_day'] == i+1)].sort_values("minute"),
                 x="minute", 
                 y="Rep",
+                color="Rep",
                 range_y=[0, min(10, n_reps)+1],
                 width=1200,
                 height=300,
@@ -412,6 +415,10 @@ if button_run_pressed:
 
         time_plot.update_layout(yaxis_title="Simulation Run (Replication)",
                                 xaxis_title="Time")
+        
+        time_plot.layout.update(showlegend=False, 
+                              margin=dict(l=0, r=0, t=0, b=0))
+        
         st.plotly_chart(time_plot, use_container_width=True)
 
 gc.collect()
