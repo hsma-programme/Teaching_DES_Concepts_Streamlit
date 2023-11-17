@@ -145,10 +145,10 @@ with tab3:
 
     with col1:
         
-        nurses_advice = st.slider("How Many Nurses are Available for Examination?", 1, 10, step=1, value=3)
+        nurses_advice = st.slider("How Many Nurses are Available for Examination?", 1, 10, step=1, value=2)
 
         consult_time_exam = st.slider("How long (in minutes) does an examination take on average?",
-                                        5, 120, step=5, value=20)
+                                        5, 120, step=5, value=30)
 
         consult_time_sd_exam = st.slider("How much (in minutes) does the time for an examination usually vary by?",
                                         5, 30, step=5, value=10)
@@ -178,16 +178,16 @@ with tab3:
 
     with col2:
 
-        treat_p = st.slider("Probability that a patient will need treatment", 0.0, 1.0, step=0.01, value=0.7)
+        treat_p = st.slider("Probability that a patient will need treatment", 0.0, 1.0, step=0.01, value=0.5)
 
-        nurses_treat = st.slider("How Many Doctors are Available for Treatment?", 1, 10, step=1, value=4)
+        nurses_treat = st.slider("How Many Doctors are Available for Treatment?", 1, 10, step=1, value=2)
 
 
         consult_time_treat = st.slider("How long (in minutes) does treatment take on average?",
                                         5, 120, step=5, value=50)
 
         consult_time_sd_treat = st.slider("How much (in minutes) does the time for treatment usually vary by?",
-                                        5, 30, step=5, value=30)
+                                        5, 60, step=5, value=30)
 
         
 
