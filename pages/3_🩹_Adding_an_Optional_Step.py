@@ -231,6 +231,9 @@ with tab3:
             full_event_log = pd.concat([detailed_outputs[i]['results']['full_event_log'].assign(rep= i+1)
                                             for i in range(n_reps)])
             
+            del detailed_outputs
+            gc.collect()
+
             animation_dfs_log = reshape_for_animations(
                         full_event_log=full_event_log[
                             (full_event_log['rep']==1) &
@@ -240,9 +243,6 @@ with tab3:
                         ],
                         every_x_minutes=5
                     )['full_patient_df']
-            
-            del detailed_outputs
-            gc.collect()
 
     if button_run_pressed:
         tab1, tab2, tab3 = st.tabs(
@@ -415,6 +415,9 @@ with tab3:
                 attribute_count_df = full_event_log[(full_event_log["event"]=="does_not_require_treatment")|
                                (full_event_log["event"]=="requires_treatment")][['patient','event','rep']].groupby(['rep','event']).count()
                 
+                del full_event_log
+                gc.collect()
+
                 # st.write(attribute_count_df)
 
                 attribute_count_df['perc'] = attribute_count_df.groupby('rep').apply(lambda x: 100*x['patient']/x['patient'].sum()).reset_index(level=0, drop=True)
@@ -447,7 +450,7 @@ with tab3:
                         use_container_width=True
                         )
                 
-                del attribute_count_df, full_event_log
+                del attribute_count_df
                 gc.collect()
 
 

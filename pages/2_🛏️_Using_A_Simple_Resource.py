@@ -198,15 +198,10 @@ with tab3:
             
             full_event_log = pd.concat([detailed_outputs[i]['results']['full_event_log'].assign(rep= i+1)
                                         for i in range(n_reps)])
+            
+            del detailed_outputs
+            gc.collect()
 
-            event_position_df = pd.DataFrame([
-                            {'event': 'arrival', 'x':  50, 'y': 300, 'label': "Arrival" },
-                            
-                            # Triage - minor and trauma                
-                            {'event': 'treatment_wait_begins', 'x':  190, 'y': 170, 'label': "Waiting for Treatment"  },
-                            {'event': 'treatment_begins', 'x':  190, 'y': 110, 'resource':'n_cubicles_1', 'label': "Being Treated" },
-                        
-                        ])
             animation_dfs_log = reshape_for_animations(
                         full_event_log=full_event_log[
                             (full_event_log['rep']==1) &
@@ -216,6 +211,10 @@ with tab3:
                         ],
                         every_x_minutes=5
                 )['full_patient_df']
+            
+            del full_event_log
+            gc.collect()
+
     if button_run_pressed:
         tab1, tab2, tab3 = st.tabs(
                 ["Animated Log", "Simple Graphs", "Advanced Graphs"]
@@ -225,6 +224,16 @@ with tab3:
             # st.write(results)
             st.subheader("Animated Model Output")
             with st.spinner('Generating the animated patient log...'):
+
+                event_position_df = pd.DataFrame([
+                            {'event': 'arrival', 'x':  50, 'y': 300, 'label': "Arrival" },
+                            
+                            # Triage - minor and trauma                
+                            {'event': 'treatment_wait_begins', 'x':  190, 'y': 170, 'label': "Waiting for Treatment"  },
+                            {'event': 'treatment_begins', 'x':  190, 'y': 110, 'resource':'n_cubicles_1', 'label': "Being Treated" },
+                        
+                        ])
+
                 st.plotly_chart(animate_activity_log(
                                     full_patient_df=animation_dfs_log[animation_dfs_log["minute"]<=60*24*5],
                                     event_position_df = event_position_df,
@@ -238,9 +247,12 @@ with tab3:
                                     wrap_queues_at=10,
                                     time_display_units="dhm",
                                     display_stage_labels=False,
-                                    add_background_image="https://raw.githubusercontent.com/Bergam0t/Teaching_DES_Concepts_Streamlit/main/resources/Simplest%20Model%20Background%20Image%20-%20Horizontal%20Layout.drawio.png",
+                                    add_background_image="https://raw.githubusercontent.com/hsma-programme/Teaching_DES_Concepts_Streamlit/main/resources/Simplest%20Model%20Background%20Image%20-%20Horizontal%20Layout.drawio.png",
 
                             ), use_container_width=True)
+                
+                del animation_dfs_log
+                gc.collect()
 
         with tab2:
             in_range_util = sum((results.mean().filter(like="util")<0.85) & (results.mean().filter(like="util") > 0.65))
@@ -499,9 +511,8 @@ with tab3:
             st.plotly_chart(throughput_box,
                     use_container_width=True
                 )
-
             
+            del results
+            gc.collect()
 
             # st.write(full_event_log)
-
-gc.collect()

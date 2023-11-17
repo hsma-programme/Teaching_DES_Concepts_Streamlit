@@ -168,7 +168,7 @@ with tab3:
         n_exam = st.slider("🧑‍⚕️ Number of Examination Rooms for non-trauma patients", 1, 10, step=1, value=3)
 
     with col4: 
-        st.subheader("Non-trauma Treatment")
+        st.subheader("Non-Trauma Treatment")
         n_cubicles_1 = st.slider("🧑‍⚕️ Number of Treatment Cubicles for Non-Trauma", 1, 10, step=1, value=2)
         non_trauma_treat_p = st.slider("🤕 Probability that a non-trauma patient will need treatment", 0.0, 1.0, step=0.01, value=0.7)
 
@@ -230,6 +230,9 @@ with tab3:
             full_event_log = pd.concat([detailed_outputs[i]['results']['full_event_log'].assign(rep= i+1)
                                         for i in range(n_reps)])
             
+            del detailed_outputs
+            gc.collect()
+            
             my_bar.progress(60, text="Logging Results...")
 
             # print(len(st.session_state['session_results']))
@@ -259,9 +262,14 @@ with tab3:
             current_state = st.session_state['session_results']
 
             current_state.append(results_for_state)
+            
             del results_for_state
+            gc.collect()
 
             st.session_state['session_results'] = current_state
+
+            del current_state
+            gc.collect()
 
             # print(len(st.session_state['session_results']))
 
@@ -290,6 +298,7 @@ with tab3:
 
         del full_event_log
         gc.collect()
+
         my_bar.progress(100, text="Simulation Complete!")
         # st.write(results.reset_index())
 
@@ -367,6 +376,9 @@ with tab3:
                     # animated_clock_coordinates = [100, 50],
                     add_background_image="https://raw.githubusercontent.com/Bergam0t/Teaching_DES_Concepts_Streamlit/main/resources/Full%20Model%20Background%20Image%20-%20Horizontal%20Layout.drawio.png",
             )
+
+            del animation_dfs_log
+            gc.collect()
 
             st.plotly_chart(animated_plot,
                             use_container_width=False)
@@ -578,13 +590,15 @@ with tab3:
 
         with tab_playground_results_4:
             st.markdown("Placeholder")
+            
+            del results
+            gc.collect()
 
 #################################################
 # Create area for exploring all session results
 #################################################
 with tab4:
     if len(st.session_state['session_results']) > 0:
-
 
         all_run_results = pd.concat(st.session_state['session_results'])
 
@@ -595,12 +609,10 @@ with tab4:
             # st.write(all_run_results.drop(all_run_results.filter(regex='\d+').columns,axis=1).groupby('Model Run').median().T)
             st.write(all_run_results.groupby('Model Run').median().T)
 
-
         scenario_tab_1, scenario_tab_2, scenario_tab_3 = st.tabs([
             "Simple Metrics", 
             "Advanced Metrics",
             "Detailed Breakdown"])
-        
 
         with scenario_tab_1:
 
@@ -791,6 +803,9 @@ with tab4:
             st.write(all_run_results)
 
             st.write(all_run_results.groupby('Model Run').median().T)
+
+            del all_run_results
+            gc.collect()
     else:
         st.markdown("No scenarios yet run. Go to the 'Playground' tab and click 'Run simulation'.")
 
