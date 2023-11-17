@@ -154,23 +154,23 @@ with tab3:
 
     with col1:
         st.subheader("Triage")
-        n_triage = st.slider("Number of Triage Cubicles", 1, 10, step=1, value=4)
-        prob_trauma = st.slider("Probability that a new arrival is a trauma patient", 0.0, 1.0, step=0.01, value=0.3)
+        n_triage = st.slider("🧑‍⚕️ Number of Triage Cubicles", 1, 10, step=1, value=4)
+        prob_trauma = st.slider("🚑 Probability that a new arrival is a trauma patient", 0.0, 1.0, step=0.01, value=0.3)
 
     with col2:
         st.subheader("Trauma Pathway")
-        n_trauma = st.slider("Number of Trauma Bays for Stabilisation", 1, 10, step=1, value=6)
-        n_cubicles_2 = st.slider("Number of Treatment Cubicles for Trauma", 1, 10, step=1, value=6)
+        n_trauma = st.slider("🧑‍⚕️ Number of Trauma Bays for Stabilisation", 1, 10, step=1, value=6)
+        n_cubicles_2 = st.slider("🧑‍⚕️ Number of Treatment Cubicles for Trauma", 1, 10, step=1, value=6)
 
     with col3:
         st.subheader("Non-Trauma Pathway")
-        n_reg = st.slider("Number of Registration Cubicles", 1, 10, step=1, value=3)
-        n_exam = st.slider("Number of Examination Rooms for non-trauma patients", 1, 10, step=1, value=3)
+        n_reg = st.slider("🧑‍⚕️ Number of Registration Cubicles", 1, 10, step=1, value=3)
+        n_exam = st.slider("🧑‍⚕️ Number of Examination Rooms for non-trauma patients", 1, 10, step=1, value=3)
 
     with col4: 
         st.subheader("Non-trauma Treatment")
-        n_cubicles_1 = st.slider("Number of Treatment Cubicles for Non-Trauma", 1, 10, step=1, value=2)
-        non_trauma_treat_p = st.slider("Probability that a non-trauma patient will need treatment", 0.0, 1.0, step=0.01, value=0.7)
+        n_cubicles_1 = st.slider("🧑‍⚕️ Number of Treatment Cubicles for Non-Trauma", 1, 10, step=1, value=2)
+        non_trauma_treat_p = st.slider("🤕 Probability that a non-trauma patient will need treatment", 0.0, 1.0, step=0.01, value=0.7)
 
 
     col5, col6 = st.columns(2)
@@ -178,14 +178,15 @@ with tab3:
         st.write("Total rooms in use is {}".format(n_cubicles_1+n_cubicles_2+n_exam+n_trauma+n_triage+n_reg))
     with col6:
         with st.expander("Advanced Parameters"):
-            seed = st.number_input("Set a random number for the computer to start from",
+            seed = st.number_input("🎲 Set a random number for the computer to start from",
                             1, 10000000,
                             step=1, value=42)
-            
-            n_reps = st.slider("How many times should the simulation run? WARNING: Fast/modern computer required to take this above 5 replications.",
+
+            n_reps = st.slider("🔁 How many times should the simulation run? WARNING: Fast/modern computer required to take this above 5 replications.",
                             1, 10,
                             step=1, value=3)
-            run_time_days = st.slider("How many days should we run the simulation for each time?",
+            
+            run_time_days = st.slider("🗓️ How many days should we run the simulation for each time?",
                         1, 60,
                         step=1, value=10)
 
@@ -439,7 +440,7 @@ with tab3:
                 util_fig_simple.add_bar(x=results.mean().filter(like="util").index.tolist(),
                                         y=results.mean().filter(like="util").tolist())
 
-                util_fig_simple.update_layout(yaxis_tickformat = '.3%')
+                util_fig_simple.update_layout(yaxis_tickformat = '.0%')
                 util_fig_simple.update_yaxes(title_text='Resource Utilisation (%)',
                                              range=[-0.05, 1.1])
                 # util_fig_simple.data = util_fig_simple.data[::-1]
@@ -533,6 +534,7 @@ with tab3:
                     "07b_treatment_util(trauma)": "Treatment<br>Bays<br>(trauma)"
                 }, tickangle=0)
 
+                utilisation_boxplot.update_layout(xaxis_tickformat = '.0%')
                 
 
                 st.plotly_chart(utilisation_boxplot,
@@ -639,6 +641,8 @@ with tab4:
                     "07b_treatment_util(trauma)": "Treatment<br>Bays<br>(trauma)"
                 }, tickangle=0)
 
+                all_run_util_bar.update_layout(yaxis_tickformat = '.0%')
+
                 st.plotly_chart(
                     all_run_util_bar,
                         use_container_width=True
@@ -711,6 +715,8 @@ with tab4:
                     "07b_treatment_util(trauma)": "Treatment<br>Bays<br>(trauma)"
                 }, tickangle=0)
 
+                all_run_util_box.update_layout(xaxis_tickformat = '.0%')
+
                 st.plotly_chart(all_run_util_box,
                     use_container_width=True
                     )
@@ -762,15 +768,19 @@ with tab4:
                 )
                 all_run_results['perc_throughput'] = all_run_results['09_throughput']/all_run_results['00_arrivals']
 
-                
-                # Add in a box plot showing waits
-                st.plotly_chart(px.box(
+
+                all_results_throughput_box = px.box(
                     all_run_results.reset_index().melt(id_vars=["Model Run", "rep"]).set_index('variable').filter(like="perc_throughput", axis=0).reset_index(),  
                     y="variable", 
                     x="value",
                     color="Model Run",
                     points="all",
-                    height=800),
+                    height=800)
+                
+                all_results_throughput_box.update_layout(xaxis_tickformat = '.0%')
+
+                # Add in a box plot showing waits
+                st.plotly_chart(all_results_throughput_box,
                     use_container_width=True
                     )
 

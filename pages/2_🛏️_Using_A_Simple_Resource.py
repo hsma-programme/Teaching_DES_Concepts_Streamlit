@@ -125,12 +125,12 @@ with tab3:
     col1, col2 = st.columns(2)
 
     with col1:
-        nurses = st.slider("How Many Rooms/Nurses Are Available?", 1, 15, step=1, value=4)
+        nurses = st.slider("🧑‍⚕️ How Many Rooms/Nurses Are Available?", 1, 15, step=1, value=4)
 
-        consult_time = st.slider("How long (in minutes) does a consultation take on average?",
+        consult_time = st.slider("⏱️ How long (in minutes) does a consultation take on average?",
                                     5, 150, step=5, value=50)
 
-        consult_time_sd = st.slider("How much (in minutes) does the time for a consultation usually vary by?",
+        consult_time_sd = st.slider("🕔 🕣 How much (in minutes) does the time for a consultation usually vary by?",
                                     5, 30, step=5, value=10)
 
     with col2:
@@ -150,20 +150,20 @@ with tab3:
 
             st.markdown("If you like, you can edit these parameters too!")
 
-            seed = st.number_input("Set a random number for the computer to start from",
+            seed = st.number_input("🎲 Set a random number for the computer to start from",
                             1, 10000000,
                             step=1, value=42)
             
-            n_reps = st.slider("How many times should the simulation run?",
+            n_reps = st.slider("🔁 How many times should the simulation run?",
                             1, 30,
                             step=1, value=10)
             
-            run_time_days = st.slider("How many days should we run the simulation for each time?",
+            run_time_days = st.slider("🗓️ How many days should we run the simulation for each time?",
                                     1, 40,
                                     step=1, value=15)
 
         
-            mean_arrivals_per_day = st.slider("How many patients should arrive per day on average?",
+            mean_arrivals_per_day = st.slider("🧍 How many patients should arrive per day on average?",
                                             10, 300,
                                             step=5, value=120)
             
@@ -285,7 +285,8 @@ with tab3:
                     "01b_treatment_util": "Treatment Bays", 
                 }, tickangle=0)
                 
-                util_fig_simple.update_layout(margin=dict(l=0, r=0, t=0, b=0))
+                util_fig_simple.update_layout(margin=dict(l=0, r=0, t=0, b=0), 
+                                              yaxis_tickformat = '.0%')
 
                 st.plotly_chart(
                     util_fig_simple,
@@ -296,7 +297,7 @@ with tab3:
             
             with col_res_b:
                 #util_fig_simple = px.bar(results.mean().filter(like="wait"), opacity=0.5)
-                st.metric(label=":clock2: **Wait Metrics in Ideal Range**", value="{} of {}".format(in_range_wait, len(results.mean().filter(like="wait"))))
+                st.metric(label=":clock2: **Wait Metrics in Ideal Range**", value="{} of {}".format(in_range_wait, len(results.mean().filter(like="01b"))))
 
                 st.markdown(
                     """
@@ -331,7 +332,7 @@ with tab3:
 
             with col_res_c:
                 #util_fig_simple = px.bar(results.mean().filter(like="wait"), opacity=0.5)
-                st.metric(label=":clock2: **Wait Target Met**", value="{} of {}".format(in_range_wait, len(results.mean().filter(like="wait"))))
+                st.metric(label=":clock2: **Wait Target Met**", value="{} of {}".format(in_range_wait, len(results.mean().filter(like="01c"))))
 
                 st.markdown(
                     """
@@ -348,13 +349,14 @@ with tab3:
                 wait_target_simple.add_bar(x=results.median().filter(like="01c").index.tolist(),
                                         y=results.median().filter(like="01c").tolist())
 
-                wait_fig_simple.update_xaxes(labelalias={
+                wait_target_simple.update_xaxes(labelalias={
                     "01c_treatment_wait_target_met": "Treatment Wait - Target Met" 
                 }, tickangle=0)
                 # wait_fig_simple.data = wait_fig_simple.data[::-1]
                 wait_target_simple.update_yaxes(title_text='Average % of patients where 2 hour wait target met')
 
-                wait_target_simple.update_layout(margin=dict(l=0, r=0, t=0, b=0))
+                wait_target_simple.update_layout(margin=dict(l=0, r=0, t=0, b=0), 
+                                                 yaxis_tickformat = '.0%')
 
                 st.plotly_chart(
                     wait_target_simple,
@@ -387,7 +389,9 @@ with tab3:
                     range_x=[0, 1.1],
                     height=200)
             
-            util_box.update_layout(yaxis_title="", xaxis_title="Average Utilisation in Model Run")
+            util_box.update_layout(yaxis_title="", 
+                                   xaxis_title="Average Utilisation in Model Run", 
+                                   xaxis_tickformat = '.0%')
 
             util_box.add_vrect(x0=0.65, x1=0.85,
                                           fillcolor="#5DFDA0", opacity=0.25,  line_width=0)
@@ -423,7 +427,8 @@ with tab3:
                     height=200,
                     range_x=[0, results.reset_index().melt(id_vars=["rep"]).set_index('variable').filter(like="01a", axis=0).reset_index().max().value]
                     )
-            wait_box.update_layout(yaxis_title="", xaxis_title="Average Wait in Model Run")
+            wait_box.update_layout(yaxis_title="", 
+                                   xaxis_title="Average Wait in Model Run")
 
             wait_box.update_yaxes(labelalias={
                     "01a_treatment_wait": "Treatment Wait"
@@ -450,7 +455,9 @@ with tab3:
                     range_x=[0, 1.1]
                     )
             
-            wait_target_box.update_layout(yaxis_title="", xaxis_title="% of clients meeting waiting time target")
+            wait_target_box.update_layout(yaxis_title="", 
+                                          xaxis_title="% of clients meeting waiting time target", 
+                                          xaxis_tickformat = '.0%')
 
             wait_target_box.update_yaxes(labelalias={
                 "01c_treatment_wait_target_met": "Waiting Time Target<br>(% met)"
@@ -466,6 +473,8 @@ with tab3:
                         ### Throughput
                         This is the percentage of clients who entered the system who had left by the time the model stopped running.
                         Higher values are better - low values suggest a big backlog of people getting stuck in the system for a long time.
+                        
+                        Note that this isn't a good metric to compare across different lengths of model run, but can be useful to consider for the same length of run with different parameters.
                         """)
             
             results['perc_throughput'] = results['09_throughput']/results['00_arrivals']
@@ -478,10 +487,12 @@ with tab3:
                     range_x=[0, 1.1]
                     )
             
-            throughput_box.update_layout(yaxis_title="", xaxis_title="Throughput in Model Run")
+            throughput_box.update_layout(yaxis_title="", 
+                                         xaxis_title="% Throughput in Model Run", 
+                                         xaxis_tickformat = '.0%')
 
             throughput_box.update_yaxes(labelalias={
-                "09_throughput": "Throughput"
+                "perc_throughput": "Throughput (%)"
             }, tickangle=0)
 
 

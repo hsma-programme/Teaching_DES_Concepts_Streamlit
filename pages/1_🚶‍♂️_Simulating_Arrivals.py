@@ -167,22 +167,22 @@ with tab3:
     col1_1, col1_2= st.columns(2)
     # set number of resources
     with col1_1:
-        seed = st.number_input("Set a random number for the computer to start from",
+        seed = st.number_input("🎲 Set a random number for the computer to start from",
                         1, 100000,
                         step=1, value=103)
 
-        run_time_days = st.slider("How many days should we run the simulation for each time?",
+        run_time_days = st.slider("🗓️ How many days should we run the simulation for each time?",
                                   1, 60,
                                   step=1, value=15)
         
-        n_reps = st.slider("How many times should the simulation run?",
+        n_reps = st.slider("🔁 How many times should the simulation run?",
                            1, 25,
                            step=1, value=10)
         
         
 
     with col1_2:
-        mean_arrivals_per_day = st.slider("How many patients should arrive per day on average?",
+        mean_arrivals_per_day = st.slider("🧍 How many patients should arrive per day on average?",
                                           10, 500,
                                           step=5, value=150)
 
