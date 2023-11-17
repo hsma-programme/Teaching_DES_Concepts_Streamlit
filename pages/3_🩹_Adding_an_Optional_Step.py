@@ -150,7 +150,7 @@ with tab3:
     col1, col2, col3 = st.columns([1,1,1])
 
     with col1:
-        
+        st.subheader("Examination Resources")
         nurses_advice = st.slider("🧑‍⚕️ How Many Nurses are Available for Examination?", 1, 10, step=1, value=2)
 
         consult_time_exam = st.slider("⏱️ How long (in minutes) does an examination take on average?",
@@ -161,7 +161,7 @@ with tab3:
 
     with col2:
 
-
+        st.subheader("Treatment Resources")
         nurses_treat = st.slider("🧑‍⚕️ How Many Doctors are Available for Treatment?", 1, 10, step=1, value=2)
 
 
@@ -172,6 +172,7 @@ with tab3:
                                         5, 60, step=5, value=30)
         
     with col3:
+        st.subheader("Pathway Probabilities")
         treat_p = st.slider("🤕 Probability that a patient will need treatment", 0.0, 1.0, step=0.01, value=0.5)
         with st.expander("Previous Parameters"):
 
