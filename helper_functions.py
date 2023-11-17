@@ -52,7 +52,7 @@ def add_logo():
         """
         <style>
             [data-testid="stSidebarNav"] {
-                background-image: url(https://raw.githubusercontent.com/Bergam0t/Teaching_DES_Concepts_Streamlit/main/resources/hsma_logo_transparent_background_small.png);
+                background-image: url(https://raw.githubusercontent.com/hsma-programme/Teaching_DES_Concepts_Streamlit/main/resources/hsma_logo_transparent_background_small.png);
                 background-repeat: no-repeat;
                 padding-top: 150px;
                 background-position: 70px 30px;
