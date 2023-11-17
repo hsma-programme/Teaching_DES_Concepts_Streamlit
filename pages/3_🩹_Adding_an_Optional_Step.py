@@ -237,6 +237,9 @@ with tab3:
             del detailed_outputs
             gc.collect()
 
+            attribute_count_df = full_event_log[(full_event_log["event"]=="does_not_require_treatment")|
+                (full_event_log["event"]=="requires_treatment")][['patient','event','rep']].groupby(['rep','event']).count()
+
             animation_dfs_log = reshape_for_animations(
                         full_event_log=full_event_log[
                             (full_event_log['rep']==1) &
@@ -246,6 +249,9 @@ with tab3:
                         ],
                         every_x_minutes=5
                     )['full_patient_df']
+            
+            del full_event_log
+            gc.collect()
 
     if button_run_pressed:
         tab1, tab2, tab3 = st.tabs(
@@ -286,6 +292,7 @@ with tab3:
                 
                 del animation_dfs_log
                 gc.collect()
+        
         with tab2:
             in_range_util = sum((results.mean().filter(like="util")<0.85) & (results.mean().filter(like="util") > 0.65))
             in_range_wait = sum((results.mean().filter(regex="01a|02a")<120))            
@@ -415,12 +422,6 @@ with tab3:
 
             with col_res_d:
                 st.subheader("Percentage of clients requiring treatment per simulation run")
-                attribute_count_df = full_event_log[(full_event_log["event"]=="does_not_require_treatment")|
-                               (full_event_log["event"]=="requires_treatment")][['patient','event','rep']].groupby(['rep','event']).count()
-                
-                del full_event_log
-                gc.collect()
-
                 # st.write(attribute_count_df)
 
                 attribute_count_df['perc'] = attribute_count_df.groupby('rep').apply(lambda x: 100*x['patient']/x['patient'].sum()).reset_index(level=0, drop=True)
