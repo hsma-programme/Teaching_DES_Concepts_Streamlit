@@ -2283,7 +2283,7 @@ class SimpleBranchedPathway(object):
         self.full_event_log.append(
             {'patient': self.identifier,
              'pathway': 'simple_with_branch',
-             'event': 'treatment_wait_begins',
+             'event': 'examination_wait_begins',
              'event_type': 'queue',
              'time': self.env.now}
         )
@@ -2299,7 +2299,7 @@ class SimpleBranchedPathway(object):
         self.full_event_log.append(
             {'patient': self.identifier,
                 'pathway': 'simple_with_branch',
-                'event': 'treatment_begins',
+                'event': 'examination_begins',
                 'event_type': 'resource_use',
                 'time': self.env.now,
                 'resource_id': examination_resource.id_attribute
@@ -2316,7 +2316,7 @@ class SimpleBranchedPathway(object):
         self.full_event_log.append(
             {'patient': self.identifier,
                 'pathway': 'simple_with_branch',
-                'event': 'treatment_complete',
+                'event': 'examination_complete',
                 'event_type': 'resource_use_end',
                 'time': self.env.now,
                 'resource_id': examination_resource.id_attribute}

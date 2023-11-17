@@ -237,12 +237,12 @@ with tab3:
             event_position_df = pd.DataFrame([
                             {'event': 'arrival', 'x':  50, 'y': 300, 'label': "Arrival" },
                             # Examination
-                            {'event': 'examination_wait_begins', 'x':  150, 'y': 200, 'label': "Waiting for Examination"  },
-                            {'event': 'examination_begins', 'x':  250, 'y': 100, 'resource':'n_exam', 'label': "Being Examined" },
+                            {'event': 'examination_wait_begins', 'x':  270, 'y': 360, 'label': "Waiting for Examination"  },
+                            {'event': 'examination_begins', 'x':  270, 'y': 310, 'resource':'n_exam', 'label': "Being Examined" },
 
                             # Treatment (optional step)                
-                            {'event': 'treatment_wait_begins', 'x':  450, 'y': 200, 'label': "Waiting for Treatment"  },
-                            {'event': 'treatment_begins', 'x':  550, 'y': 100, 'resource':'n_cubicles_1', 'label': "Being Treated" },
+                            {'event': 'treatment_wait_begins', 'x':  420, 'y': 110, 'label': "Waiting for Treatment"  },
+                            {'event': 'treatment_begins', 'x':  420, 'y': 70, 'resource':'n_cubicles_1', 'label': "Being Treated" },
                         
                         ])
 
@@ -264,11 +264,12 @@ with tab3:
                                     include_play_button=True,
                                     display_stage_labels=False,
                                     return_df_only=False,
-                                    plotly_height=600,
+                                    plotly_height=700,
                                     plotly_width=1000,
                                     override_x_max=500,
                                     override_y_max=400,
-                                    wrap_queues_at=10,
+                                    wrap_queues_at=20,
+                                    icon_and_text_size=18,
                                     time_display_units="dhm",
                                     add_background_image="https://raw.githubusercontent.com/Bergam0t/Teaching_DES_Concepts_Streamlit/main/resources/Branched%20Model%20Background%20Image%20-%20Horizontal%20Layout.drawio.png",
                             ), use_container_width=False)
