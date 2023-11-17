@@ -3,17 +3,18 @@ A Streamlit application based on Monks and
 
 Allows users to interact with an increasingly more complex treatment simulation 
 '''
-import streamlit as st
+import asyncio
+import gc
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-import numpy as np
-from output_animation_functions import reshape_for_animations, animate_queue_activity_bar_chart, animate_activity_log
-import asyncio
+import streamlit as st
 
-from helper_functions import read_file_contents, add_logo, mermaid
+from helper_functions import add_logo, mermaid
 from model_classes import Scenario, multiple_replications
 from distribution_classes import Normal
+from output_animation_functions import reshape_for_animations, animate_queue_activity_bar_chart, animate_activity_log
+
 # Set page parameters
 st.set_page_config(
      page_title="Using a Simple Resource",
@@ -158,13 +159,13 @@ with tab3:
                             step=1, value=10)
             
             run_time_days = st.slider("How many days should we run the simulation for each time?",
-                                    1, 60,
+                                    1, 40,
                                     step=1, value=15)
 
         
             mean_arrivals_per_day = st.slider("How many patients should arrive per day on average?",
-                                            10, 500,
-                                            step=5, value=300)
+                                            10, 300,
+                                            step=5, value=120)
             
     # A user must press a streamlit button to run the model
     button_run_pressed = st.button("Run simulation")
@@ -209,10 +210,12 @@ with tab3:
             animation_dfs_log = reshape_for_animations(
                         full_event_log=full_event_log[
                             (full_event_log['rep']==1) &
-                            ((full_event_log['event_type']=='queue') | (full_event_log['event_type']=='resource_use')  | (full_event_log['event_type']=='arrival_departure'))
+                            ((full_event_log['event_type']=='queue') | (full_event_log['event_type']=='resource_use')  | (full_event_log['event_type']=='arrival_departure')) &
+                            # Limit to first 5 days
+                            (full_event_log['time'] <= 60*24*5)
                         ],
                         every_x_minutes=5
-                )
+                )['full_patient_df']
     if button_run_pressed:
         tab1, tab2, tab3 = st.tabs(
                 ["Animated Log", "Simple Graphs", "Advanced Graphs"]
@@ -223,7 +226,7 @@ with tab3:
             st.subheader("Animated Model Output")
             with st.spinner('Generating the animated patient log...'):
                 st.plotly_chart(animate_activity_log(
-                                    animation_dfs_log['full_patient_df'],
+                                    full_patient_df=animation_dfs_log[animation_dfs_log["minute"]<=60*24*5],
                                     event_position_df = event_position_df,
                                     scenario=args,
                                     include_play_button=True,
@@ -413,12 +416,12 @@ with tab3:
                         ### Waits
                         """)
             wait_box = px.box(
-                    results.reset_index().melt(id_vars=["rep"]).set_index('variable').filter(like="wait", axis=0).reset_index(), 
+                    results.reset_index().melt(id_vars=["rep"]).set_index('variable').filter(like="01a", axis=0).reset_index(), 
                     y="variable", 
                     x="value",
                     points="all",
                     height=200,
-                    range_x=[0, results.reset_index().melt(id_vars=["rep"]).set_index('variable').filter(like="wait", axis=0).reset_index().max().value]
+                    range_x=[0, results.reset_index().melt(id_vars=["rep"]).set_index('variable').filter(like="01a", axis=0).reset_index().max().value]
                     )
             wait_box.update_layout(yaxis_title="", xaxis_title="Average Wait in Model Run")
 
@@ -472,7 +475,7 @@ with tab3:
                     x="value",
                     points="all",
                     height=200,
-                    range_x=[0, results.reset_index().melt(id_vars=["rep"]).set_index('variable').filter(like='throughput', axis=0).reset_index().max().value]
+                    range_x=[0, 1.1]
                     )
             
             throughput_box.update_layout(yaxis_title="", xaxis_title="Throughput in Model Run")
@@ -489,3 +492,5 @@ with tab3:
             
 
             # st.write(full_event_log)
+
+gc.collect()

@@ -3,16 +3,16 @@ A Streamlit application based on Monks and
 
 Allows users to interact with an increasingly more complex treatment simulation 
 '''
-import streamlit as st
-import pandas as pd
-import asyncio
-import plotly.express as px
 import gc
+import asyncio
+import pandas as pd
+import plotly.express as px
 import plotly.graph_objects as go
+import streamlit as st
 
-from helper_functions import read_file_contents, add_logo, mermaid
+from helper_functions import add_logo, mermaid
 from model_classes import Scenario, multiple_replications
-from output_animation_functions import reshape_for_animations, animate_queue_activity_bar_chart, animate_activity_log
+from output_animation_functions import reshape_for_animations, animate_activity_log
 
 st.set_page_config(
      page_title="The Full Model",
@@ -32,7 +32,6 @@ with open("style.css") as css:
 ## We add in a title for our web app's page
 st.title("Discrete Event Simulation Playground")
 st.subheader("How can we optimise the full system?")
-
 
 tab1, tab2, tab3, tab4 = st.tabs(["Introduction", "Exercises", "Playground", "Compare Scenario Outputs"])
 with tab1:
@@ -245,7 +244,7 @@ with tab3:
             results_for_state['Probability patient\nis a trauma patient'] = args.prob_trauma
             results_for_state['Probability non-trauma patients\nrequire treatment'] = args.non_trauma_treat_p
             results_for_state['Model Run'] = len(st.session_state['session_results']) + 1
-            results_for_state['Random Seed'] = args.random_number_set
+            results_for_state['Random Seed'] = seed
 
             # Reorder columns
             column_order = ['Model Run', 'Triage\nCubicles', 'Registration\nClerks', 'Examination\nRooms',
@@ -281,10 +280,12 @@ with tab3:
             animation_dfs_log = reshape_for_animations(
                 full_event_log=full_event_log[
                     (full_event_log['rep']==1) &
-                    ((full_event_log['event_type']=='queue') | (full_event_log['event_type']=='resource_use')  | (full_event_log['event_type']=='arrival_departure'))
+                    ((full_event_log['event_type']=='queue') | (full_event_log['event_type']=='resource_use')  | (full_event_log['event_type']=='arrival_departure')) &
+                     # Limit to first 5 days
+                    (full_event_log['time'] <= 60*24*5)
                 ],
                 every_x_minutes=5
-            )
+            )['full_patient_df']
 
         del full_event_log
         gc.collect()
@@ -314,29 +315,41 @@ with tab3:
                 # {'event': 'arrival', 'x':  10, 'y': 250, 'label': "Arrival" },
                 
                 # Triage - minor and trauma                
-                {'event': 'triage_wait_begins', 'x':  160, 'y': 400, 'label': "Waiting for<br>Triage"  },
-                {'event': 'triage_begins', 'x':  160, 'y': 315, 'resource':'n_triage', 'label': "Being Triaged" },
+                {'event': 'triage_wait_begins', 
+                 'x':  160, 'y': 400, 'label': "Waiting for<br>Triage"  },
+                {'event': 'triage_begins', 
+                 'x':  160, 'y': 315, 'resource':'n_triage', 'label': "Being Triaged" },
             
                 # Minors (non-trauma) pathway 
-                {'event': 'MINORS_registration_wait_begins', 'x':  300, 'y': 145, 'label': "Waiting for<br>Registration"  },
-                {'event': 'MINORS_registration_begins', 'x':  300, 'y': 85, 'resource':'n_reg', 'label':'Being<br>Registered'  },
+                {'event': 'MINORS_registration_wait_begins', 
+                 'x':  300, 'y': 145, 'label': "Waiting for<br>Registration"  },
+                {'event': 'MINORS_registration_begins', 
+                 'x':  300, 'y': 85, 'resource':'n_reg', 'label':'Being<br>Registered'  },
 
-                {'event': 'MINORS_examination_wait_begins', 'x':  465, 'y': 145, 'label': "Waiting for<br>Examination"  },
-                {'event': 'MINORS_examination_begins', 'x':  465, 'y': 85, 'resource':'n_exam', 'label': "Being<br>Examined" },
+                {'event': 'MINORS_examination_wait_begins', 
+                 'x':  465, 'y': 145, 'label': "Waiting for<br>Examination"  },
+                {'event': 'MINORS_examination_begins', 
+                 'x':  465, 'y': 85, 'resource':'n_exam', 'label': "Being<br>Examined" },
 
-                {'event': 'MINORS_treatment_wait_begins', 'x':  630, 'y': 145, 'label': "Waiting for<br>Treatment"  },
-                {'event': 'MINORS_treatment_begins', 'x':  630, 'y': 85, 'resource':'n_cubicles_1', 'label': "Being<br>Treated" },
+                {'event': 'MINORS_treatment_wait_begins', 
+                 'x':  630, 'y': 145, 'label': "Waiting for<br>Treatment"  },
+                {'event': 'MINORS_treatment_begins', 
+                 'x':  630, 'y': 85, 'resource':'n_cubicles_1', 'label': "Being<br>Treated" },
 
                 # Trauma pathway
-                {'event': 'TRAUMA_stabilisation_wait_begins', 'x': 300, 'y': 560, 'label': "Waiting for<br>Stabilisation" },
-                {'event': 'TRAUMA_stabilisation_begins', 'x': 300, 'y': 500, 'resource':'n_trauma', 'label': "Being<br>Stabilised" },
+                {'event': 'TRAUMA_stabilisation_wait_begins', 
+                 'x': 300, 'y': 560, 'label': "Waiting for<br>Stabilisation" },
+                {'event': 'TRAUMA_stabilisation_begins', 
+                 'x': 300, 'y': 500, 'resource':'n_trauma', 'label': "Being<br>Stabilised" },
 
-                {'event': 'TRAUMA_treatment_wait_begins', 'x': 630, 'y': 560, 'label': "Waiting for<br>Treatment" },
-                {'event': 'TRAUMA_treatment_begins', 'x': 630, 'y': 500, 'resource':'n_cubicles_2', 'label': "Being<br>Treated" }
+                {'event': 'TRAUMA_treatment_wait_begins', 
+                 'x': 630, 'y': 560, 'label': "Waiting for<br>Treatment" },
+                {'event': 'TRAUMA_treatment_begins', 
+                 'x': 630, 'y': 500, 'resource':'n_cubicles_2', 'label': "Being<br>Treated" }
             ])
 
             animated_plot = animate_activity_log(
-                    animation_dfs_log['full_patient_df'],
+                    full_patient_df=animation_dfs_log[animation_dfs_log["minute"]<=60*24*5],
                     event_position_df = event_position_df,
                     scenario=args,
                     include_play_button=True,
@@ -352,7 +365,7 @@ with tab3:
                     # show_animated_clock=True,
                     # animated_clock_coordinates = [100, 50],
                     add_background_image="https://raw.githubusercontent.com/Bergam0t/Teaching_DES_Concepts_Streamlit/main/resources/Full%20Model%20Background%20Image%20-%20Horizontal%20Layout.drawio.png",
-            ) 
+            )
 
             st.plotly_chart(animated_plot,
                             use_container_width=False)
@@ -770,3 +783,5 @@ with tab4:
             st.write(all_run_results.groupby('Model Run').median().T)
     else:
         st.markdown("No scenarios yet run. Go to the 'Playground' tab and click 'Run simulation'.")
+
+gc.collect()

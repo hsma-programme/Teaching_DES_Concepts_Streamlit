@@ -4,27 +4,23 @@ A Streamlit application based on Monks and
 Allows users to interact with an increasingly more complex treatment simulation 
 '''
 import time
-import streamlit as st
+import asyncio
+import datetime as dt
+import gc
 import numpy as np
 import plotly.express as px
 import pandas as pd
-import asyncio
-import datetime as dt
+import streamlit as st
 
-from helper_functions import read_file_contents, add_logo, mermaid
+from helper_functions import add_logo, mermaid
 from model_classes import Scenario, multiple_replications
 from distribution_classes import Exponential
-# from st_pages import show_pages_from_config, add_page_title
 
 st.set_page_config(
     page_title="Simulating Arrivals",
     layout="wide",
     initial_sidebar_state="expanded",
 )
-
-# add_page_title()
-
-# show_pages_from_config()
 
 add_logo()
 
@@ -187,8 +183,8 @@ with tab3:
 
     with col1_2:
         mean_arrivals_per_day = st.slider("How many patients should arrive per day on average?",
-                                          10, 1000,
-                                          step=5, value=200)
+                                          10, 500,
+                                          step=5, value=150)
 
         # Will need to convert mean arrivals per day into interarrival time and share that
         exp_dist = Exponential(mean=60/(mean_arrivals_per_day/24), random_seed=seed)
@@ -338,7 +334,7 @@ if button_run_pressed:
 
         total_fig = px.histogram(
                     results[['00_arrivals']],
-                    nbins=int(np.ceil(n_reps/2))
+                    nbins=5
                     )
         total_fig.layout.update(showlegend=False)
 
@@ -365,7 +361,7 @@ if button_run_pressed:
 
         daily_average_fig = px.histogram(
                 (results[['00_arrivals']]/run_time_days).round(1),
-                    nbins=int(np.ceil(n_reps/2))
+                    nbins=5
                 )
         daily_average_fig.layout.update(showlegend=False)
         
@@ -417,3 +413,5 @@ if button_run_pressed:
         time_plot.update_layout(yaxis_title="Simulation Run (Replication)",
                                 xaxis_title="Time")
         st.plotly_chart(time_plot, use_container_width=True)
+
+gc.collect()
