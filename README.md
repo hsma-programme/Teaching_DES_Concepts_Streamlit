@@ -9,9 +9,13 @@ It will allow them to get comfortable with the idea of
 - arrival generation
 - generating and using resources
 - branching paths
-- optimising systems 
+- optimising systems
 
-A visual representation of the event log has also been generated using Plotly, allowing users to follow individuals through a simulation and quickly see where queues are building up in the system.
+![image](https://github.com/hsma-programme/Teaching_DES_Concepts_Streamlit/assets/29951987/c55e132d-77b6-43f6-bc98-09434b87709b)
+
+An animated visual representation of the event log has also been generated using Plotly, allowing users to follow individuals through a simulation and quickly see where queues are building up in the system.
+
+![image](https://github.com/hsma-programme/Teaching_DES_Concepts_Streamlit/assets/29951987/70d1f39a-df82-4938-a69e-0b7cc0a1d1c1)
 
 # What is HSMA?
 
