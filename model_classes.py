@@ -1263,8 +1263,8 @@ class SimulationSummary:
 
             mean_treat_wait = self.get_mean_metric('wait_treat', self.model.patients)
 
-            perc_treat_wait_target_met = self.get_perc_wait_target_met('wait_treat', 
-                                                                       self.model.patients, 
+            perc_treat_wait_target_met = self.get_perc_wait_target_met('wait_treat',
+                                                                       self.model.patients,
                                                                        target=120)
 
             # triage utilisation (both types of patient)
@@ -1297,6 +1297,10 @@ class SimulationSummary:
 
             mean_treat_wait = self.get_mean_metric('wait_treat', self.model.patients)
 
+            perc_wait_exam_target_met = self.get_perc_wait_target_met('wait_exam',
+                                                            self.model.patients,
+                                                            target=120)
+
             # triage utilisation (both types of patient)
             treat_util = self.get_resource_util('treat_duration',
                                                 self.args.n_cubicles_1,
@@ -1307,6 +1311,7 @@ class SimulationSummary:
             self.results = {'00_arrivals': len(self.model.patients),
                             '01a_examination_wait': mean_wait_exam,
                             '01b_examination_util': exam_util,
+                            '01c_examination_wait_target_met': perc_wait_exam_target_met,
                             '02a_treatment_wait': mean_treat_wait,
                             '02b_treatment_util': treat_util,
                             '08_total_time': mean_total,
