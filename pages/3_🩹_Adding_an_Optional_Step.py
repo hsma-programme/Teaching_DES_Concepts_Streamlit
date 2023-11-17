@@ -280,7 +280,7 @@ with tab3:
                                     wrap_queues_at=20,
                                     icon_and_text_size=18,
                                     time_display_units="dhm",
-                                    add_background_image="https://raw.githubusercontent.com/Bergam0t/Teaching_DES_Concepts_Streamlit/main/resources/Branched%20Model%20Background%20Image%20-%20Horizontal%20Layout.drawio.png",
+                                    add_background_image="https://raw.githubusercontent.com/hsma-programme/Teaching_DES_Concepts_Streamlit/main/resources/Branched%20Model%20Background%20Image%20-%20Horizontal%20Layout.drawio.png",
                             ), use_container_width=False)
                 
                 del animation_dfs_log

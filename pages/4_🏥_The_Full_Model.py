@@ -376,7 +376,7 @@ with tab3:
                     time_display_units="dhm",
                     # show_animated_clock=True,
                     # animated_clock_coordinates = [100, 50],
-                    add_background_image="https://raw.githubusercontent.com/Bergam0t/Teaching_DES_Concepts_Streamlit/main/resources/Full%20Model%20Background%20Image%20-%20Horizontal%20Layout.drawio.png",
+                    add_background_image="https://raw.githubusercontent.com/hsma-programme/Teaching_DES_Concepts_Streamlit/main/resources/Full%20Model%20Background%20Image%20-%20Horizontal%20Layout.drawio.png",
             )
 
             del animation_dfs_log
