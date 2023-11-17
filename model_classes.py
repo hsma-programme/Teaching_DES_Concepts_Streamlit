@@ -2386,7 +2386,14 @@ class SimpleBranchedPathway(object):
             # Resource is no longer in use, so put it back in the store
             self.args.treatment.put(non_trauma_treatment_resource)
         ##########################################################################
-
+        else:
+            self.full_event_log.append(
+                {'patient': self.identifier,
+                 'pathway': 'simple_with_branch',
+                 'event': 'does_not_require_treatment',
+                 'event_type': 'attribute_assigned',
+                 'time': self.env.now}
+            )
         # total time in system
         self.total_time = self.env.now - self.arrival
         self.full_event_log.append(
