@@ -96,8 +96,12 @@ with tab1:
     )
     
     exp_dist = Exponential(mean=5)
-    st.plotly_chart(px.histogram(exp_dist.sample(size=2500), 
-                                 width=600, height=300))
+    exp_fig_example = px.histogram(exp_dist.sample(size=5000), 
+                                 width=600, height=300)
+
+    exp_fig_example.layout.update(showlegend=False, 
+                            margin=dict(l=0, r=0, t=0, b=0))
+    st.plotly_chart(exp_fig_example, use_container_width=True)
 
     st.markdown(
 """

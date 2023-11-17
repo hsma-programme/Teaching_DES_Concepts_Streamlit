@@ -1,6 +1,6 @@
+import gc
 import streamlit as st
-from helper_functions import read_file_contents, add_logo, mermaid
-# from st_pages import show_pages_from_config, add_page_title
+from helper_functions import add_logo, mermaid
 
 st.set_page_config(
     page_title="Introduction",
@@ -9,16 +9,14 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# add_page_title()
-
-# show_pages_from_config()
-
 add_logo()
 
 with open("style.css") as css:
     st.markdown( f'<style>{css.read()}</style>' , unsafe_allow_html= True)
 
 st.title("Welcome to the Discrete Event Simulation Playground! 👋")
+
+gc.collect()
 
 st.markdown(
 """
@@ -95,7 +93,5 @@ st.markdown(
 1. *Monks.T, Harper.A, Anagnoustou. A, Allen.M, Taylor.S. (2022) Open Science for Computer Simulation*
 2. *Nelson. B.L. (2013). [Foundations and methods of stochastic simulation](https://www.amazon.co.uk/Foundations-Methods-Stochastic-Simulation-International/dp/1461461596/ref=sr_1_1?dchild=1&keywords=foundations+and+methods+of+stochastic+simulation&qid=1617050801&sr=8-1). Springer.* 
 3. https://health-data-science-or.github.io/simpy-streamlit-tutorial/
-"""    
+"""
 )
-
-

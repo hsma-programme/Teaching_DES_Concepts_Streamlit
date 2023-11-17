@@ -23,6 +23,7 @@
     entrypoint: "Introduction.py",
     files: {
       "Introduction.py": `
+import gc
 import streamlit as st
 from helper_functions import add_logo, mermaid
 
@@ -39,6 +40,8 @@ with open("style.css") as css:
     st.markdown( f'<style>{css.read()}</style>' , unsafe_allow_html= True)
 
 st.title("Welcome to the Discrete Event Simulation Playground! 👋")
+
+gc.collect()
 
 st.markdown(
 """

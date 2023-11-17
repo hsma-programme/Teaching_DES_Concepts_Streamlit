@@ -118,10 +118,8 @@ with tab2:
     st.markdown(
         """
         - Run the animated model output. Are the queues consistent throughout the day?
-        
-        - Try changing the number of resources you have available so that all resources in your ED have an average utilisation of between 65% and 85% while the wait for treatment is under 4 hours. Is it possible to balance these requirements?
 
-        - Imagine you have a maximum of 15 rooms and cubicles. What is the best configuration of rooms you can find to keep the average wait times as low as possible across both trauma and non-trauma pathways?
+        - Imagine you have a maximum of 20 rooms and cubicles. What is the best configuration of rooms you can find to keep the average wait times as low as possible across both trauma and non-trauma pathways?
         """
     )
 

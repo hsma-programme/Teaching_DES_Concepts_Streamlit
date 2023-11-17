@@ -147,7 +147,7 @@ with tab2:
 
 with tab3:
 
-    col1, col2 = st.columns([1,1])
+    col1, col2, col3 = st.columns([1,1,1])
 
     with col1:
         
@@ -158,7 +158,21 @@ with tab3:
 
         consult_time_sd_exam = st.slider("🕔 🕣 How much (in minutes) does the time for an examination usually vary by?",
                                         5, 30, step=5, value=10)
+
+    with col2:
+
+
+        nurses_treat = st.slider("🧑‍⚕️ How Many Doctors are Available for Treatment?", 1, 10, step=1, value=2)
+
+
+        consult_time_treat = st.slider("⏱️ How long (in minutes) does treatment take on average?",
+                                        5, 120, step=5, value=50)
+
+        consult_time_sd_treat = st.slider("🕔 🕣 How much (in minutes) does the time for treatment usually vary by?",
+                                        5, 60, step=5, value=30)
         
+    with col3:
+        treat_p = st.slider("🤕 Probability that a patient will need treatment", 0.0, 1.0, step=0.01, value=0.5)
         with st.expander("Previous Parameters"):
 
             st.markdown("If you like, you can edit these parameters too!")
@@ -180,20 +194,6 @@ with tab3:
                                             10, 300,
                                             step=5, value=140)    
         
-
-
-    with col2:
-
-        treat_p = st.slider("🤕 Probability that a patient will need treatment", 0.0, 1.0, step=0.01, value=0.5)
-
-        nurses_treat = st.slider("🧑‍⚕️ How Many Doctors are Available for Treatment?", 1, 10, step=1, value=2)
-
-
-        consult_time_treat = st.slider("⏱️ How long (in minutes) does treatment take on average?",
-                                        5, 120, step=5, value=50)
-
-        consult_time_sd_treat = st.slider("🕔 🕣 How much (in minutes) does the time for treatment usually vary by?",
-                                        5, 60, step=5, value=30)
 
         
 
