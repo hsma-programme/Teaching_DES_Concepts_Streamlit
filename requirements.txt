@@ -2,5 +2,4 @@ streamlit
 pandas
 plotly
 simpy
-urllib3
 asyncio
