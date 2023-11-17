@@ -603,11 +603,11 @@ with tab4:
         all_run_results = pd.concat(st.session_state['session_results'])
 
         st.subheader("Look at Average Results Across Replications")
-        col_a, col_b = st.columns(2)
+        # col_a, col_b = st.columns(2)
         
-        with col_a:
-            # st.write(all_run_results.drop(all_run_results.filter(regex='\d+').columns,axis=1).groupby('Model Run').median().T)
-            st.write(all_run_results.groupby('Model Run').median().T)
+        # with col_a:
+        #     # st.write(all_run_results.drop(all_run_results.filter(regex='\d+').columns,axis=1).groupby('Model Run').median().T)
+        #     st.write(all_run_results.groupby('Model Run').median().T)
 
         scenario_tab_1, scenario_tab_2, scenario_tab_3 = st.tabs([
             "Simple Metrics", 
@@ -630,7 +630,8 @@ with tab4:
                         y="index",
                         barmode='group',
                         color="model_run",
-                        range_x=[0, 1])
+                        range_x=[0, 1], 
+                        height=800)
                 
                 all_run_util_bar.add_vrect(x0=0.65, x1=0.85,
                                           fillcolor="#5DFDA0", opacity=0.25,  line_width=0)
@@ -668,7 +669,8 @@ with tab4:
                         x="value",
                         y="index",
                         barmode='group',
-                        color="model_run",
+                        color="model_run", 
+                        height=800
                         )
                 
                 all_run_wait_bar.update_yaxes(labelalias={
@@ -704,7 +706,8 @@ with tab4:
                     x="value",
                     color="Model Run",
                     points="all",
-                    range_x=[0, 1])
+                    range_x=[0, 1], 
+                    height=800)
 
                 all_run_util_box.add_vrect(x0=0.65, x1=0.85,
                                           fillcolor="#5DFDA0", opacity=0.25,  line_width=0)
