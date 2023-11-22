@@ -274,12 +274,14 @@ with tab3:
                             {'event': 'treatment_begins', 'x':  420, 'y': 70,
                              'resource':'n_cubicles_1', 'label': "Being Treated" },
 
-                            {'event': 'exit', 'x':  450, 'y': 250, 
-                             'label': "Exit"}
+                            {'event': 'exit', 'x':  450, 'y': 220, 
+                             'label': "Exit"},
 
                         ])
 
             with st.spinner('Generating the animated patient log...'):
+                st.write(animation_dfs_log[animation_dfs_log["minute"]<=60*24*5])
+
                 st.plotly_chart(animate_activity_log(
                                     full_patient_df=animation_dfs_log[animation_dfs_log["minute"]<=60*24*5],
                                     event_position_df = event_position_df,

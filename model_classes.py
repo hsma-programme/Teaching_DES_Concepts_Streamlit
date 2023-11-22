@@ -2385,6 +2385,14 @@ class SimpleBranchedPathway(object):
 
             # Resource is no longer in use, so put it back in the store
             self.args.treatment.put(non_trauma_treatment_resource)
+
+            self.full_event_log.append(
+                {'patient': self.identifier,
+                'pathway': 'simple_with_branch',
+                'event': 'depart',
+                'event_type': 'arrival_departure',
+                'time': self.env.now}
+            )
         ##########################################################################
         else:
             self.full_event_log.append(
@@ -2394,14 +2402,15 @@ class SimpleBranchedPathway(object):
                  'event_type': 'attribute_assigned',
                  'time': self.env.now}
             )
+            self.full_event_log.append(
+                {'patient': self.identifier,
+                'pathway': 'simple_with_branch',
+                'event': 'depart',
+                'event_type': 'arrival_departure',
+                'time': self.env.now}
+            )
         # total time in system
         self.total_time = self.env.now - self.arrival
-        self.full_event_log.append(
-            {'patient': self.identifier,
-            'pathway': 'Simplest',
-            'event': 'depart',
-            'event_type': 'arrival_departure',
-            'time': self.env.now}
-        )
+
 
 

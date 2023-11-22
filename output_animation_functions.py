@@ -71,6 +71,7 @@ def reshape_for_animations(full_event_log, every_x_minutes=10):
     final_step = full_patient_df.sort_values(["rep", "patient", "minute"], ascending=True).groupby(["rep", "patient"]).tail(1)
     final_step['minute'] = final_step['minute'] + every_x_minutes
     final_step['event'] = "exit"
+    # final_step['event_type'] = "arrival_departure"
 
     full_patient_df = full_patient_df.append(final_step)
 
