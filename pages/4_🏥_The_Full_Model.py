@@ -605,9 +605,16 @@ with tab4:
         st.subheader("Look at Average Results Across Replications")
         # col_a, col_b = st.columns(2)
         
+
         # with col_a:
-        #     # st.write(all_run_results.drop(all_run_results.filter(regex='\d+').columns,axis=1).groupby('Model Run').median().T)
-        #     st.write(all_run_results.groupby('Model Run').median().T)
+        parameter_scenario_df = all_run_results.groupby('Model Run').median().T.reset_index(drop=False)
+        parameter_scenario_df.columns = [f"Scenario {i}" for i in parameter_scenario_df.columns]
+        parameter_scenario_df = parameter_scenario_df[~parameter_scenario_df['Scenario index'].str.contains("\d", regex=True)]
+        
+        st.dataframe(parameter_scenario_df.set_index(parameter_scenario_df.columns[0]).rename_axis('Parameter', axis=0),
+                     hide_index=False,
+                     use_container_width=True)
+        del parameter_scenario_df
 
         scenario_tab_1, scenario_tab_2, scenario_tab_3 = st.tabs([
             "Simple Metrics", 
@@ -652,9 +659,11 @@ with tab4:
                     "04b_treatment_util(non_trauma)": "Treatment<br>Bays<br>(non-trauma)",
                     "06b_trauma_util": "Stabilisation<br>Bays",
                     "07b_treatment_util(trauma)": "Treatment<br>Bays<br>(trauma)"
-                }, tickangle=0)
+                }, tickangle=0, title_text='')
+                all_run_util_bar.update_xaxes(title_text='Resource Utilisation (%)')
 
-                all_run_util_bar.update_layout(yaxis_tickformat = '.0%')
+                all_run_util_bar.update_layout(xaxis_tickformat = '.0%',
+                                               legend_title_text='Model Run')
 
                 st.plotly_chart(
                     all_run_util_bar,
@@ -680,7 +689,11 @@ with tab4:
                     "04a_treatment_wait(non_trauma)": "Treatment<br>(non-trauma)",
                     "06a_trauma_wait": "Stabilisation",
                     "07a_treatment_wait(trauma)": "Treatment<br>(trauma)"
-                }, tickangle=0)
+                }, tickangle=0, title_text='')
+
+                all_run_wait_bar.update_xaxes(title_text='Wait for Stage (minutes)')
+
+                all_run_wait_bar.update_layout(legend_title_text='Model Run')
 
                 all_run_wait_bar.add_vrect(x0=0, x1=60*2, fillcolor="#5DFDA0", 
                                           opacity=0.3, line_width=0)
@@ -728,9 +741,11 @@ with tab4:
                     "04b_treatment_util(non_trauma)": "Treatment<br>Bays<br>(non-trauma)",
                     "06b_trauma_util": "Stabilisation<br>Bays",
                     "07b_treatment_util(trauma)": "Treatment<br>Bays<br>(trauma)"
-                }, tickangle=0)
+                }, tickangle=0, title_text='')
+                all_run_util_box.update_xaxes(title_text='Resource Utilisation (%)')
 
-                all_run_util_box.update_layout(xaxis_tickformat = '.0%')
+                all_run_util_box.update_layout(xaxis_tickformat = '.0%',
+                                               legend_title_text='Model Run')
 
                 st.plotly_chart(all_run_util_box,
                     use_container_width=True
@@ -760,10 +775,14 @@ with tab4:
                     "04a_treatment_wait(non_trauma)": "Treatment<br>(non-trauma)",
                     "06a_trauma_wait": "Stabilisation",
                     "07a_treatment_wait(trauma)": "Treatment<br>(trauma)"
-                }, tickangle=0)
+                }, tickangle=0, title_text='')
+                all_run_wait_box.update_xaxes(title_text='Wait for Stage (minutes)')
 
                 all_run_wait_box.add_vrect(x0=0, x1=60*2, fillcolor="#5DFDA0", 
                                           opacity=0.3, line_width=0)
+                
+                all_run_wait_box.update_layout(legend_title_text='Model Run')
+
                 # Add in a box plot showing waits
                 st.plotly_chart(all_run_wait_box,
                     use_container_width=True
@@ -792,7 +811,15 @@ with tab4:
                     points="all",
                     height=800)
                 
-                all_results_throughput_box.update_layout(xaxis_tickformat = '.0%')
+                all_results_throughput_box.update_layout(xaxis_tickformat = '.0%',
+                                                         legend_title_text='Model Run')
+                
+                all_run_util_bar.update_yaxes(title_text='',
+                                              labelalias={
+                    "perc_throughout": "Throughput (% of arrivals<br>that exit before model end)"})
+                all_run_util_bar.update_xaxes(title_text='% Throughput')
+
+
 
                 # Add in a box plot showing waits
                 st.plotly_chart(all_results_throughput_box,
@@ -803,9 +830,18 @@ with tab4:
                 #             .merge(all_run_results.filter(like="throughput", axis=1), 
                 #                 left_index=True, right_index=True))
         with scenario_tab_3:
-            st.write(all_run_results)
 
-            st.write(all_run_results.groupby('Model Run').median().T)
+            st.markdown("This displays the median value for each metric across all model runs per scenario.")
+
+            output_scenario_df = all_run_results.groupby('Model Run').median().T.reset_index(drop=False)
+            output_scenario_df.columns = [f"Scenario {i}" for i in output_scenario_df.columns]
+            output_scenario_df = output_scenario_df[output_scenario_df['Scenario index'].str.contains("\d", regex=True)]
+            
+            st.dataframe(output_scenario_df.set_index(output_scenario_df.columns[0]).rename_axis('Metric', axis=0),
+                        hide_index=False,
+                        use_container_width=True,
+                        height=700)
+            del output_scenario_df
 
             del all_run_results
             gc.collect()
