@@ -233,6 +233,9 @@ with tab3:
                             # Triage - minor and trauma                
                             {'event': 'treatment_wait_begins', 'x':  190, 'y': 170, 'label': "Waiting for Treatment"  },
                             {'event': 'treatment_begins', 'x':  190, 'y': 110, 'resource':'n_cubicles_1', 'label': "Being Treated" },
+
+                            {'event': 'exit', 
+                            'x':  270, 'y': 70, 'label': "Exit"}
                         
                         ])
 

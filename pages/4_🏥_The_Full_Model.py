@@ -355,8 +355,13 @@ with tab3:
                 {'event': 'TRAUMA_treatment_wait_begins', 
                  'x': 630, 'y': 560, 'label': "Waiting for<br>Treatment" },
                 {'event': 'TRAUMA_treatment_begins', 
-                 'x': 630, 'y': 500, 'resource':'n_cubicles_2', 'label': "Being<br>Treated" }
+                 'x': 630, 'y': 500, 'resource':'n_cubicles_2', 'label': "Being<br>Treated" },
+
+                 {'event': 'exit', 
+                 'x':  670, 'y': 330, 'label': "Exit"}
             ])
+
+            # st.dataframe(animation_dfs_log)
 
             animated_plot = animate_activity_log(
                     full_patient_df=animation_dfs_log[animation_dfs_log["minute"]<=60*24*5],

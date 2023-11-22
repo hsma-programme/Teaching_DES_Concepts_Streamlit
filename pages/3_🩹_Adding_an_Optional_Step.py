@@ -261,15 +261,22 @@ with tab3:
             st.subheader("Animated Model Output")
             
             event_position_df = pd.DataFrame([
-                            {'event': 'arrival', 'x':  50, 'y': 300, 'label': "Arrival" },
+                            {'event': 'arrival', 'x':  50, 'y': 300,
+                             'label': "Arrival" },
                             # Examination
-                            {'event': 'examination_wait_begins', 'x':  275, 'y': 360, 'label': "Waiting for Examination"  },
-                            {'event': 'examination_begins', 'x':  275, 'y': 310, 'resource':'n_exam', 'label': "Being Examined" },
-
+                            {'event': 'examination_wait_begins', 'x':  275, 'y': 360,
+                             'label': "Waiting for Examination"  },
+                            {'event': 'examination_begins', 'x':  275, 'y': 310,
+                             'resource':'n_exam', 'label': "Being Examined" },
                             # Treatment (optional step)                
-                            {'event': 'treatment_wait_begins', 'x':  420, 'y': 110, 'label': "Waiting for Treatment"  },
-                            {'event': 'treatment_begins', 'x':  420, 'y': 70, 'resource':'n_cubicles_1', 'label': "Being Treated" },
-                        
+                            {'event': 'treatment_wait_begins', 'x':  420, 'y': 110, 
+                             'label': "Waiting for Treatment"  },
+                            {'event': 'treatment_begins', 'x':  420, 'y': 70,
+                             'resource':'n_cubicles_1', 'label': "Being Treated" },
+
+                            {'event': 'exit', 'x':  450, 'y': 250, 
+                             'label': "Exit"}
+
                         ])
 
             with st.spinner('Generating the animated patient log...'):

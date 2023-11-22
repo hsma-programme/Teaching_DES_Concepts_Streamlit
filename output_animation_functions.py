@@ -67,6 +67,12 @@ def reshape_for_animations(full_event_log, every_x_minutes=10):
     minute_counts_df = pd.concat(minute_dfs).merge(filtered_log_rep[['event','event_type', 'pathway']].drop_duplicates().reset_index(drop=True), on="event")
     full_patient_df = pd.concat(patient_dfs).sort_values(["rep", "minute", "event"])
 
+    # Add a final exit step for each client
+    final_step = full_patient_df.sort_values(["rep", "patient", "minute"], ascending=True).groupby(["rep", "patient"]).tail(1)
+    final_step['minute'] = final_step['minute'] + every_x_minutes
+    final_step['event'] = "exit"
+
+    full_patient_df = full_patient_df.append(final_step)
 
     minute_counts_df_pivoted = minute_counts_df.pivot_table(values="count", 
                                             index=["minute", "rep", "event_type", "pathway"], 
@@ -77,7 +83,7 @@ def reshape_for_animations(full_event_log, every_x_minutes=10):
     return {
         "minute_counts_df": minute_counts_df,
         "minute_counts_df_complete": minute_counts_df_complete,
-        "full_patient_df": full_patient_df
+        "full_patient_df": full_patient_df.sort_values(["rep", "minute", "event"])
         
     }
 
