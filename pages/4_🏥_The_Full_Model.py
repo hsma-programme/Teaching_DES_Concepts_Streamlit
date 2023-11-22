@@ -831,12 +831,34 @@ with tab4:
                 #                 left_index=True, right_index=True))
         with scenario_tab_3:
 
-            st.markdown("This displays the median value for each metric across all model runs per scenario.")
+            # df['Color'] = np.where(
+            #     (df['Set'] == 'Z') & (df['Type'] == 'A'), 'yellow',
+            #   np.where((df['Set'] == 'Z') & (df['Type'] == 'B'), 'blue',
+            #   np.where((df['Type'] == 'B'), 'purple', 'black')))
 
-            output_scenario_df = all_run_results.groupby('Model Run').median().T.reset_index(drop=False)
+
+            st.markdown("This displays the median value for each metric across all model runs per scenario.")
+            import numpy as np
+            output_scenario_df = all_run_results.groupby('Model Run').median().T
+            output_scenario_df = output_scenario_df.reset_index(drop=False).melt(id_vars="index")
+            # st.dataframe(output_scenario_df)
+
+            output_scenario_df['formatted_value'] =  np.where(
+                output_scenario_df['index'].str.contains("wait|time"), (output_scenario_df['value'].round(1)).astype(str) + " minutes",
+                np.where(output_scenario_df['index'].str.contains("util|perc"), ((output_scenario_df['value']*100).round(1)).astype(str) + "%",
+                np.where(output_scenario_df['index'].str.contains("arrivals|throughput"), output_scenario_df['value'].astype(int).astype(str),
+                         output_scenario_df['value']
+                         ))
+            )
+            output_scenario_df = output_scenario_df.drop(columns=["value"])
+            # st.dataframe(output_scenario_df)
+            output_scenario_df = output_scenario_df.pivot(index="index", columns="Model Run", values="formatted_value").reset_index(drop=False)
             output_scenario_df.columns = [f"Scenario {i}" for i in output_scenario_df.columns]
+            # st.dataframe(output_scenario_df)
             output_scenario_df = output_scenario_df[output_scenario_df['Scenario index'].str.contains("\d", regex=True)]
             
+            output_scenario_df['Scenario index'] = output_scenario_df['Scenario index'].apply(lambda x: (x.replace('_', ' ')).title())
+
             st.dataframe(output_scenario_df.set_index(output_scenario_df.columns[0]).rename_axis('Metric', axis=0),
                         hide_index=False,
                         use_container_width=True,
