@@ -856,7 +856,7 @@ with tab4:
             output_scenario_df['formatted_value'] =  np.where(
                 output_scenario_df['index'].str.contains("wait|time"), (output_scenario_df['value'].round(1)).astype(str) + " minutes",
                 np.where(output_scenario_df['index'].str.contains("util|perc"), ((output_scenario_df['value']*100).round(1)).astype(str) + "%",
-                np.where(output_scenario_df['index'].str.contains("arrivals|throughput"), output_scenario_df['value'].astype(int).astype(str),
+                np.where(output_scenario_df['index'].str.contains("arrivals|throughput"), (output_scenario_df['value'].astype(int)).astype(str),
                          output_scenario_df['value']
                          ))
             )
