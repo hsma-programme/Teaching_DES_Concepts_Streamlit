@@ -269,9 +269,9 @@ with tab3:
                             {'event': 'examination_begins', 'x':  275, 'y': 310,
                              'resource':'n_exam', 'label': "Being Examined" },
                             # Treatment (optional step)                
-                            {'event': 'treatment_wait_begins', 'x':  420, 'y': 110, 
+                            {'event': 'treatment_wait_begins', 'x':  430, 'y': 110, 
                              'label': "Waiting for Treatment"  },
-                            {'event': 'treatment_begins', 'x':  420, 'y': 70,
+                            {'event': 'treatment_begins', 'x':  430, 'y': 70,
                              'resource':'n_cubicles_1', 'label': "Being Treated" },
 
                             {'event': 'exit', 'x':  450, 'y': 220, 
@@ -280,7 +280,7 @@ with tab3:
                         ])
 
             with st.spinner('Generating the animated patient log...'):
-                st.write(animation_dfs_log[animation_dfs_log["minute"]<=60*24*5])
+                # st.write(animation_dfs_log[animation_dfs_log["minute"]<=60*24*5])
 
                 st.plotly_chart(animate_activity_log(
                                     full_patient_df=animation_dfs_log[animation_dfs_log["minute"]<=60*24*5],
