@@ -178,7 +178,7 @@ with tab3:
                         step=1, value=103)
 
         run_time_days = st.slider("🗓️ How many days should we run the simulation for each time?",
-                                  1, 60,
+                                  1, 50,
                                   step=1, value=15)
         
         n_reps = st.slider("🔁 How many times should the simulation run?",
@@ -189,7 +189,7 @@ with tab3:
 
     with col1_2:
         mean_arrivals_per_day = st.slider("🧍 How many patients should arrive per day on average?",
-                                          10, 500,
+                                          10, 300,
                                           step=5, value=150)
 
         # Will need to convert mean arrivals per day into interarrival time and share that
@@ -404,24 +404,36 @@ if button_run_pressed:
     for i in range(5):
         st.markdown("### Day {}".format(i+1))
 
+        minimal_log = patient_log[(patient_log['event'] == 'arrival') & 
+                                  (patient_log['Rep'] <= 10) & 
+                                  (patient_log['model_day'] == i+1)]
+        
+        minimal_log['Rep_str'] = minimal_log['Rep'].astype(str)
+
         time_plot = px.scatter(
-                patient_log[(patient_log['event'] == 'arrival') & 
-                            (patient_log['Rep'] <= 10) & 
-                            (patient_log['model_day'] == i+1)].sort_values("minute"),
+                minimal_log.sort_values("minute"),
                 x="minute", 
                 y="Rep",
-                color="Rep",
-                range_y=[0, min(10, n_reps)+1],
+                color="Rep_str",
+                category_orders={'Rep_str': [str(i+1) for i in range(10)]},
+                range_y=[0.5, min(10, n_reps)+0.5],
                 width=1200,
                 height=300,
                 opacity=0.5
         )
+        
+        del minimal_log
 
         time_plot.update_layout(yaxis_title="Simulation Run (Replication)",
-                                xaxis_title="Time")
+                                xaxis_title="Time",
+                    yaxis = dict(
+                    tickmode = 'linear',
+                    tick0 = 1,
+                    dtick = 1
+                ))
         
         time_plot.layout.update(showlegend=False, 
-                              margin=dict(l=0, r=0, t=0, b=0))
+                                margin=dict(l=0, r=0, t=0, b=0))
         
         st.plotly_chart(time_plot, use_container_width=True)
 
