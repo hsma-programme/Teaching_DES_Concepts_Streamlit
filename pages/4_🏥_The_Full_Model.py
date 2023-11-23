@@ -117,9 +117,14 @@ with tab2:
 
     st.markdown(
         """
-        - Run the animated model output. Are the queues consistent throughout the day?
+        - First, just run the model with the default settings. 
+            - Look at the graphs and animated patient log. What is the performance of the system like?
+            - Are the queues consistent throughout the day?
 
-        - Imagine you have a maximum of 20 rooms and cubicles. What is the best configuration of rooms you can find to keep the average wait times as low as possible across both trauma and non-trauma pathways?
+        - Due to building work taking place, the hospital will temporarily need to close several bays.
+        It will be possible to have a maximum of 20 bays/cubicles/rooms in total across the whole system. 
+        What is the best configuration you can find to keep the average wait times as low as possible across both trauma and non-trauma pathways?
+        *Make sure you are using the default probabilities for trauma/non-trauma patients and treatment of non-trauma patients*
         """
     )
 
@@ -440,8 +445,11 @@ with tab3:
                 st.markdown(
                     """
                     The emergency department wants to aim for an average of 65% to 85% utilisation across all resources in the emergency department. 
+                    
                     The green box shows this ideal range. If the bars overlap with the green box, utilisation is ideal. 
+                    
                     If utilisation is below this, you might want to **reduce** the number of those resources available. 
+                    
                     If utilisation is above this point, you may want to **increase** the number of that type of resource available.
                     """
                 )
@@ -487,7 +495,9 @@ with tab3:
                 st.markdown(
                     """
                     The emergency department wants to ensure people wait no longer than 2 hours (120 minutes) at any point in the process.
+                    
                     This needs to be balanced with the utilisation graphs on the left.
+                    
                     The green box shows waits of less than two hours. If the bars fall within this range, the number of resources does not need to be changed.
                     """
                 )
@@ -520,13 +530,28 @@ with tab3:
 
             st.markdown("""
                         We can use box plots to explore the effect of the random variation within each model run.
+                        
                         This can give us a better idea of how robust the system is. 
+                        
+                        Each dot indicates a single model run. The number of runs can be increased under the advanced options. 
                         """)
 
             col_res_1, col_res_2 = st.columns(2)
 
             with col_res_1:
                 st.subheader("Average Utilisation")
+
+                st.markdown(
+                    """
+                    The emergency department wants to aim for an average of 65% to 85% utilisation across all resources in the emergency department. 
+                    
+                    The green box shows this ideal range. If the bars overlap with the green box, utilisation is ideal. 
+                    
+                    If utilisation is below this, you might want to **reduce** the number of those resources available. 
+                    
+                    If utilisation is above this point, you may want to **increase** the number of that type of resource available.
+                    """
+                )
 
                 utilisation_boxplot = px.box(
                     results.reset_index().melt(id_vars="rep").set_index('variable').filter(like="util", axis=0).reset_index(), 
@@ -554,7 +579,10 @@ with tab3:
                     "04b_treatment_util(non_trauma)": "Treatment<br>Bays<br>(non-trauma)",
                     "06b_trauma_util": "Stabilisation<br>Bays",
                     "07b_treatment_util(trauma)": "Treatment<br>Bays<br>(trauma)"
-                }, tickangle=0)
+                }, tickangle=0, title_text='')
+
+                utilisation_boxplot.update_xaxes(title_text='Resource Utilisation (%)',
+                                range=[-0.05, 1.1])
 
                 utilisation_boxplot.update_layout(xaxis_tickformat = '.0%')
                 
@@ -563,13 +591,28 @@ with tab3:
                     use_container_width=True
                     )
                 
-                st.write(results.filter(like="util", axis=1).merge(results.filter(like="throughput", axis=1),left_index=True,right_index=True))
+                st.write(results.filter(like="util", axis=1)
+                         .merge(results.filter(like="throughput", axis=1),
+                                left_index=True,right_index=True)
+                         .T.rename_axis('Metric', axis=0)
+                         )
                 
             with col_res_2:
                 st.subheader("Average Waits")
 
+                st.markdown(
+                    """
+                    The emergency department wants to ensure people wait no longer than 2 hours (120 minutes) at any point in the process.
+                    
+                    This needs to be balanced with the utilisation graphs on the left.
+                    
+                    The green box shows waits of less than two hours. If the bars fall within this range, the number of resources does not need to be changed.
+                    """
+                )
+
                 wait_boxplot = px.box(
-                    results.reset_index().melt(id_vars="rep").set_index('variable').filter(like="wait", axis=0).reset_index(), 
+                    results.reset_index().melt(id_vars="rep").set_index('variable')
+                    .filter(like="wait", axis=0).reset_index(), 
                     y="variable", 
                     x="value",
                     points="all")
@@ -581,10 +624,12 @@ with tab3:
                     "04a_treatment_wait(non_trauma)": "Treatment<br>(non-trauma)",
                     "06a_trauma_wait": "Stabilisation",
                     "07a_treatment_wait(trauma)": "Treatment<br>(trauma)"
-                }, tickangle=0)
+                }, tickangle=0, title_text='')
 
                 wait_boxplot.add_vrect(x0=0, x1=60*2, fillcolor="#5DFDA0", 
                                           opacity=0.3, line_width=0)
+                
+                wait_boxplot.update_xaxes(title_text='Wait for Treatment Stage (Minutes)')
 
                 # Add in a box plot showing waits
                 st.plotly_chart(wait_boxplot,
@@ -593,7 +638,8 @@ with tab3:
 
                 st.write(results.filter(like="wait", axis=1)
                         .merge(results.filter(like="throughput", axis=1), 
-                                left_index=True, right_index=True))
+                               left_index=True, right_index=True)
+                        .T.rename_axis('Metric', axis=0))
 
 
         
