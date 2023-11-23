@@ -102,24 +102,24 @@ with tab1:
 
 with tab2:
     st.markdown(
-"""
-### Things to Try Out
+        """
+        ### Things to Try Out
 
-- Try changing the sliders for consultation time and variation in consultation time. What happens to the graph below the sliders? 
+        - Try changing the sliders for consultation time and variation in consultation time. What happens to the graph below the sliders? 
+        ---
+        - Keeping the default values, run the model and take a look at the animated flow of patients through the system. What do you notice about
+            - the number of nurses in use?
+            - the size of the queue for treatment at different times?
+        ---
+        - What happens when you play around with the number of nurses we have available? 
+            - Look at the queues, but look at the resource utilisation too. The resource utilisation tells us how much of the time each nurse is busy rather than waiting for a patient to turn up. 
+            - Can you find a middle ground where the nurse is being used a good amount without the queues building up?
+        ---
+        - What happens to the average utilisation and waits when you change 
+            - the average length of time it takes each patient to be seen?
+            - the variability in the length of time it takes each patient to be seen?
 
-- Keeping the default values, run the model and take a look at the animated flow of patients through the system. What do you notice about
-    - the number of nurses in use?
-    - the size of the queue for treatment at different times?
-
-- What happens when you play around with the number of nurses we have available? 
-    - Look at the queues, but look at the resource utilisation too. The resource utilisation tells us how much of the time each nurse is busy rather than waiting for a patient to turn up. 
-    - Can you find a middle ground where the nurse is being used a good amount without the queues building up?
-
-- What happens to the average utilisation and waits when you change 
-    - the average length of time it takes each patient to be seen?
-    - the variability in the length of time it takes each patient to be seen?
-
-"""
+        """
     )
 
 

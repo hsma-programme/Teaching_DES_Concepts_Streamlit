@@ -136,9 +136,9 @@ with tab2:
     ### Things to Try Out
     
     - What impact does changing the number of patients who go down this extra route (the 'probability that a patient will need treatment') have on our treatment centre?
-
+    ---
     - What if we change the number of nurses or doctors at each step?
-
+    ---
     - Look at the graph 'Percentage of clients requiring treatment per simulation run' on the 'Simple Graphs' tab after running the model. This shows the split between patients who do and don't require treatment. Explore how this varies with 
         - different model run lengths
         - different probabilities
