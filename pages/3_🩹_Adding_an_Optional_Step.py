@@ -297,7 +297,8 @@ with tab3:
                                     icon_and_text_size=18,
                                     time_display_units="dhm",
                                     add_background_image="https://raw.githubusercontent.com/hsma-programme/Teaching_DES_Concepts_Streamlit/main/resources/Branched%20Model%20Background%20Image%20-%20Horizontal%20Layout.drawio.png",
-                            ), use_container_width=False)
+                            ), use_container_width=False,
+                               config = {'displayModeBar': False})
                 
                 del animation_dfs_log
                 gc.collect()

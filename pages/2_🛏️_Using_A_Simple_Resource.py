@@ -254,7 +254,8 @@ with tab3:
                                     display_stage_labels=False,
                                     add_background_image="https://raw.githubusercontent.com/hsma-programme/Teaching_DES_Concepts_Streamlit/main/resources/Simplest%20Model%20Background%20Image%20-%20Horizontal%20Layout.drawio.png",
 
-                            ), use_container_width=False)
+                            ), use_container_width=False,
+                               config = {'displayModeBar': False})
                 
                 del animation_dfs_log
                 gc.collect()

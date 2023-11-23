@@ -348,8 +348,12 @@ def animate_activity_log(
     # However, can be useful for the initial setup phase of the outputs, so give the 
     # option to inlcude
     if not setup_mode:
-        fig.update_xaxes(showticklabels=False, showgrid=False, zeroline=False)
-        fig.update_yaxes(showticklabels=False, showgrid=False, zeroline=False)
+        fig.update_xaxes(showticklabels=False, showgrid=False, zeroline=False, 
+                         # Prevent zoom
+                         fixedrange=True)
+        fig.update_yaxes(showticklabels=False, showgrid=False, zeroline=False, 
+                         # Prevent zoom
+                         fixedrange=True)
 
     fig.update_layout(yaxis_title=None, xaxis_title=None, showlegend=False,
                       # Increase the size of the play button and animation timeline
