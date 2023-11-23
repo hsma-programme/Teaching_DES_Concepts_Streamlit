@@ -17,6 +17,10 @@ An animated visual representation of the event log has also been generated using
 
 ![image](https://github.com/hsma-programme/Teaching_DES_Concepts_Streamlit/assets/29951987/70d1f39a-df82-4938-a69e-0b7cc0a1d1c1)
 
+Outputs can be compared across multiple scenarios within a single user session. 
+
+![image](https://github.com/hsma-programme/Teaching_DES_Concepts_Streamlit/assets/29951987/891e02bd-5b0e-4906-af81-c413f26182c3)
+
 # What is HSMA?
 
 HSMA is a course for people in England working in the health, social care and policing organisations. Over 15 months it trains participants in operational research and data science techniques to aid with service development and decision making. 
