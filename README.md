@@ -15,7 +15,7 @@ It will allow them to get comfortable with the idea of
 
 An animated visual representation of the event log has also been generated using Plotly, allowing users to follow individuals through a simulation and quickly see where queues are building up in the system.
 
-![image](https://github.com/hsma-programme/Teaching_DES_Concepts_Streamlit/assets/29951987/70d1f39a-df82-4938-a69e-0b7cc0a1d1c1)
+https://github.com/hsma-programme/Teaching_DES_Concepts_Streamlit/assets/29951987/1adc36a0-7bc0-4808-8d71-2d253a855b31
 
 Outputs can be compared across multiple scenarios within a single user session. 
 
