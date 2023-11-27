@@ -24,13 +24,6 @@ st.set_page_config(
 
 add_logo()
 
-try:
-    if st.secrets["is_st_community"] == "yes":
-        running_on_st_community = True
-except (FileNotFoundError, KeyError):
-    running_on_st_community = False
-
-
 with open("style.css") as css:
     st.markdown(f'<style>{css.read()}</style>', unsafe_allow_html=True)
 
@@ -235,8 +228,11 @@ with tab3:
 
         # add a spinner and then display success box
         with st.spinner('Simulating the minor injuries unit...'):
-            if not running_on_st_community:
+            # if not running_on_st_community:
+            try:
                 await asyncio.sleep(0.1)
+            except SyntaxError:
+                pass
             # run multiple replications of experment
             # results = multiple_replications(
             #     args,
