@@ -25,9 +25,10 @@ st.set_page_config(
 add_logo()
 
 try:
-    running_on_st_community = st.secrets["IS_ST_COMMUNITY"]
+    running_on_st_community = st.secrets["is_st_community", False]
 except FileNotFoundError:
     running_on_st_community = False
+
 
 with open("style.css") as css:
     st.markdown(f'<style>{css.read()}</style>', unsafe_allow_html=True)
