@@ -25,7 +25,8 @@ st.set_page_config(
 add_logo()
 
 try:
-    running_on_st_community = st.secrets["is_st_community"]
+    if st.secrets["is_st_community"] == "yes":
+        running_on_st_community = True
 except (FileNotFoundError, KeyError):
     running_on_st_community = False
 
