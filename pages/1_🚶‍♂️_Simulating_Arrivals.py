@@ -3,6 +3,7 @@ A Streamlit application based on Monks and
 
 Allows users to interact with an increasingly more complex treatment simulation 
 '''
+import sys
 import time
 import asyncio
 import datetime as dt
@@ -228,11 +229,9 @@ with tab3:
 
         # add a spinner and then display success box
         with st.spinner('Simulating the minor injuries unit...'):
-            # if not running_on_st_community:
-            try:
+            # check if pyodide runtime
+            if sys.platform == 'emscripten':
                 await asyncio.sleep(0.1)
-            except SyntaxError:
-                pass
             # run multiple replications of experment
             # results = multiple_replications(
             #     args,

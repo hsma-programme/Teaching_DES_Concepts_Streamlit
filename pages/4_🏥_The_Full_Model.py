@@ -3,6 +3,7 @@ A Streamlit application based on Monks and
 
 Allows users to interact with an increasingly more complex treatment simulation 
 '''
+import sys
 import gc
 import asyncio
 import pandas as pd
@@ -218,7 +219,9 @@ with tab3:
 
         # add a spinner and then display success box
         with st.spinner('Simulating the minor injuries unit...'):
-            await asyncio.sleep(0.1)
+            # Check if running on pyodide
+            if sys.platform == 'emscripten':
+                await asyncio.sleep(0.1)
 
             my_bar = st.progress(0, text="Simulating the minor injuries unit...")
 
