@@ -26,7 +26,7 @@ add_logo()
 
 try:
     running_on_st_community = st.secrets["is_st_community"]
-except FileNotFoundError:
+except (FileNotFoundError, KeyError):
     running_on_st_community = False
 
 
