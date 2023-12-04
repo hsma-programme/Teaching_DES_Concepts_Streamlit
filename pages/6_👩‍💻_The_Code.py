@@ -36,6 +36,56 @@ st.markdown(
 
 And actually, to create a basic model, we don't need all that much code.
 
+In fact, all we need to create a model where patients arrive and are seen by a nurse is this:
+"""
+)
+
+st.code(
+    """
+import simpy
+import random
+
+def patient_generator(env, wl_inter, mean_consult, nurse):
+    p_id = 0 
+
+    while True:        
+        wp = activity_generator(env, mean_consult, nurse, p_id)
+        env.process(wp)
+        t = random.expovariate(1.0 / wl_inter)
+        yield env.timeout(t)
+        p_id += 1
+
+def activity_generator(env, mean_consult, nurse, p_id):
+    time_entered_queue_for_nurse = env.now
+    with nurse.request() as req:
+        yield req
+        
+        time_left_queue_for_nurse = env.now
+
+        time_in_queue_for_nurse = (time_left_queue_for_nurse -
+                                    time_entered_queue_for_nurse)
+        
+        yield env.timeout(sampled_consultation_time)
+        time_consultation_ended = env.now
+
+env = simpy.Environment()
+
+nurse = simpy.Resource(env, capacity=1)
+
+env.process(patient_generator(env, wl_inter, mean_consult,nurse)
+
+env.run(until=600)
+    """, 
+    language='python' 
+)
+
+st.markdown(
+"""
+But let's break it down a bit. 
+
+Below is the same code, but with comments (the grey text after the # symbols).
+
+This will help you to understand what's going on in each step.
 
 # Import packages
 
@@ -106,28 +156,28 @@ def activity_generator(env, mean_consult, nurse, p_id):
     with nurse.request() as req:
     # The first thing we do with the request is call a yield on it.  
     # This means everything relating to this patient will freezes in place until a nurse is available - but anything else happening in the simulation will keep ticking along
-    yield req
+      yield req
 
-    # Once a nurse is available it'll resume from here, so when we get to this point we know a nurse is now available, and the patient has finished queuing.  
-    # Now we can record the current simulation time (which can help us work out how long the patient was queuing)
+      # Once a nurse is available it'll resume from here, so when we get to this point we know a nurse is now available, and the patient has finished queuing.  
+      # Now we can record the current simulation time (which can help us work out how long the patient was queuing)
 
-    time_left_queue_for_nurse = env.now
+      time_left_queue_for_nurse = env.now
 
-    time_in_queue_for_nurse = (time_left_queue_for_nurse -
-                                time_entered_queue_for_nurse)
+      time_in_queue_for_nurse = (time_left_queue_for_nurse -
+                                 time_entered_queue_for_nurse)
 
-    # Now the patient is with the nurse, we need to calculate how long they spend in their consultation.  
+      # Now the patient is with the nurse, we need to calculate how long they spend in their consultation.  
 
-    # Here, we'll randomly sample from an exponential distribution with the mean consultation time we passed into the function.
-    sampled_consultation_time = random.expovariate(1.0 / mean_consult)
+      # Here, we'll randomly sample from an exponential distribution with the mean consultation time we passed into the function.
+      sampled_consultation_time = random.expovariate(1.0 / mean_consult)
 
-    # Tell the simulation to freeze this function in place until that sampled consultation time has elapsed (which is also keeping the nurse in use and unavailable elsewhere, as we're still in the 'with' statement)
-    yield env.timeout(sampled_consultation_time)
+      # Tell the simulation to freeze this function in place until that sampled consultation time has elapsed (which is also keeping the nurse in use and unavailable elsewhere, as we're still in the 'with' statement)
+      yield env.timeout(sampled_consultation_time)
 
-    # Once we get here, then control has been passed back to this instance of the generator function, as so we know that the activity time we sampled above has now elapsed.
+      # Once we get here, then control has been passed back to this instance of the generator function, as so we know that the activity time we sampled above has now elapsed.
 
-    # Let's make a note of when the patient leaves the consultation.
-    time_consultation_ended = env.now
+      # Let's make a note of when the patient leaves the consultation.
+      time_consultation_ended = env.now
 """,
    language='python' 
 )
