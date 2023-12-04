@@ -206,21 +206,24 @@ with tab1:
 
     with col1_2:
         mean_arrivals_per_day = st.slider("🧍 How many patients should arrive per day on average?",
-                                          10, 300,
-                                          step=5, value=150)
+                                          60, 300,
+                                          step=5, value=80)
+        
+        st.markdown("The graph below shows the distribution of time between arrivals for a sample of 2500 patients.")
 
         # Will need to convert mean arrivals per day into interarrival time and share that
         exp_dist = Exponential(mean=60/(mean_arrivals_per_day/24), random_seed=seed)
         exp_fig = px.histogram(exp_dist.sample(size=2500), 
                                 width=500, height=250,
                                 labels={
-                     "value": "Inter-Arrival Time (Minutes)"
+                     "value": "Time between patients arriving (Minutes)"
                  })
         
         exp_fig.update_layout(yaxis_title="")
 
         exp_fig.layout.update(showlegend=False, 
                               margin=dict(l=0, r=0, t=0, b=0))
+        exp_fig.update_xaxes(tick0=0, dtick=10, range=[0, 260])
 
         st.plotly_chart(exp_fig,
                         use_container_width=True,
@@ -423,7 +426,22 @@ with tab1:
                 use_container_width=True
             )
 
-        st.markdown(
+        
+       
+
+        #facet_col_wrap_calculated = np.ceil(run_time_days/4).astype(int)
+
+        patient_log['minute'] = dt.date.today() + pd.DateOffset(days=165) +  pd.TimedeltaIndex(patient_log['time'], unit='m')
+        # https://strftime.org/
+        patient_log['minute_display'] = patient_log['minute'].apply(lambda x: dt.datetime.strftime(x, '%d %B %Y\n%H:%M'))
+        patient_log['minute_in_day'] = patient_log['minute'].apply(lambda x: dt.datetime.strftime(x, '%H:%M'))
+        # patient_log['minute'] = patient_log['minute'].apply(lambda x: dt.datetime.strftime(x, '%Y-%m-%d %H:%M'))
+
+
+        tab1a, tab2a, tab3a = st.tabs(["Arrival plots by day", "Arrival plots by simulation run", "Cumulative Arrivals"])
+
+        with tab1a:
+            st.markdown(
             """
             The plots below show the minute-by-minute arrivals of patients across different model replications and different days.
             Only the first 10 replications and the first 5 days of the model are shown. 
@@ -438,63 +456,144 @@ with tab1:
 
             Hovering over the dots will show the exact time of each patient.
             """ 
-        )
+            )
+            for i in range(5):
+                st.markdown("### Day {}".format(i+1))
 
-        #facet_col_wrap_calculated = np.ceil(run_time_days/4).astype(int)
+                minimal_log = patient_log[(patient_log['event'] == 'arrival') & 
+                                        (patient_log['Rep'] <= 10) & 
+                                        (patient_log['model_day'] == i+1)]
+                
+                minimal_log['Rep_str'] = minimal_log['Rep'].astype(str)
 
-        patient_log['minute'] = dt.date.today() + pd.DateOffset(days=165) +  pd.TimedeltaIndex(patient_log['time'], unit='m')
-        # https://strftime.org/
-        patient_log['minute_display'] = patient_log['minute'].apply(lambda x: dt.datetime.strftime(x, '%d %B %Y\n%H:%M'))
-        # patient_log['minute'] = patient_log['minute'].apply(lambda x: dt.datetime.strftime(x, '%Y-%m-%d %H:%M'))
+                time_plot = px.scatter(
+                        minimal_log.sort_values("minute"),
+                        x="minute", 
+                        y="Rep",
+                        color="Rep_str",
+                        custom_data=["Rep", "minute_in_day", "patient"],
+                        category_orders={'Rep_str': [str(i+1) for i in range(10)]},
+                        range_y=[0.5, min(10, n_reps)+0.5],
+                        width=1200,
+                        height=300,
+                        opacity=0.5
+                )
+                
+                del minimal_log
+
+                time_plot.update_traces(
+                    hovertemplate="<br>".join([
+                        "Replication:%{customdata[0]}", 
+                        "Time of patient arrival: %{customdata[1]}",
+                        "Arrival in this simulation run: %{customdata[2]}"
+                    ])
+                )
+
+                time_plot.update_layout(yaxis_title="Simulation Run (Replication)",
+                                        xaxis_title="Time",
+                            yaxis = dict(
+                            tickmode = 'linear',
+                            tick0 = 1,
+                            dtick = 1
+                        ))
+                
+                time_plot.layout.update(showlegend=False, 
+                                        margin=dict(l=0, r=0, t=0, b=0))
+                
+                st.plotly_chart(time_plot, use_container_width=True)
+        with tab2a:
+            st.markdown(
+            """
+            The plots below show the minute-by-minute arrivals of patients across different model replications and different days.
+            Only the first 10 days and the first 5 replications of the model are shown. 
+
+            Each dot is a single patient arriving. 
+
+            From left to right within each plot, we start at one minute past midnight and move through the day until midnight. 
+
+            Looking from the top to the bottom of each plot, we have the days within a single model run. 
+            
+            Each horizontal line of dots represents one **full day**.  
+
+            Hovering over the dots will show the exact time that each patient arrived and how many patients have arrived at that point in time.
+            """ 
+            )
+            for i in range(5):
+                st.markdown("### Model Replication {}".format(i+1))
+
+                minimal_log = patient_log[(patient_log['event'] == 'arrival') & 
+                                        (patient_log['Rep'] == i+1) & 
+                                        (patient_log['model_day'] <=10)].sort_values("minute_in_day")
+                
+                minimal_log['model_day_str'] = minimal_log['model_day'].astype(str)
 
 
-        for i in range(5):
-            st.markdown("### Day {}".format(i+1))
+                minimal_log['minute'] = minimal_log.apply(lambda x: x['minute'] - pd.Timedelta(x['model_day'], unit="days"), axis=1)
+                
+                minimal_log['arrival_in_day'] = minimal_log.sort_values("minute").groupby('model_day')["minute"].rank()
+
+
+                time_plot = px.scatter(
+                        minimal_log.sort_values("minute"),
+                        x="minute", 
+                        y="model_day_str",
+                        color="model_day_str",
+                        custom_data=["model_day", "minute_in_day", "arrival_in_day"],
+                        category_orders={'model_day_str': [str(i+1) for i in range(5)]},
+                        range_y=[0.5, min(10, n_reps)+0.5],
+                        width=1200,
+                        height=300,
+                        opacity=0.5
+                )
+                
+                del minimal_log
+
+                time_plot.update_traces(
+                    hovertemplate="<br>".join([
+                        "Day: %{customdata[0]}",
+                        "Time of patient arrival: %{customdata[1]}",
+                        "Arrival in this day: %{customdata[2]}"
+                    ])
+                )
+
+                time_plot.update_layout(yaxis_title="Model Day",
+                                        xaxis_title="Time",
+                            yaxis = dict(
+                            tickmode = 'linear',
+                            tick0 = 1,
+                            dtick = 1
+                        ))
+                
+                time_plot.layout.update(showlegend=False, 
+                                        margin=dict(l=0, r=0, t=0, b=0))
+                
+                st.plotly_chart(time_plot, use_container_width=True)
+
+        with tab3a:
+            st.markdown(
+                """
+                The plot below shows the cumulative number of patients arriving over time for the first 5 days of each simulation run.
+                """
+            )
 
             minimal_log = patient_log[(patient_log['event'] == 'arrival') & 
-                                    (patient_log['Rep'] <= 10) & 
-                                    (patient_log['model_day'] == i+1)]
-            
+                                        (patient_log['Rep'] <=10) & 
+                                        (patient_log['model_day'] <=5)].sort_values("minute")
+            minimal_log['cumulative_count'] = minimal_log.groupby('Rep').cumcount()
+
             minimal_log['Rep_str'] = minimal_log['Rep'].astype(str)
 
-            time_plot = px.scatter(
-                    minimal_log.sort_values("minute"),
-                    x="minute", 
-                    y="Rep",
-                    color="Rep_str",
-                    custom_data=["minute_display", "patient"],
-                    category_orders={'Rep_str': [str(i+1) for i in range(10)]},
-                    range_y=[0.5, min(10, n_reps)+0.5],
-                    width=1200,
-                    height=300,
-                    opacity=0.5
-            )
+            cumulative_arrivals_fig = px.line(
+                minimal_log, 
+                x="minute", 
+                y="cumulative_count", 
+                color="Rep_str",
+                category_orders={'Rep_str': [str(i+1) for i in range(minimal_log['Rep'].max())]}
+                )
             
-            del minimal_log
-            
-            def format_date_with_ordinal(d, format_string):
-                ordinal = {'1':'st', '2':'nd', '3':'rd'}.get(str(d.day)[-1:], 'th')
-                return d.strftime(format_string).replace('{th}', ordinal)
+            cumulative_arrivals_fig.update_layout(xaxis_title="Model Day",
+                                        yaxis_title="Cumulative Arrivals",
+                                        legend_title_text='Model Replication')
 
-
-            time_plot.update_traces(
-                hovertemplate="<br>".join([
-                    "Time of patient arrival: %{customdata[0]}",
-                    "Arrival in this simulation run: %{customdata[1]}"
-                ])
-            )
-
-            time_plot.update_layout(yaxis_title="Simulation Run (Replication)",
-                                    xaxis_title="Time",
-                        yaxis = dict(
-                        tickmode = 'linear',
-                        tick0 = 1,
-                        dtick = 1
-                    ))
-            
-            time_plot.layout.update(showlegend=False, 
-                                    margin=dict(l=0, r=0, t=0, b=0))
-            
-            st.plotly_chart(time_plot, use_container_width=True)
-
+            st.plotly_chart(cumulative_arrivals_fig, use_container_width=True)
     gc.collect()
