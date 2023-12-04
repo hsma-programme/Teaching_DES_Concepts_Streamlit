@@ -173,19 +173,25 @@ with tab2:
             - Think about how this randomness in arrival times across different runs could be useful.
         ---
         - Try changing the random number the computer uses without changing anything else. What happens to the number of patients? Do the bar charts and histograms look different?
-        ---        
-        - Try running the simulation for under 5 days. What happens to the height of the bars in the first bar chart compared to running the simulation for more days? Are the bars larger or smaller? 
-        ---
-        - Try increasing the number of simulation runs. What do you notice about the *shape* of the histograms? Where are the bars highest?
-        """
-    )
+        
+        """)
+    
+    with st.expander("Click here for bonus exercises"):
+        st.markdown(
+            """
+            ---        
+            - Try running the simulation for under 5 days. What happens to the height of the bars in the first bar chart compared to running the simulation for more days? Are the bars larger or smaller? 
+            ---
+            - Try increasing the number of simulation runs. What do you notice about the *shape* of the histograms? Where are the bars highest?
+            """
+        )
 
 with tab1:
     col1_1, col1_2= st.columns(2)
     # set number of resources
     with col1_1:
-        seed = st.number_input("🎲 Set a random number for the computer to start from",
-                        1, 100000000,
+        seed = st.slider("🎲 Set a random number for the computer to start from",
+                        1, 1000,
                         step=1, value=103)
 
         run_time_days = st.slider("🗓️ How many days should we run the simulation for each time?",

@@ -136,16 +136,13 @@ with tab2:
     """
     ### Things to Try Out
     
-    - Look at the graph 'Percentage of clients requiring treatment per simulation run' on the 'Simple Graphs' tab after running the model. This shows the split between patients who do and don't require treatment. Explore how this varies with 
-        - different model run lengths
-        - different probabilities
+    - Run the simulation with the default values and look at the graph 'Percentage of clients requiring treatment per simulation run' on the 'Simple Graphs' tab after running the model. This shows the split between patients who do and don't require treatment. What do you notice?
     ---
     - What impact does changing the number of patients who go down this extra route (the 'probability that a patient will need treatment') have on our treatment centre's performance with the default number of nurses and doctors at each stage?
     ---
     - Change the split of patients requiring treatment back to 0.5. 
         - Can you optimize the number of nurses or doctors at each step for the different pathways to balance resource utilisation and queues?
     
-
     """
     )
 
@@ -182,13 +179,13 @@ with tab1:
 
             st.markdown("If you like, you can edit these parameters too!")
 
-            seed = st.number_input("🎲 Set a random number for the computer to start from",
-                            1, 10000000,
+            seed = st.slider("🎲 Set a random number for the computer to start from",
+                            1, 1000,
                             step=1, value=42)
             
             n_reps = st.slider("🔁 How many times should the simulation run?",
                             1, 30,
-                            step=1, value=10)
+                            step=1, value=6)
             
             run_time_days = st.slider("🗓️ How many days should we run the simulation for each time?",
                                     1, 40,

@@ -189,8 +189,8 @@ with tab1:
         st.write("Total rooms in use is {}".format(n_cubicles_1+n_cubicles_2+n_exam+n_trauma+n_triage+n_reg))
     with col6:
         with st.expander("Advanced Parameters"):
-            seed = st.number_input("🎲 Set a random number for the computer to start from",
-                            1, 10000000,
+            seed = st.slider("🎲 Set a random number for the computer to start from",
+                            1, 1000,
                             step=1, value=42)
 
             n_reps = st.slider("🔁 How many times should the simulation run? WARNING: Fast/modern computer required to take this above 5 replications.",

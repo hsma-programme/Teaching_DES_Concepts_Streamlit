@@ -106,18 +106,22 @@ with tab2:
         """
         ### Things to Try Out
 
-        - Try changing the sliders for consultation time and variation in consultation time. What happens to the graph below the sliders? 
+        - Try changing the sliders for consultation time and variation in consultation time. What happens to the graph by the sliders? 
         ---
         - Put the consulation times back to the default (50 minutes length on average, 10 minutes of variation).
-
-        - Run the model and take a look at the animated flow of patients through the system. What do you notice about
-            - the number of nurses in use?
+        Run the model and take a look at the animated flow of patients through the system. What do you notice about
+            - the number of nurses in use? Do they ever get any breaks?
             - the size of the queue for treatment at different times?
         ---
         - What happens when you play around with the number of nurses we have available? 
             - Look at the queues, but look at the resource utilisation too. The resource utilisation tells us how much of the time each nurse is busy rather than waiting for a patient to turn up. 
             - Can you find a middle ground where the nurse is being used a good amount without the queues building up?
         ---
+        """)
+    
+    with st.expander("Click here for bonus exercises"):
+        st.markdown(
+        """
         - What happens to the average utilisation and waits when you keep the number of nurses the same but change
             - the average length of time it takes each patient to be seen?
             - the variability in the length of time it takes each patient to be seen?
@@ -139,8 +143,8 @@ with tab1:
                                     5, 30, step=5, value=10)
 
     with col2:
-        seed = st.number_input("🎲 Set a random number for the computer to start from",
-                            1, 10000000000,
+        seed = st.slider("🎲 Set a random number for the computer to start from",
+                            1, 1000,
                             step=1, value=42)
 
         norm_dist = Normal(consult_time, consult_time_sd, random_seed=seed)
@@ -161,7 +165,7 @@ with tab1:
             
             n_reps = st.slider("🔁 How many times should the simulation run?",
                             1, 30,
-                            step=1, value=10)
+                            step=1, value=6)
             
             run_time_days = st.slider("🗓️ How many days should we run the simulation for each time?",
                                     1, 40,
