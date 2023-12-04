@@ -3,7 +3,6 @@ A Streamlit application based on Monks and
 
 Allows users to interact with an increasingly more complex treatment simulation 
 '''
-import sys
 import asyncio
 import gc
 import pandas as pd
@@ -34,9 +33,10 @@ st.subheader("Using a Simple Resource: Sending Patients to be Treated")
 
 gc.collect()
 
-tab1, tab2, tab3 = st.tabs(["Introduction", "Exercise", "Playground"])
+# tab1, tab2, tab3 = st.tabs(["Introduction", "Exercise", "Playground"])
+tab1, tab2, tab3 = st.tabs(["Playground", "Exercise", "Information"])
 
-with tab1:
+with tab3:
 
     st.markdown(
         """
@@ -124,7 +124,7 @@ with tab2:
     )
 
 
-with tab3:
+with tab1:
     col1, col2 = st.columns(2)
 
     with col1:
@@ -138,7 +138,7 @@ with tab3:
 
     with col2:
         seed = st.number_input("🎲 Set a random number for the computer to start from",
-                            1, 10000000,
+                            1, 10000000000,
                             step=1, value=42)
 
         norm_dist = Normal(consult_time, consult_time_sd, random_seed=seed)
@@ -187,9 +187,7 @@ with tab3:
                 trauma_treat_mean=consult_time,
                 trauma_treat_var=consult_time_sd
                 )
-            # Check if running on pyodide
-            if sys.platform == 'emscripten':
-                await asyncio.sleep(0.1)
+            await asyncio.sleep(0.1)
             # run multiple replications of experment
             detailed_outputs = multiple_replications(
                 args,

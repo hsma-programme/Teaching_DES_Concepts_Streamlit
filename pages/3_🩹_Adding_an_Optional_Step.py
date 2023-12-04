@@ -3,7 +3,6 @@ A Streamlit application based on Monks and
 
 Allows users to interact with an increasingly more complex treatment simulation 
 '''
-import sys
 import asyncio
 import gc
 import pandas as pd
@@ -32,9 +31,10 @@ st.subheader("Making Patients Behave Differently: Adding in an Optional Step")
 
 gc.collect()
 
-tab1, tab2, tab3 = st.tabs(["Introduction", "Exercise", "Playground"])
+# tab1, tab2, tab3 = st.tabs(["Introduction", "Exercise", "Playground"])
+tab1, tab2, tab3 = st.tabs(["Playground", "Exercise", "Information"])
 
-with tab1:
+with tab3:
 
     st.markdown("""
                 Now, it's not as simple as all of our patients being looked at by a nurse and then sent on their merry way.
@@ -146,7 +146,7 @@ with tab2:
     """
     )
 
-with tab3:
+with tab1:
 
     col1, col2, col3 = st.columns([1,1,1])
 
@@ -220,9 +220,7 @@ with tab3:
 
         # add a spinner and then display success box
         with st.spinner('Simulating the minor injuries unit...'):
-            # Check if running on pyodide
-            if sys.platform == 'emscripten':
-                await asyncio.sleep(0.1)
+            await asyncio.sleep(0.1)
             # run multiple replications of experment
             detailed_outputs = multiple_replications(
                 args,

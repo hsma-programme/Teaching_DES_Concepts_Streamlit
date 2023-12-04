@@ -3,7 +3,6 @@ A Streamlit application based on Monks and
 
 Allows users to interact with an increasingly more complex treatment simulation 
 '''
-import sys
 import gc
 import asyncio
 import pandas as pd
@@ -36,8 +35,10 @@ st.subheader("How can we optimise the full system?")
 
 gc.collect()
 
-tab1, tab2, tab3, tab4 = st.tabs(["Introduction", "Exercises", "Playground", "Compare Scenario Outputs"])
-with tab1:
+# tab1, tab2, tab3, tab4 = st.tabs(["Introduction", "Exercises", "Playground", "Compare Scenario Outputs"])
+tab1, tab2, tab3, tab4 = st.tabs(["Playground", "Exercise", "Compare Scenario Outputs", "Information"])
+
+with tab4:
     st.markdown("""
                 So now we have explored every component of the model:
                 - Generating arrivals
@@ -129,7 +130,7 @@ with tab2:
         """
     )
 
-with tab3:
+with tab1:
     
     # n_triage: int
     #         The number of triage cubicles
@@ -219,9 +220,7 @@ with tab3:
 
         # add a spinner and then display success box
         with st.spinner('Simulating the minor injuries unit...'):
-            # Check if running on pyodide
-            if sys.platform == 'emscripten':
-                await asyncio.sleep(0.1)
+            await asyncio.sleep(0.1)
 
             my_bar = st.progress(0, text="Simulating the minor injuries unit...")
 
@@ -656,7 +655,7 @@ with tab3:
 #################################################
 # Create area for exploring all session results
 #################################################
-with tab4:
+with tab3:
     if len(st.session_state['session_results']) > 0:
 
         all_run_results = pd.concat(st.session_state['session_results'])

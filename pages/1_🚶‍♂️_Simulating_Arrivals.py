@@ -3,7 +3,6 @@ A Streamlit application based on Monks and
 
 Allows users to interact with an increasingly more complex treatment simulation 
 '''
-import sys
 import time
 import asyncio
 import datetime as dt
@@ -25,6 +24,11 @@ st.set_page_config(
 
 add_logo()
 
+# try:
+#     running_on_st_community = st.secrets["IS_ST_COMMUNITY"]
+# except FileNotFoundError:
+#     running_on_st_community = False
+
 with open("style.css") as css:
     st.markdown(f'<style>{css.read()}</style>', unsafe_allow_html=True)
 
@@ -34,9 +38,9 @@ st.subheader("Simulating Patients Arriving at the Centre")
 
 gc.collect()
 
-tab1, tab2, tab3 = st.tabs(["Introduction", "Exercise", "Playground"])
+tab1, tab2, tab3 = st.tabs(["Playground", "Exercise", "Information"])
 
-with tab1:
+with tab3:
 
     st.markdown(
         "Let's start with just having some patients arriving into our treatment centre.")
@@ -172,16 +176,16 @@ with tab2:
         """
     )
 
-with tab3:
+with tab1:
     col1_1, col1_2= st.columns(2)
     # set number of resources
     with col1_1:
         seed = st.number_input("🎲 Set a random number for the computer to start from",
-                        1, 100000,
+                        1, 100000000,
                         step=1, value=103)
 
         run_time_days = st.slider("🗓️ How many days should we run the simulation for each time?",
-                                  1, 50,
+                                  1, 31,
                                   step=1, value=15)
         
         n_reps = st.slider("🔁 How many times should the simulation run?",
@@ -229,9 +233,8 @@ with tab3:
 
         # add a spinner and then display success box
         with st.spinner('Simulating the minor injuries unit...'):
-            # check if pyodide runtime
-            if sys.platform == 'emscripten':
-                await asyncio.sleep(0.1)
+            # if not running_on_st_community:
+            await asyncio.sleep(0.1)
             # run multiple replications of experment
             # results = multiple_replications(
             #     args,
