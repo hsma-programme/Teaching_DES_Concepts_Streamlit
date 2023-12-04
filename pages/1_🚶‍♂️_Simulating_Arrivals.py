@@ -164,13 +164,21 @@ with tab2:
 
     st.markdown(
         """
-        - Try changing the slider with the title 'How many patients should arrive per day on average?'. Look at the graph below it. How do the labels on the horizontal axis change? Think about what effect this would have on your simulation.
+        - Try changing the slider with the title 'How many patients should arrive per day on average?'. Look at the graph below it. How do the numbers on the horizontal axis change? Think about what effect this would have on your simulation.
         ---
-        - Look at the scatter (dot) plots at the bottom of the page to understand how the arrival times of patients varies across different simulation runs and different days. Think about how this could be useful.
+        - Change the average number of patients back to the default (150) and click on 'Run simulation'. 
+        
+        Look at the charts that show the variation in patient arrivals per simulation run. 
+
+        Look at the scatter (dot) plots at the bottom of the page to understand how the arrival times of patients varies across different simulation runs and different days. 
+        
+        Think about how this randomness in arrival times across different runs could be useful.
+
+        Hover over the dots to see more detail about the arrival time of each patient. By 6am, roughly how many patients have arrived in each simulation run? 
         ---
         - Try changing the random number the computer uses without changing anything else. What happens to the number of patients? Do the bar charts and histograms look different?
         ---        
-        - Try running the simulation for under 5 days. What happens to the height of the bars in the bar chart compared to running the simulation for more days? Are the bars larger or smaller? 
+        - Try running the simulation for under 5 days. What happens to the height of the bars in the first bar chart compared to running the simulation for more days? Are the bars larger or smaller? 
         ---
         - Try increasing the number of simulation runs. What do you notice about the *shape* of the histograms? Where are the bars highest?
         """
@@ -288,13 +296,41 @@ with tab1:
         # So it's all a bit redundant and could be nicely simplified, but leaving for now as it works 
 
         # chart_mean_daily = st.bar_chart(results[['00_arrivals']].iloc[[0]]/run_time_days)
-        chart_mean_daily = st.bar_chart(
-            results[['00_arrivals']].iloc[[0]] / run_time_days - results[['00_arrivals']].iloc[[0]] / run_time_days,
+        # chart_mean_daily = st.bar_chart(
+        #     results[['00_arrivals']].iloc[[0]] / run_time_days - results[['00_arrivals']].iloc[[0]] / run_time_days,
 
-            height=250
+        #     height=250
             
+        #     )
+        # chart_total = st.bar_chart(results[['00_arrivals']].iloc[[0]])      
+
+        results['00a_arrivals_difference'] = ((results[['00_arrivals']].iloc[0]['00_arrivals'].astype(int))/run_time_days) - (results['00_arrivals']/run_time_days) 
+
+        results["colour_00a"] = np.where(results['00a_arrivals_difference']<0, 'neg', 'pos')
+        # st.write(results)
+
+        run_diff_bar_fig = px.bar(results.reset_index(drop=False), 
+                                  x="rep", y='00a_arrivals_difference',
+                                  color="colour_00a")
+
+        run_diff_bar_fig.update_layout(
+            yaxis_title="Difference in daily patients between first run and this run",
+            xaxis_title="Simulation Run")
+        
+        
+        run_diff_bar_fig.layout.update(showlegend=False)
+        run_diff_bar_fig.update_xaxes(tick0=1, dtick=1)
+
+        st.plotly_chart(
+            run_diff_bar_fig, 
+            use_container_width=True
             )
-        # chart_total = st.bar_chart(results[['00_arrivals']].iloc[[0]])
+
+        # st.table(pd.concat([
+        #         results[['00_arrivals']].astype('int'),
+        #         (results[['00_arrivals']]/run_time_days).round(0).astype('int')
+        #     ], axis=1, keys = ['Total Arrivals', 'Mean Daily Arrivals'])
+        #         )
 
         status_text_string = 'The first simulation generated a total of {} patients (an average of {} patients per day)'.format(
             results[['00_arrivals']].iloc[0]['00_arrivals'].astype(int),
@@ -312,10 +348,10 @@ with tab1:
             # Append data to the chart.
             # chart_total.add_rows(new_rows)
             # chart_mean_daily.add_rows(new_rows/run_time_days)
-            chart_mean_daily.add_rows(
-                ((results[['00_arrivals']].iloc[[i+1]]['00_arrivals']/run_time_days) -
-                (results[['00_arrivals']].iloc[0]['00_arrivals']/run_time_days)).round(1)
-            )
+            # chart_mean_daily.add_rows(
+            #     ((results[['00_arrivals']].iloc[[i+1]]['00_arrivals']/run_time_days) -
+            #     (results[['00_arrivals']].iloc[0]['00_arrivals']/run_time_days)).round(1)
+            # )
 
             status_text_string = 'Simulation {} generated a total of {} patients (an average of {} patients per day)'.format(
                     i+2,
@@ -324,12 +360,6 @@ with tab1:
                 ) + "\n" + status_text_string 
             # Update status text.
             status_text.text(status_text_string)
-
-        # st.table(pd.concat([
-        #         results[['00_arrivals']].astype('int'),
-        #         (results[['00_arrivals']]/run_time_days).round(0).astype('int')
-        #     ], axis=1, keys = ['Total Arrivals', 'Mean Daily Arrivals'])
-        #         )
 
         col_a_1, col_a_2 = st.columns(2)
 
@@ -342,7 +372,9 @@ with tab1:
                 """
                 This plot shows the variation in the **total** daily patients per run. 
                 
-                The horizontal axis shows the range of patients generated within a simulation run, and the height of the bar shows how many simulation runs had an output in that group."
+                The horizontal axis shows the range of patients generated within a simulation run.
+                
+                The height of the bar shows how many simulation runs had an output in that group."
                 """
             )
 
@@ -369,7 +401,9 @@ with tab1:
                 """
                 This plot shows the variation in the **average** daily patients per run. 
                 
-                The horizontal axis shows the range of patients generated within a simulation run, and the height of the bar shows how many simulation runs had an output in that group.
+                The horizontal axis shows the range of patients generated within a simulation run
+                
+                The height of the bar shows how many simulation runs had an output in that group.
                 """
             )
 
@@ -397,7 +431,10 @@ with tab1:
             From left to right within each plot, we start at one minute past midnight and move through the day until midnight. 
 
             Looking from the top to the bottom of each plot, we have the model replications. 
+            
             Each horizontal line of dots represents a **full day** for one model replication.  
+
+            Hovering over the dots will show the exact time of each patient.
             """ 
         )
 
@@ -423,6 +460,7 @@ with tab1:
                     x="minute", 
                     y="Rep",
                     color="Rep_str",
+                    custom_data=["minute_display", "patient"],
                     category_orders={'Rep_str': [str(i+1) for i in range(10)]},
                     range_y=[0.5, min(10, n_reps)+0.5],
                     width=1200,
@@ -431,6 +469,18 @@ with tab1:
             )
             
             del minimal_log
+            
+            def format_date_with_ordinal(d, format_string):
+                ordinal = {'1':'st', '2':'nd', '3':'rd'}.get(str(d.day)[-1:], 'th')
+                return d.strftime(format_string).replace('{th}', ordinal)
+
+
+            time_plot.update_traces(
+                hovertemplate="<br>".join([
+                    "Time of patient arrival: %{customdata[0]}",
+                    "Arrival in this simulation run: %{customdata[1]}"
+                ])
+            )
 
             time_plot.update_layout(yaxis_title="Simulation Run (Replication)",
                                     xaxis_title="Time",
