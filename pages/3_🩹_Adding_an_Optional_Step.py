@@ -136,15 +136,14 @@ with tab2:
     """
     ### Things to Try Out
     
-    Look at the graph 'Percentage of clients requiring treatment per simulation run' on the 'Simple Graphs' tab after running the model. This shows the split between patients who do and don't require treatment. Explore how this varies with 
+    - Look at the graph 'Percentage of clients requiring treatment per simulation run' on the 'Simple Graphs' tab after running the model. This shows the split between patients who do and don't require treatment. Explore how this varies with 
         - different model run lengths
         - different probabilities
     ---
-    What impact does changing the number of patients who go down this extra route (the 'probability that a patient will need treatment') have on our treatment centre's performance with the default number of nurses and doctors at each stage?
+    - What impact does changing the number of patients who go down this extra route (the 'probability that a patient will need treatment') have on our treatment centre's performance with the default number of nurses and doctors at each stage?
     ---
-    Change the split of patients requiring treatment back to 0.5. 
-    
-    Can you optimize the number of nurses or doctors at each step for the different pathways to balance resource utilisation and queues?
+    - Change the split of patients requiring treatment back to 0.5. 
+        - Can you optimize the number of nurses or doctors at each step for the different pathways to balance resource utilisation and queues?
     
 
     """

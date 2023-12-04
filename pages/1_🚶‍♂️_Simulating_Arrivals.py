@@ -167,14 +167,10 @@ with tab2:
         - Try changing the slider with the title 'How many patients should arrive per day on average?'. Look at the graph below it. How do the numbers on the horizontal axis change? Think about what effect this would have on your simulation.
         ---
         - Change the average number of patients back to the default (150) and click on 'Run simulation'. 
-        
-        Look at the charts that show the variation in patient arrivals per simulation run. 
-
-        Look at the scatter (dot) plots at the bottom of the page to understand how the arrival times of patients varies across different simulation runs and different days. 
-        
-        Think about how this randomness in arrival times across different runs could be useful.
-
-        Hover over the dots to see more detail about the arrival time of each patient. By 6am, roughly how many patients have arrived in each simulation run? 
+            - Look at the charts that show the variation in patient arrivals per simulation run. 
+            - Look at the scatter (dot) plots at the bottom of the page to understand how the arrival times of patients varies across different simulation runs and different days. 
+                - Hover over the dots to see more detail about the arrival time of each patient. By 6am, roughly how many patients have arrived in each simulation run? 
+            - Think about how this randomness in arrival times across different runs could be useful.
         ---
         - Try changing the random number the computer uses without changing anything else. What happens to the number of patients? Do the bar charts and histograms look different?
         ---        
