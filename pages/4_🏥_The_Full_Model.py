@@ -126,7 +126,7 @@ with tab2:
         - Due to building work taking place, the hospital will temporarily need to close several bays.        
         It will be possible to have a maximum of 20 bays/cubicles/rooms in total across the whole system. 
             - What is the best configuration you can find to keep the average wait times as low as possible across both trauma and non-trauma pathways?
-        *Make sure you are using the default probabilities for trauma/non-trauma patients and treatment of non-trauma patients*
+        *Make sure you are using the default probabilities for trauma/non-trauma patients (0.3) and treatment of non-trauma patients (0.7)*
         """
     )
 
