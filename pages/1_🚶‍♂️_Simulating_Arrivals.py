@@ -164,9 +164,13 @@ with tab2:
 
     st.markdown(
         """
-        - Try changing the slider with the title 'How many patients should arrive per day on average?'. Look at the graph below it. How do the numbers on the horizontal axis change? Think about what effect this would have on your simulation.
+        - Try changing the slider with the title *'How many patients should arrive per day on average?'*. 
+        
+        Look at the graph below it. The horizontal axis (the bottom one) shows the number of minutes  
+        
+        How does the shape of the graph change when you change the value?
         ---
-        - Change the average number of patients back to the default (150) and click on 'Run simulation'. 
+        - Change the slider *'How many patients should arrive per day on average?'* back to the default (150) and click on 'Run simulation'. 
             - Look at the charts that show the variation in patient arrivals per simulation run. 
             - Look at the scatter (dot) plots at the bottom of the page to understand how the arrival times of patients varies across different simulation runs and different days. 
                 - Hover over the dots to see more detail about the arrival time of each patient. By 6am, roughly how many patients have arrived in each simulation run? 

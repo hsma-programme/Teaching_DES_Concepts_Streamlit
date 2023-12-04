@@ -106,12 +106,13 @@ with tab2:
         """
         ### Things to Try Out
 
-        - Try changing the sliders for consultation time and variation in consultation time. What happens to the graph by the sliders? 
+        - Try changing the sliders for consultation time and variation in consultation time. 
+        What happens to the shape of the graph below the sliders? 
         ---
         - Put the consulation times back to the default (50 minutes length on average, 10 minutes of variation).
         Run the model and take a look at the animated flow of patients through the system. What do you notice about
             - the number of nurses in use? Do they ever get any breaks?
-            - the size of the queue for treatment at different times?
+            - the size of the queue for treatment at different times - does it get bigger and smaller at different times, or just keep growing?
         ---
         - What happens when you play around with the number of nurses we have available? 
             - Look at the queues, but look at the resource utilisation too. The resource utilisation tells us how much of the time each nurse is busy rather than waiting for a patient to turn up. 
@@ -134,31 +135,13 @@ with tab1:
     col1, col2 = st.columns(2)
 
     with col1:
+
         nurses = st.slider("🧑‍⚕️ How Many Rooms/Nurses Are Available?", 1, 15, step=1, value=4)
 
-        consult_time = st.slider("⏱️ How long (in minutes) does a consultation take on average?",
-                                    5, 150, step=5, value=50)
-
-        consult_time_sd = st.slider("🕔 🕣 How much (in minutes) does the time for a consultation usually vary by?",
-                                    5, 30, step=5, value=10)
-
-    with col2:
         seed = st.slider("🎲 Set a random number for the computer to start from",
                             1, 1000,
                             step=1, value=42)
 
-        norm_dist = Normal(consult_time, consult_time_sd, random_seed=seed)
-        norm_fig = px.histogram(norm_dist.sample(size=2500), height=150)
-        
-        norm_fig.update_layout(yaxis_title="", xaxis_title="Consultation Time<br>(Minutes)")
-
-        norm_fig.layout.update(showlegend=False, 
-                                margin=dict(l=0, r=0, t=0, b=0))
-        st.markdown("#### Consultation Time Distribution")
-        st.plotly_chart(norm_fig,
-                        use_container_width=True,
-                        config = {'displayModeBar': False})
-        
         with st.expander("Previous Parameters"):
 
             st.markdown("If you like, you can edit these parameters too!")
@@ -175,6 +158,36 @@ with tab1:
             mean_arrivals_per_day = st.slider("🧍 How many patients should arrive per day on average?",
                                             10, 300,
                                             step=5, value=120)
+
+    with col2:
+
+        consult_time = st.slider("⏱️ How long (in minutes) does a consultation take on average?",
+                                    5, 150, step=5, value=50)
+
+        consult_time_sd = st.slider("🕔 🕣 How much (in minutes) does the time for a consultation usually vary by?",
+                                    5, 30, step=5, value=10)
+
+        norm_dist = Normal(consult_time, consult_time_sd, random_seed=seed)
+        norm_fig = px.histogram(norm_dist.sample(size=2500), height=150)
+        
+        norm_fig.update_layout(yaxis_title="", xaxis_title="Consultation Time<br>(Minutes)")
+
+        norm_fig.update_xaxes(tick0=0, dtick=10, range=[0, 
+                                                        # max(norm_dist.sample(size=2500))
+                                                        240
+                                                        ])
+
+        
+
+        norm_fig.layout.update(showlegend=False, 
+                                margin=dict(l=0, r=0, t=0, b=0))
+        
+        st.markdown("#### Consultation Time Distribution")
+        st.plotly_chart(norm_fig,
+                        use_container_width=True,
+                        config = {'displayModeBar': False})
+        
+        
             
     # A user must press a streamlit button to run the model
     button_run_pressed = st.button("Run simulation")
