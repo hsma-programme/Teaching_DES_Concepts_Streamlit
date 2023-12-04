@@ -199,7 +199,7 @@ with tab1:
             
             run_time_days = st.slider("🗓️ How many days should we run the simulation for each time?",
                         1, 60,
-                        step=1, value=10)
+                        step=1, value=5)
 
     args = Scenario(
         random_number_set=seed,
@@ -321,11 +321,10 @@ with tab1:
 
         # Add in a box plot showing utilisation
 
-        tab_playground_results_1, tab_playground_results_2, tab_playground_results_3, tab_playground_results_4  = st.tabs([
+        tab_playground_results_1, tab_playground_results_2, tab_playground_results_3  = st.tabs([
             'Utilisation and Wait Metrics',
             'Animated Model',
-            'Advanced Utilisation and Wait Metrics',
-            'Utilisation over Time'
+            'Advanced Utilisation and Wait Metrics'
             ])
 
         # st.subheader("Look at Average Results Across Replications")
