@@ -111,7 +111,9 @@ def animate_activity_log(
         override_x_max=None,
         override_y_max=None,
         time_display_units=None,
-        setup_mode=False
+        setup_mode=False,
+        frame_duration=400, #milliseconds
+        frame_transition_duration=600 #milliseconds
         ):
     """_summary_
 
@@ -365,6 +367,10 @@ def animate_activity_log(
     # Was more useful in older versions of the function
     if not include_play_button:
         fig["layout"].pop("updatemenus")
+
+    # Adjust speed of animation
+    fig.layout.updatemenus[0].buttons[0].args[1]['frame']['duration'] = frame_duration
+    fig.layout.updatemenus[0].buttons[0].args[1]['transition']['duration'] = frame_transition_duration
 
     return fig
 
