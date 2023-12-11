@@ -99,12 +99,13 @@ def center_running():
 div[class*="StatusWidget"]{
 
     position: fixed;
-   margin: auto;
+    margin: auto;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%);
+    marginRight: "0px"
     width: 50%;
-    scale: 1.25;
+    scale: 2.75;
+    opacity: 1
 }
 
 </style>
