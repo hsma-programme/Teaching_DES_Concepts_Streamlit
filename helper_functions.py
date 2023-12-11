@@ -88,3 +88,25 @@ def mermaid(code: str, height=600) -> None:
         """,
         height=height
     )
+
+def center_running():
+    """
+    Have the "running man" animation in the center of the screen instead of the top right corner.
+    """
+    st.markdown("""
+<style>
+
+div[class*="StatusWidget"]{
+
+    position: fixed;
+   margin: auto;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 50%;
+    scale: 1.25;
+}
+
+</style>
+""", 
+                unsafe_allow_html=True)

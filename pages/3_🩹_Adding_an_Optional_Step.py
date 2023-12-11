@@ -11,7 +11,7 @@ import plotly.graph_objects as go
 import streamlit as st
 
 from output_animation_functions import reshape_for_animations,animate_activity_log
-from helper_functions import add_logo, mermaid
+from helper_functions import add_logo, mermaid, center_running
 from model_classes import Scenario, multiple_replications
 
 st.set_page_config(
@@ -21,6 +21,8 @@ st.set_page_config(
  )
 
 add_logo()
+
+center_running()
 
 with open("style.css") as css:
     st.markdown( f'<style>{css.read()}</style>' , unsafe_allow_html= True)

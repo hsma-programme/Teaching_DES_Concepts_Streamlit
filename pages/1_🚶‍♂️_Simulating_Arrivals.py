@@ -12,7 +12,7 @@ import plotly.express as px
 import pandas as pd
 import streamlit as st
 
-from helper_functions import add_logo, mermaid
+from helper_functions import add_logo, mermaid, center_running
 from model_classes import Scenario, multiple_replications
 from distribution_classes import Exponential
 
@@ -23,6 +23,8 @@ st.set_page_config(
 )
 
 add_logo()
+
+center_running()
 
 # try:
 #     running_on_st_community = st.secrets["IS_ST_COMMUNITY"]
