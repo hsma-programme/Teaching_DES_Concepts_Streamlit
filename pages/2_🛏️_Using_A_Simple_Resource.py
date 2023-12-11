@@ -13,7 +13,7 @@ import streamlit as st
 from helper_functions import add_logo, mermaid, center_running
 from model_classes import Scenario, multiple_replications
 from distribution_classes import Normal
-from output_animation_functions import reshape_for_animations, animate_queue_activity_bar_chart, animate_activity_log
+from output_animation_functions import reshape_for_animations, animate_activity_log
 
 # Set page parameters
 st.set_page_config(
