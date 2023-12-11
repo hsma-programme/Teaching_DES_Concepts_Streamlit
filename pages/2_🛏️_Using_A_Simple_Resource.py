@@ -152,7 +152,7 @@ with tab1:
             
             run_time_days = st.slider("🗓️ How many days should we run the simulation for each time?",
                                     1, 40,
-                                    step=1, value=15)
+                                    step=1, value=10)
 
         
             mean_arrivals_per_day = st.slider("🧍 How many patients should arrive per day on average?",
