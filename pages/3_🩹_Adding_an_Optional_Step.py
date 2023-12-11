@@ -260,8 +260,24 @@ with tab1:
         tab1, tab2, tab3 = st.tabs(
                 ["Animated Log", "Simple Graphs", "Advanced Graphs"]
             )  
+        
+    #     st.markdown("""
+    # You can click on the three tabs below ("Animated Log", "Simple Graphs", and "Advanced Graphs") to view different outputs from the model.
+    #                 """)
         with tab1:
             st.subheader("Animated Model Output")
+
+            st.markdown(
+    """
+    The plot below shows a snapshot every 5 minutes of the position of everyone in our emergency department model. 
+    
+    The buttons to the left of the slider below the plot can be used to start and stop the animation. 
+
+    Clicking on the bar below the plot and dragging your cursor to the left or right allows you to rapidly jump through to a different time in the simulation. 
+
+    Only the first replication of the simulation is shown. 
+    """
+                )
             
             event_position_df = pd.DataFrame([
                             {'event': 'arrival', 'x':  50, 'y': 300,
@@ -293,7 +309,7 @@ with tab1:
                                     display_stage_labels=False,
                                     return_df_only=False,
                                     plotly_height=700,
-                                    plotly_width=1200,
+                                    plotly_width=1100,
                                     override_x_max=500,
                                     override_y_max=400,
                                     wrap_queues_at=20,

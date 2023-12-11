@@ -244,6 +244,11 @@ with tab1:
         tab1, tab2, tab3 = st.tabs(
                 ["Animated Log", "Simple Graphs", "Advanced Graphs"]
             )  
+        
+    #     st.markdown("""
+    # You can click on the three tabs below ("Animated Log", "Simple Graphs", and "Advanced Graphs") to view different outputs from the model.
+    #                 """)
+
 
         with tab1:
             # st.write(results)
@@ -261,6 +266,18 @@ with tab1:
                             'x':  270, 'y': 70, 'label': "Exit"}
                         
                         ])
+
+                st.markdown(
+    """
+    The plot below shows a snapshot every 5 minutes of the position of everyone in our emergency department model. 
+    
+    The buttons to the left of the slider below the plot can be used to start and stop the animation. 
+
+    Clicking on the bar below the plot and dragging your cursor to the left or right allows you to rapidly jump through to a different time in the simulation. 
+
+    Only the first replication of the simulation is shown. 
+    """
+                )
 
                 st.plotly_chart(animate_activity_log(
                                     full_patient_df=animation_dfs_log[animation_dfs_log["minute"]<=60*24*5],
@@ -297,7 +314,9 @@ with tab1:
                     """
                     The emergency department wants to aim for an average of 65% to 85% utilisation across all resources in the emergency department. 
                     The green box shows this ideal range. If the bars overlap with the green box, utilisation is ideal. 
+                    
                     If utilisation is below this, you might want to **reduce** the number of those resources available. 
+                    
                     If utilisation is above this point, you may want to **increase** the number of that type of resource available.
                     """
                 )
@@ -344,6 +363,7 @@ with tab1:
                     """
                     The emergency department wants to ensure people wait no longer than 2 hours (120 minutes) to be seen.
                     This needs to be balanced with the utilisation graphs on the left.
+                    
                     The green box shows waits of less than two hours. If the bars fall within this range, the number of resources does not need to be changed.
                     """
                 )
@@ -379,6 +399,7 @@ with tab1:
                     """
                     The emergency department wants to ensure people wait no longer than 2 hours (120 minutes) to be seen.
                     This needs to be balanced with the utilisation graphs on the left.
+                    
                     The green box shows waits of less than two hours. If the bars fall within this range, the number of resources does not need to be changed.
                     """
                 )

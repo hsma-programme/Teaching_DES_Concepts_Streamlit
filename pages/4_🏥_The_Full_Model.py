@@ -35,6 +35,8 @@ with open("style.css") as css:
 st.title("Discrete Event Simulation Playground")
 st.subheader("How can we optimise the full system?")
 
+st.markdown("Once you have run more than one scenario, try out the new tab 'compare scenario outputs'.")
+
 gc.collect()
 
 # tab1, tab2, tab3, tab4 = st.tabs(["Introduction", "Exercises", "Playground", "Compare Scenario Outputs"])
@@ -324,10 +326,14 @@ with tab1:
         # Add in a box plot showing utilisation
 
         tab_playground_results_1, tab_playground_results_2, tab_playground_results_3  = st.tabs([
-            'Utilisation and Wait Metrics',
-            'Animated Model',
-            'Advanced Utilisation and Wait Metrics'
+            "Simple Graphs",
+            "Animated Log",
+            "Advanced Graphs"
             ])
+        
+    #     st.markdown("""
+    # You can click on the three tabs below ("Simple Graphs", "Animated Log", and "Advanced Graphs") to view different outputs from the model.
+    #                 """)
 
         # st.subheader("Look at Average Results Across Replications")
 
@@ -374,6 +380,18 @@ with tab1:
             ])
 
             # st.dataframe(animation_dfs_log)
+
+            st.markdown(
+    """
+    The plot below shows a snapshot every 5 minutes of the position of everyone in our emergency department model. 
+    
+    The buttons to the left of the slider below the plot can be used to start and stop the animation. 
+
+    Clicking on the bar below the plot and dragging your cursor to the left or right allows you to rapidly jump through to a different time in the simulation. 
+
+    Only the first replication of the simulation is shown. 
+    """
+                )
 
             animated_plot = animate_activity_log(
                     full_patient_df=animation_dfs_log[animation_dfs_log["minute"]<=60*24*5],

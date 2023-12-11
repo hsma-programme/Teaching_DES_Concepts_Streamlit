@@ -385,7 +385,7 @@ with tab1:
                 
                 The horizontal axis shows the range of patients generated within a simulation run.
                 
-                The height of the bar shows how many simulation runs had an output in that group."
+                The height of the bar shows how many simulation runs had an output in that group.
                 """
             )
 
@@ -460,7 +460,7 @@ with tab1:
             
             Each horizontal line of dots represents a **full day** for one model replication.  
 
-            Hovering over the dots will show the exact time of each patient.
+            Hovering over the dots will show the exact time that each patient arrived during that model replication and the number of patients that have arrived at that point in the simulation run.
             """ 
             )
             for i in range(5):
@@ -507,6 +507,10 @@ with tab1:
                                         margin=dict(l=0, r=0, t=0, b=0))
                 
                 st.plotly_chart(time_plot, use_container_width=True)
+            
+            del time_plot
+            gc.collect()
+                
         with tab2a:
             st.markdown(
             """
@@ -574,11 +578,27 @@ with tab1:
                                         margin=dict(l=0, r=0, t=0, b=0))
                 
                 st.plotly_chart(time_plot, use_container_width=True)
+            
+            del time_plot
+            gc.collect()
 
         with tab3a:
             st.markdown(
                 """
                 The plot below shows the cumulative number of patients arriving over time for the first 5 days of each simulation run.
+
+                Each line represents one model replication. 
+
+                Moving from left to right, we have the first 5 days of the model runs. 
+
+                Clicking on a model replication in the legend on the right-hand side of the graph will hide that line. 
+                Clicking on it again will make it reappear. 
+
+                By comparing the height of the two lines, you can see how similar or different the total number of patients generated are at any given point in time. 
+
+
+
+
                 """
             )
 
@@ -594,12 +614,27 @@ with tab1:
                 x="minute", 
                 y="cumulative_count", 
                 color="Rep_str",
-                category_orders={'Rep_str': [str(i+1) for i in range(minimal_log['Rep'].max())]}
+                category_orders={'Rep_str': [str(i+1) for i in range(minimal_log['Rep'].max())]},
+                height=800)
+            
+            hovertemplate = '%{x}: %{y} arrivals'
+
+            # customdata = list(minimal_log[["Rep_str"]].to_numpy())
+            cumulative_arrivals_fig.update_traces(
+                # customdata=customdata,
+                hovertemplate=hovertemplate
+                            
                 )
+            # del customdata
+            gc.collect()
             
             cumulative_arrivals_fig.update_layout(xaxis_title="Model Day",
                                         yaxis_title="Cumulative Arrivals",
-                                        legend_title_text='Model Replication')
+                                        legend_title_text='Model Replication',
+                                        hovermode="x unified")
 
-            st.plotly_chart(cumulative_arrivals_fig, use_container_width=True)
+            st.plotly_chart(cumulative_arrivals_fig, 
+                            use_container_width=True)
+            
+            del cumulative_arrivals_fig
     gc.collect()
