@@ -647,11 +647,11 @@ with tab1:
 
         
 
-        with tab_playground_results_4:
-            st.markdown("Placeholder")
+        # with tab_playground_results_4:
+        #     st.markdown("Placeholder")
             
-            del results
-            gc.collect()
+        #     del results
+        #     gc.collect()
 
 #################################################
 # Create area for exploring all session results
