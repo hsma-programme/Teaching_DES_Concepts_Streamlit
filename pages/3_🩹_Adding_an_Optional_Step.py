@@ -154,7 +154,7 @@ with tab1:
 
     with col1:
         st.subheader("Examination Resources")
-        nurses_advice = st.slider("🧑‍⚕️ How Many Nurses are Available for Examination?", 1, 10, step=1, value=3)
+        nurses_advice = st.slider("👨‍⚕️👩‍⚕️ How Many Nurses are Available for Examination?", 1, 10, step=1, value=3)
 
         consult_time_exam = st.slider("⏱️ How long (in minutes) does an examination take on average?",
                                         5, 120, step=5, value=30)
@@ -165,7 +165,7 @@ with tab1:
     with col2:
 
         st.subheader("Treatment Resources")
-        nurses_treat = st.slider("🧑‍⚕️ How Many Doctors are Available for Treatment?", 1, 10, step=1, value=2)
+        nurses_treat = st.slider("👨‍⚕️👩‍⚕️ How Many Doctors are Available for Treatment?", 1, 10, step=1, value=2)
 
 
         consult_time_treat = st.slider("⏱️ How long (in minutes) does treatment take on average?",

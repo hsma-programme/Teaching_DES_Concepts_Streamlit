@@ -139,7 +139,7 @@ with tab1:
 
     with col1:
 
-        nurses = st.slider("🧑‍⚕️ How Many Rooms/Nurses Are Available?", 1, 15, step=1, value=4)
+        nurses = st.slider("👨‍⚕️👩‍⚕️ How Many Rooms/Nurses Are Available?", 1, 15, step=1, value=4)
 
         seed = st.slider("🎲 Set a random number for the computer to start from",
                             1, 1000,
