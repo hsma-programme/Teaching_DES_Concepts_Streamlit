@@ -44,6 +44,7 @@ st.code(
     """
 import simpy
 import random
+import numpy as np
 
 def patient_generator(env, wl_inter, mean_consult, nurse):
     p_id = 0 
@@ -56,6 +57,7 @@ def patient_generator(env, wl_inter, mean_consult, nurse):
         p_id += 1
 
 def activity_generator(env, mean_consult, nurse, p_id):
+    global list_of_queueing_times_nurse 
     time_entered_queue_for_nurse = env.now
     with nurse.request() as req:
         yield req
@@ -65,16 +67,29 @@ def activity_generator(env, mean_consult, nurse, p_id):
         time_in_queue_for_nurse = (time_left_queue_for_nurse -
                                     time_entered_queue_for_nurse)
         
+        list_of_queuing_times_nurse.append(time_in_queue_for_nurse)
+
+        
+        sampled_consultation_time = random.expovariate(1.0 / mean_consult)
+
         yield env.timeout(sampled_consultation_time)
-        time_consultation_ended = env.now
 
 env = simpy.Environment()
 
 nurse = simpy.Resource(env, capacity=1)
 
-env.process(patient_generator(env, wl_inter, mean_consult,nurse)
+
+# Set up parameter values
+wl_inter = 5
+mean_consult = 6
+
+list_of_queueing_times_nurse = []
+
+env.process(patient_generator(env, wl_inter, mean_consult,nurse))
 
 env.run(until=600)
+
+print(f"Average minutes in queue for nurse: {np.mean(list_of_queueing_times_nurse).round(2)}")
     """, 
     language='python' 
 )
@@ -97,6 +112,7 @@ st.code(
 """
 import simpy
 import random
+import numpy as np
 """,
    language='python' 
 )
@@ -145,6 +161,8 @@ Next we need to define something that will actually do something to those patien
 st.code(
 """
 def activity_generator(env, mean_consult, nurse, p_id):
+    # We need somewhere to put our list of queueing times
+    global list_of_queueing_times_nurse 
     
     # Use 'env.now' to make a note of the time the person turned up
     time_entered_queue_for_nurse = env.now
@@ -165,6 +183,8 @@ def activity_generator(env, mean_consult, nurse, p_id):
 
       time_in_queue_for_nurse = (time_left_queue_for_nurse -
                                  time_entered_queue_for_nurse)
+
+      list_of_queuing_times_nurse.append(time_in_queue_for_nurse)
 
       # Now the patient is with the nurse, we need to calculate how long they spend in their consultation.  
 
@@ -209,6 +229,27 @@ nurse = simpy.Resource(env, capacity=1)
 )
 
 """
+Let's set our default parameters for our system
+"""
+
+st.code(
+    """
+wl_inter = 5
+mean_consult = 6
+"""
+)
+
+"""
+And make an empty list to store our waits
+"""
+
+st.code("""
+
+list_of_queueing_times_nurse = []
+        """
+)
+
+"""
 Then we tell our virtual world to start making patients!
 """
 
@@ -233,6 +274,16 @@ st.code(
     env.run(until=600)
    """,
    language='python' 
+)
+
+"""
+Then we can calculate the average wait
+"""
+
+st.code(
+    """
+    np.mean()
+    """
 )
 
 """
