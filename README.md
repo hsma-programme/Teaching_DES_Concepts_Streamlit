@@ -11,6 +11,10 @@ It will allow them to get comfortable with the idea of
 - branching paths
 - optimising systems
 
+A version of the final model can also be loaded in Google Colab.
+<a target="_blank" href="https://colab.research.google.com/github/hsma-programme/Teaching_DES_Concepts_Streamlit/blob/main/nb_4_full_model.ipynb">
+  <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
+
 ![image](https://github.com/hsma-programme/Teaching_DES_Concepts_Streamlit/assets/29951987/c55e132d-77b6-43f6-bc98-09434b87709b)
 
 An animated visual representation of the event log has also been generated using Plotly, allowing users to follow individuals through a simulation and quickly see where queues are building up in the system.
