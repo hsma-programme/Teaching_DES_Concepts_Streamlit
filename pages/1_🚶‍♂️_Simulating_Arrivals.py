@@ -49,7 +49,6 @@ with tab3:
 
     mermaid(height=350, code="""
             %%{ init: {  'flowchart': { 'curve': 'step'} } }%%
-
             %%{ init: {  'theme': 'base', 'themeVariables': {'lineColor': '#b4b4b4'} } }%%
             flowchart LR
             A[Arrival] --> B{Trauma or non-trauma}
@@ -88,8 +87,6 @@ with tab3:
 
             class A highlight;
             class B,B1,B2,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z unlight;
-
-            
         """
             )
     
@@ -172,7 +169,7 @@ with tab2:
         
         How does the shape of the graph change when you change the value?
         ---
-        - Change the slider *'How many patients should arrive per day on average?'* back to the default (150) and click on 'Run simulation'. 
+        - Change the slider *'How many patients should arrive per day on average?'* back to the default (80) and click on 'Run simulation'. 
             - Look at the charts that show the variation in patient arrivals per simulation run. 
             - Look at the scatter (dot) plots at the bottom of the page to understand how the arrival times of patients varies across different simulation runs and different days. 
                 - Hover over the dots to see more detail about the arrival time of each patient. By 6am, roughly how many patients have arrived in each simulation run? 
