@@ -46,17 +46,17 @@ import simpy
 import random
 import numpy as np
 
-def patient_generator(env, wl_inter, mean_consult, nurse):
+def patient_generator(env, mean_patient_inter_arrival_time, mean_consultation_length, nurse):
     p_id = 0 
 
     while True:        
-        wp = activity_generator(env, mean_consult, nurse, p_id)
+        wp = activity_generator(env, mean_consultation_length, nurse, p_id)
         env.process(wp)
-        t = random.expovariate(1.0 / wl_inter)
+        t = random.expovariate(1.0 / mean_patient_inter_arrival_time)
         yield env.timeout(t)
         p_id += 1
 
-def activity_generator(env, mean_consult, nurse, p_id):
+def activity_generator(env, mean_consultation_length, nurse, p_id):
     global list_of_queueing_times_nurse 
     time_entered_queue_for_nurse = env.now
     with nurse.request() as req:
@@ -69,8 +69,7 @@ def activity_generator(env, mean_consult, nurse, p_id):
         
         list_of_queuing_times_nurse.append(time_in_queue_for_nurse)
 
-        
-        sampled_consultation_time = random.expovariate(1.0 / mean_consult)
+        sampled_consultation_time = random.expovariate(1.0 / mean_consultation_length)
 
         yield env.timeout(sampled_consultation_time)
 
@@ -78,14 +77,12 @@ env = simpy.Environment()
 
 nurse = simpy.Resource(env, capacity=1)
 
-
-# Set up parameter values
-wl_inter = 5
-mean_consult = 6
+mean_patient_inter_arrival_time = 5
+mean_consultation_length = 6
 
 list_of_queueing_times_nurse = []
 
-env.process(patient_generator(env, wl_inter, mean_consult,nurse))
+env.process(patient_generator(env, mean_patient_inter_arrival_time, mean_consultation_length, nurse))
 
 env.run(until=600)
 
@@ -123,7 +120,7 @@ Next, we need to define something that will generate our patients
 
 st.code(
 """
-def patient_generator(env, wl_inter, mean_consult, nurse):
+def patient_generator(env, mean_patient_inter_arrival_time, mean_consultation_length, nurse):
     p_id = 0 # We'll set this up to give each patient created a unique ID
 
     # Keep doing this indefinitely (whilst the program's running)
@@ -141,7 +138,7 @@ def patient_generator(env, wl_inter, mean_consult, nurse):
         
         # Calculate the time until the next patient arrives
         # Here we sample from an exponential distribution to determine how long that wait will be
-        t = random.expovariate(1.0 / wl_inter)
+        t = random.expovariate(1.0 / mean_patient_inter_arrival_time)
         
         # Tell the simulation to freeze this function in place until that sampled inter-arrival time has elapsed
         yield env.timeout(t)
@@ -160,7 +157,7 @@ Next we need to define something that will actually do something to those patien
 
 st.code(
 """
-def activity_generator(env, mean_consult, nurse, p_id):
+def activity_generator(env, mean_consultation_length, nurse, p_id):
     # We need somewhere to put our list of queueing times
     global list_of_queueing_times_nurse 
     
@@ -189,7 +186,7 @@ def activity_generator(env, mean_consult, nurse, p_id):
       # Now the patient is with the nurse, we need to calculate how long they spend in their consultation.  
 
       # Here, we'll randomly sample from an exponential distribution with the mean consultation time we passed into the function.
-      sampled_consultation_time = random.expovariate(1.0 / mean_consult)
+      sampled_consultation_time = random.expovariate(1.0 / mean_consultation_length)
 
       # Tell the simulation to freeze this function in place until that sampled consultation time has elapsed (which is also keeping the nurse in use and unavailable elsewhere, as we're still in the 'with' statement)
       yield env.timeout(sampled_consultation_time)
@@ -234,8 +231,8 @@ Let's set our default parameters for our system
 
 st.code(
     """
-wl_inter = 5
-mean_consult = 6
+mean_patient_inter_arrival_time = 5
+mean_consultation_length = 6
 """
 )
 
@@ -244,7 +241,6 @@ And make an empty list to store our waits
 """
 
 st.code("""
-
 list_of_queueing_times_nurse = []
         """
 )
@@ -257,8 +253,8 @@ st.code(
    """
 env.process(patient_generator(
     env, # Tell it to use our virtual world
-    wl_inter, # Tell it the average time between patients arriving
-    mean_consult, # Tell it the average time between patients
+    mean_patient_inter_arrival_time, # Tell it the average time between patients arriving
+    mean_consultation_length, # Tell it the average time a consultation takes
     nurse # Tell it to use the nurse we created
     )
     """,
