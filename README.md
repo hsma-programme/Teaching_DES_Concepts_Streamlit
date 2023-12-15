@@ -1,5 +1,3 @@
-**Work in progress - under active development**
-
 This is a Streamlit application designed to walk people new to discrete event simulation through the key concepts.
 It will be used at the open day for the HSMA 6 programme. 
 
@@ -10,6 +8,8 @@ It will allow them to get comfortable with the idea of
 - generating and using resources
 - branching paths
 - optimising systems
+
+The slides accompanying this session can be viewed [here](https://docs.google.com/presentation/d/16-p7fdw59Q4ewXPv1sLrEajmQIZu6rgMvZQqIRJGjkw/edit?usp=sharing)
 
 A version of the final model can also be loaded in Google Colab.
 <a target="_blank" href="https://colab.research.google.com/github/hsma-programme/Teaching_DES_Concepts_Streamlit/blob/main/nb_4_full_model.ipynb">
