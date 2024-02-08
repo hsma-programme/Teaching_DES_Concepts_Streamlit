@@ -1,7 +1,13 @@
 '''
-A Streamlit application based on Monks and 
+A page containing information about
 
-Allows users to interact with an increasingly more complex treatment simulation 
+---
+
+A Streamlit application based on the open treatment centre simulation model from Monks.T, Harper.A, Anagnoustou. A, Allen.M, Taylor.S. (2022)
+
+Original Model: https://github.com/TomMonks/treatment-centre-sim/tree/main
+
+Allows users to interact with an increasingly complex treatment centre simulation
 '''
 import gc
 import streamlit as st
@@ -28,7 +34,7 @@ gc.collect()
 
 st.markdown(
     """
-    Joining the HSMA programme will give you access to 
+    Joining the HSMA programme will give you access to
     - three sessions on discrete event simulation
     - a session on system dynamics modelling (for large, system-scale problems)
     - sessions on cellular automata and agent-based simulation (for modelling interactions and motivations of individuals that lead to high-level patterns, e.g. to look at the spread of disease)
@@ -45,7 +51,7 @@ st.markdown(
 
     However - if you apply to HSMA 6, you will get the benefit of support from the HSMA team as well as a peer support group.
 
-    We're always revising our content, so HSMA 6 will be bigger and better than ever before! 
+    We're always revising our content, so HSMA 6 will be bigger and better than ever before!
     """
 )
 
@@ -73,6 +79,12 @@ st.markdown(
     Finally, this whole exercise website has been written in Streamlit - another topic we cover on the course!
     Streamlit allows you to create highly customisable websites that allow you to share results with users and give them the freedom to interact with powerful Python code without needing Python on their own computers.
 
-    Two brand new sessions on Streamlit are being created for HSMA 6 - so apply now if you want to find out more! 
+    Two brand new sessions on Streamlit are being created for HSMA 6 - so apply now if you want to find out more!
     """
 )
+
+st.subheader("Where Can I Find the Code for this Model?")
+
+st.markdown("All of the code used to make this model, the visualisation and the streamlit app can be found in [this GitHub repository](https://github.com/hsma-programme/Teaching_DES_Concepts_Streamlit).")
+
+st.markdown("The code is available under the MIT licence so may be freely used and adapted - though we'd love to hear about it if you do use the app or code!")
