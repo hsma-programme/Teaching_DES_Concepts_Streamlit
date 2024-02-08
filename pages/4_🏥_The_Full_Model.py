@@ -40,7 +40,7 @@ st.markdown("Once you have run more than one scenario, try out the new tab 'comp
 gc.collect()
 
 # tab1, tab2, tab3, tab4 = st.tabs(["Introduction", "Exercises", "Playground", "Compare Scenario Outputs"])
-tab1, tab2, tab3, tab4 = st.tabs(["Playground", "Exercise", "Compare Scenario Outputs", "Information"])
+tab4, tab2, tab1, tab3 = st.tabs(["Information", "Exercise", "Playground", "Compare Scenario Outputs"])
 
 with tab4:
     st.markdown("""

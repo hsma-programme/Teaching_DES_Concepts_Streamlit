@@ -34,7 +34,7 @@ st.subheader("Making Patients Behave Differently: Adding in an Optional Step")
 gc.collect()
 
 # tab1, tab2, tab3 = st.tabs(["Introduction", "Exercise", "Playground"])
-tab1, tab2, tab3 = st.tabs(["Playground", "Exercise", "Information"])
+tab3, tab2, tab1 = st.tabs(["Information", "Exercise", "Playground"])
 
 with tab3:
 
@@ -47,7 +47,7 @@ with tab3:
                 """)
 
 
-    mermaid(height=225, code=
+    mermaid(height=175, code=
         """
                 %%{ init: { 'flowchart': { 'curve': 'step' } } }%%
                 %%{ init: {  'theme': 'base', 'themeVariables': {'lineColor': '#b4b4b4'} } }%%
@@ -72,7 +72,7 @@ with tab3:
 
     st.markdown("But for other simpler cases, their pathway still looks like this!")
 
-    mermaid(height=225, code=
+    mermaid(height=175, code=
         """
                 %%{ init: { 'flowchart': { 'curve': 'step' } } }%%
                 %%{ init: {  'theme': 'base', 'themeVariables': {'lineColor': '#b4b4b4'} } }%%

@@ -36,7 +36,7 @@ st.subheader("Using a Simple Resource: Sending Patients to be Treated")
 gc.collect()
 
 # tab1, tab2, tab3 = st.tabs(["Introduction", "Exercise", "Playground"])
-tab1, tab2, tab3 = st.tabs(["Playground", "Exercise", "Information"])
+tab3, tab2, tab1 = st.tabs(["Information", "Exercise", "Playground"])
 
 with tab3:
 
