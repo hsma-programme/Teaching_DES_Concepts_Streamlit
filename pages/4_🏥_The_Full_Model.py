@@ -11,7 +11,7 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
-
+import numpy as np
 from helper_functions import add_logo, mermaid, center_running
 from model_classes import Scenario, multiple_replications
 from output_animation_functions import reshape_for_animations, generate_animation_df, generate_animation
@@ -754,7 +754,7 @@ with tab3:
                 all_run_util_bar.update_xaxes(title_text='Resource Utilisation (%)')
 
                 all_run_util_bar.update_layout(xaxis_tickformat = '.0%',
-                                               legend_title_text='Model Run')
+                                               legend_title_text='Scenario')
 
                 st.plotly_chart(
                     all_run_util_bar,
@@ -784,7 +784,7 @@ with tab3:
 
                 all_run_wait_bar.update_xaxes(title_text='Wait for Stage (minutes)')
 
-                all_run_wait_bar.update_layout(legend_title_text='Model Run')
+                all_run_wait_bar.update_layout(legend_title_text='Scenario')
 
                 all_run_wait_bar.add_vrect(x0=0, x1=60*2, fillcolor="#5DFDA0",
                                           opacity=0.3, line_width=0)
@@ -836,7 +836,7 @@ with tab3:
                 all_run_util_box.update_xaxes(title_text='Resource Utilisation (%)')
 
                 all_run_util_box.update_layout(xaxis_tickformat = '.0%',
-                                               legend_title_text='Model Run')
+                                               legend_title_text='Scenario')
 
                 st.plotly_chart(all_run_util_box,
                     use_container_width=True
@@ -872,7 +872,7 @@ with tab3:
                 all_run_wait_box.add_vrect(x0=0, x1=60*2, fillcolor="#5DFDA0",
                                           opacity=0.3, line_width=0)
 
-                all_run_wait_box.update_layout(legend_title_text='Model Run')
+                all_run_wait_box.update_layout(legend_title_text='Scenario')
 
                 # Add in a box plot showing waits
                 st.plotly_chart(all_run_wait_box,
@@ -903,7 +903,7 @@ with tab3:
                     height=800)
 
                 all_results_throughput_box.update_layout(xaxis_tickformat = '.0%',
-                                                         legend_title_text='Model Run')
+                                                         legend_title_text='Scenario')
 
                 all_run_util_bar.update_yaxes(title_text='',
                                               labelalias={
@@ -929,7 +929,7 @@ with tab3:
 
 
             st.markdown("This displays the median value for each metric across all model runs per scenario.")
-            import numpy as np
+
             output_scenario_df = all_run_results.groupby('Model Run').median().T
             output_scenario_df = output_scenario_df.reset_index(drop=False).melt(id_vars="index")
             # st.dataframe(output_scenario_df)
