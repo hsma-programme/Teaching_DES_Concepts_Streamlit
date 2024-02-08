@@ -1,7 +1,9 @@
 '''
-A Streamlit application based on Monks and
+A Streamlit application based on the open treatment centre simulation model from Monks.T, Harper.A, Anagnoustou. A, Allen.M, Taylor.S. (2022)
 
-Allows users to interact with an increasingly more complex treatment simulation
+Original Model: https://github.com/TomMonks/treatment-centre-sim/tree/main
+
+Allows users to interact with an increasingly complex treatment simulation
 '''
 import time
 import asyncio

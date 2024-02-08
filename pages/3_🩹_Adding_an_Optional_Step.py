@@ -1,7 +1,9 @@
 '''
-A Streamlit application based on Monks and
+A Streamlit application based on the open treatment centre simulation model from Monks.T, Harper.A, Anagnoustou. A, Allen.M, Taylor.S. (2022)
 
-Allows users to interact with an increasingly more complex treatment simulation
+Original Model: https://github.com/TomMonks/treatment-centre-sim/tree/main
+
+Allows users to interact with an increasingly complex treatment simulation
 '''
 import asyncio
 import gc
@@ -365,7 +367,12 @@ with tab1:
                 util_fig_simple.add_bar(x=results.mean().filter(like="util").index.tolist(),
                                         y=results.mean().filter(like="util").tolist())
 
-                util_fig_simple.update_layout(yaxis_tickformat = '.0%')
+                util_fig_simple.update_layout(
+                    yaxis_tickformat = '.0%',
+                    title=dict(text="Utilisation of Resources - Average Across Simulation Runs",
+                               automargin=True,
+                               yref='paper')
+                               )
                 util_fig_simple.update_yaxes(title_text='Resource Utilisation (%)',
                                              range=[-0.05, 1.1])
                 # util_fig_simple.data = util_fig_simple.data[::-1]
@@ -413,7 +420,12 @@ with tab1:
                 # wait_fig_simple.data = wait_fig_simple.data[::-1]
                 wait_fig_simple.update_yaxes(title_text='Wait for Process Stage (Minutes)')
 
-                wait_fig_simple.update_layout(margin=dict(l=0, r=0, t=0, b=0))
+                wait_fig_simple.update_layout(
+                    margin=dict(l=0, r=0, t=0, b=0),
+                    title=dict(text="Waits at Each Step - Average Across Simulation Runs",
+                               automargin=True,
+                               yref='paper')
+                    )
 
                 st.plotly_chart(
                     wait_fig_simple,
@@ -447,8 +459,13 @@ with tab1:
                 }, tickangle=0)
                 # wait_fig_simple.data = wait_fig_simple.data[::-1]
                 wait_target_simple.update_yaxes(title_text='Average % of patients where 2 hour wait target met')
-                wait_target_simple.update_layout(margin=dict(l=0, r=0, t=0, b=0),
-                                                 yaxis_tickformat = '.0%')
+                wait_target_simple.update_layout(
+                    margin=dict(l=0, r=0, t=0, b=0),
+                    yaxis_tickformat = '.0%',
+                    title=dict(text="% of Patients Waiting Less than Target Time - Average Across Simulation Runs",
+                               automargin=True,
+                               yref='paper')
+                    )
 
                 st.plotly_chart(
                     wait_target_simple,
