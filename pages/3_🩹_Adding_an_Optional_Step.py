@@ -1,7 +1,7 @@
 '''
-A Streamlit application based on Monks and 
+A Streamlit application based on Monks and
 
-Allows users to interact with an increasingly more complex treatment simulation 
+Allows users to interact with an increasingly more complex treatment simulation
 '''
 import asyncio
 import gc
@@ -10,7 +10,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
 
-from output_animation_functions import reshape_for_animations,animate_activity_log
+from output_animation_functions import reshape_for_animations, generate_animation_df, generate_animation
 from helper_functions import add_logo, mermaid, center_running
 from model_classes import Scenario, multiple_replications
 
@@ -42,7 +42,7 @@ with tab3:
                 Now, it's not as simple as all of our patients being looked at by a nurse and then sent on their merry way.
 
                 Some of them - but not all of them - may require another step where they undergo some treatment.
-                
+
                 So for some people, their pathway looks like this:
                 """)
 
@@ -52,12 +52,12 @@ with tab3:
                 %%{ init: { 'flowchart': { 'curve': 'step' } } }%%
                 %%{ init: {  'theme': 'base', 'themeVariables': {'lineColor': '#b4b4b4'} } }%%
                 flowchart LR
-                
+
                 A[Arrival]----> B[Advice]
-                
+
                 B -.-> F([Nurse/Cubicle])
                 F -.-> B
-                
+
                 B----> C[Treatment]
 
                 C -.-> G([Nurse/Cubicle])
@@ -77,12 +77,12 @@ with tab3:
                 %%{ init: { 'flowchart': { 'curve': 'step' } } }%%
                 %%{ init: {  'theme': 'base', 'themeVariables': {'lineColor': '#b4b4b4'} } }%%
                 flowchart LR
-                
+
                 A[Arrival]----> B[Advice]
-                
+
                 B -.-> F([Nurse/Cubicle])
                 F -.-> B
-                
+
                 B ----> Z[Discharge]
 
                 classDef default font-size:18pt,font-family:lexend;
@@ -94,9 +94,9 @@ with tab3:
         """
         So how do we ensure that some of our patients go down one pathway and not the other?
 
-        You guessed it - the answer is sampling from a distribution again! 
+        You guessed it - the answer is sampling from a distribution again!
 
-        We can tell the computer the rough split we'd like to say - let's say 30% of our patients need the treatment step, but the other 70% will 
+        We can tell the computer the rough split we'd like to say - let's say 30% of our patients need the treatment step, but the other 70% will
 
         And as before, there will be a bit of randomness, just like in the real world.
         In one simulation, we might end up with a 69/31 split, and the next might be 72/28, but it will always be around the expected split we've asked for.
@@ -114,12 +114,12 @@ with tab3:
                 %%{ init: { 'flowchart': { 'curve': 'step' } } }%%
                 %%{ init: {  'theme': 'base', 'themeVariables': {'lineColor': '#b4b4b4'} } }%%
                 flowchart LR
-                
+
                 A[Arrival]--> B[Advice]
-                
+
                 B -.-> F([Nurse/Cubicle])
                 F -.-> B
-                
+
                 B----> |30% of patients| C[Treatment]
 
                 C -.-> G([Nurse/Cubicle])
@@ -137,14 +137,14 @@ with tab2:
     st.markdown(
     """
     ### Things to Try Out
-    
+
     - Run the simulation with the default values and look at the graph 'Percentage of clients requiring treatment per simulation run' on the 'Simple Graphs' tab after running the model. This shows the split between patients who do and don't require treatment. What do you notice?
     ---
     - What impact does changing the number of patients who go down this extra route (the 'probability that a patient will need treatment') have on our treatment centre's performance with the default number of nurses and doctors at each stage?
     ---
-    - Change the split of patients requiring treatment back to 0.5. 
+    - Change the split of patients requiring treatment back to 0.5.
         - Can you optimize the number of nurses or doctors at each step for the different pathways to balance resource utilisation and queues?
-    
+
     """
     )
 
@@ -173,7 +173,7 @@ with tab1:
 
         consult_time_sd_treat = st.slider("🕔 🕣 How much (in minutes) does the time for treatment usually vary by?",
                                         5, 60, step=5, value=30)
-        
+
     with col3:
         st.subheader("Pathway Probabilities")
         treat_p = st.slider("🤕 Probability that a patient will need treatment", 0.0, 1.0, step=0.01, value=0.5)
@@ -184,26 +184,26 @@ with tab1:
             seed = st.slider("🎲 Set a random number for the computer to start from",
                             1, 1000,
                             step=1, value=42)
-            
+
             n_reps = st.slider("🔁 How many times should the simulation run?",
                             1, 30,
                             step=1, value=6)
-            
+
             run_time_days = st.slider("🗓️ How many days should we run the simulation for each time?",
                                     1, 40,
                                     step=1, value=10)
 
-        
+
             mean_arrivals_per_day = st.slider("🧍 How many patients should arrive per day on average?",
                                             10, 300,
-                                            step=5, value=140)    
-        
+                                            step=5, value=140)
 
-        
+
+
 
     # A user must press a streamlit button to run the model
     button_run_pressed = st.button("Run simulation")
-    
+
     args = Scenario(
             random_number_set=seed,
             n_exam=nurses_advice,
@@ -217,7 +217,7 @@ with tab1:
             non_trauma_treat_var=consult_time_sd_treat,
             non_trauma_treat_p=treat_p
             )
-    
+
     if button_run_pressed:
 
         # add a spinner and then display success box
@@ -233,10 +233,10 @@ with tab1:
 
             results = pd.concat([detailed_outputs[i]['results']['summary_df'].assign(rep= i+1)
                                         for i in range(n_reps)]).set_index('rep')
-            
+
             full_event_log = pd.concat([detailed_outputs[i]['results']['full_event_log'].assign(rep= i+1)
                                             for i in range(n_reps)])
-            
+
             del detailed_outputs
             gc.collect()
 
@@ -244,23 +244,23 @@ with tab1:
                 (full_event_log["event"]=="requires_treatment")][['patient','event','rep']].groupby(['rep','event']).count()
 
             animation_dfs_log = reshape_for_animations(
-                        full_event_log=full_event_log[
+                        event_log=full_event_log[
                             (full_event_log['rep']==1) &
-                            ((full_event_log['event_type']=='queue') | (full_event_log['event_type']=='resource_use')  | (full_event_log['event_type']=='arrival_departure')) &
-                            # Limit to first 5 days
-                            (full_event_log['time'] <= 60*24*5)
+                            ((full_event_log['event_type']=='queue') | (full_event_log['event_type']=='resource_use')  | (full_event_log['event_type']=='arrival_departure'))
                         ],
-                        every_x_minutes=5
-                    )['full_patient_df']
-            
+                        every_x_time_units=5,
+                        step_snapshot_max=45,
+                        limit_duration=60*24*5
+                    )
+
             del full_event_log
             gc.collect()
 
     if button_run_pressed:
         tab1, tab2, tab3 = st.tabs(
                 ["Animated Log", "Simple Graphs", "Advanced Graphs"]
-            )  
-        
+            )
+
     #     st.markdown("""
     # You can click on the three tabs below ("Animated Log", "Simple Graphs", and "Advanced Graphs") to view different outputs from the model.
     #                 """)
@@ -269,31 +269,31 @@ with tab1:
 
             st.markdown(
     """
-    The plot below shows a snapshot every 5 minutes of the position of everyone in our emergency department model. 
-    
-    The buttons to the left of the slider below the plot can be used to start and stop the animation. 
+    The plot below shows a snapshot every 5 minutes of the position of everyone in our emergency department model.
 
-    Clicking on the bar below the plot and dragging your cursor to the left or right allows you to rapidly jump through to a different time in the simulation. 
+    The buttons to the left of the slider below the plot can be used to start and stop the animation.
 
-    Only the first replication of the simulation is shown. 
+    Clicking on the bar below the plot and dragging your cursor to the left or right allows you to rapidly jump through to a different time in the simulation.
+
+    Only the first replication of the simulation is shown.
     """
                 )
-            
+
             event_position_df = pd.DataFrame([
                             {'event': 'arrival', 'x':  50, 'y': 300,
                              'label': "Arrival" },
                             # Examination
-                            {'event': 'examination_wait_begins', 'x':  275, 'y': 360,
+                            {'event': 'examination_wait_begins', 'x':  265, 'y': 360,
                              'label': "Waiting for Examination"  },
-                            {'event': 'examination_begins', 'x':  275, 'y': 310,
+                            {'event': 'examination_begins', 'x':  265, 'y': 310,
                              'resource':'n_exam', 'label': "Being Examined" },
-                            # Treatment (optional step)                
-                            {'event': 'treatment_wait_begins', 'x':  430, 'y': 110, 
+                            # Treatment (optional step)
+                            {'event': 'treatment_wait_begins', 'x':  410, 'y': 110,
                              'label': "Waiting for Treatment"  },
-                            {'event': 'treatment_begins', 'x':  430, 'y': 70,
+                            {'event': 'treatment_begins', 'x':  410, 'y': 70,
                              'resource':'n_cubicles_1', 'label': "Being Treated" },
 
-                            {'event': 'exit', 'x':  450, 'y': 220, 
+                            {'event': 'exit', 'x':  450, 'y': 220,
                              'label': "Exit"},
 
                         ])
@@ -301,31 +301,38 @@ with tab1:
             with st.spinner('Generating the animated patient log...'):
                 # st.write(animation_dfs_log[animation_dfs_log["minute"]<=60*24*5])
 
-                st.plotly_chart(animate_activity_log(
-                                    full_patient_df=animation_dfs_log[animation_dfs_log["minute"]<=60*24*5],
+                full_patient_df_plus_pos = generate_animation_df(
+                    full_patient_df=animation_dfs_log,
+                    event_position_df = event_position_df,
+                    wrap_queues_at=15,
+                    gap_between_entities=10,
+                    gap_between_rows=20,
+                    step_snapshot_max=45
+                    )
+
+                st.plotly_chart(generate_animation(
+                                    full_patient_df_plus_pos=full_patient_df_plus_pos,
                                     event_position_df = event_position_df,
                                     scenario=args,
                                     include_play_button=True,
                                     display_stage_labels=False,
-                                    return_df_only=False,
                                     plotly_height=700,
-                                    plotly_width=1100,
+                                    plotly_width=1000,
                                     override_x_max=500,
                                     override_y_max=400,
-                                    wrap_queues_at=20,
-                                    icon_and_text_size=18,
+                                    icon_and_text_size=20,
                                     time_display_units="dhm",
                                     add_background_image="https://raw.githubusercontent.com/hsma-programme/Teaching_DES_Concepts_Streamlit/main/resources/Branched%20Model%20Background%20Image%20-%20Horizontal%20Layout.drawio.png",
                             ), use_container_width=False,
                                config = {'displayModeBar': False})
-                
+
                 del animation_dfs_log
                 gc.collect()
-        
+
         with tab2:
             in_range_util = sum((results.mean().filter(like="util")<0.85) & (results.mean().filter(like="util") > 0.65))
-            in_range_wait = sum((results.mean().filter(regex="01a|02a")<120))            
-            in_range_wait_perc = sum((results.mean().filter(like="01c")>0.85))        
+            in_range_wait = sum((results.mean().filter(regex="01a|02a")<120))
+            in_range_wait_perc = sum((results.mean().filter(like="01c")>0.85))
 
             col_res_a, col_res_b = st.columns([1,1])
 
@@ -335,9 +342,9 @@ with tab1:
                 #util_fig_simple = px.bar(results.mean().filter(like="util"), opacity=0.5)
                 st.markdown(
                     """
-                    The emergency department wants to aim for an average of 65% to 85% utilisation across all resources in the emergency department. 
-                    The green box shows this ideal range. If the bars overlap with the green box, utilisation is ideal. 
-                    If utilisation is below this, you might want to **reduce** the number of those resources available. 
+                    The emergency department wants to aim for an average of 65% to 85% utilisation across all resources in the emergency department.
+                    The green box shows this ideal range. If the bars overlap with the green box, utilisation is ideal.
+                    If utilisation is below this, you might want to **reduce** the number of those resources available.
                     If utilisation is above this point, you may want to **increase** the number of that type of resource available.
                     """
                 )
@@ -363,9 +370,9 @@ with tab1:
                                              range=[-0.05, 1.1])
                 # util_fig_simple.data = util_fig_simple.data[::-1]
                 util_fig_simple.update_xaxes(labelalias={
-                    "01b_treatment_util": "Treatment Bays", 
+                    "01b_treatment_util": "Treatment Bays",
                 }, tickangle=0)
-                
+
                 util_fig_simple.update_layout(margin=dict(l=0, r=0, t=0, b=0))
 
                 util_fig_simple.update_xaxes(labelalias={
@@ -379,7 +386,7 @@ with tab1:
                     config = {'displayModeBar': False}
                 )
 
-            
+
             with col_res_b:
                 #util_fig_simple = px.bar(results.mean().filter(like="wait"), opacity=0.5)
                 st.metric(label=":clock2: **Wait Metrics in Ideal Range**", value="{} of {}".format(in_range_wait, len(results.mean().filter(regex="01a|02a"))))
@@ -393,9 +400,9 @@ with tab1:
                 )
 
                 wait_fig_simple = go.Figure()
-                wait_fig_simple.add_hrect(y0=0, y1=60*2, fillcolor="#5DFDA0", 
+                wait_fig_simple.add_hrect(y0=0, y1=60*2, fillcolor="#5DFDA0",
                                           opacity=0.3, line_width=0)
-                
+
                 wait_fig_simple.add_bar(x=results.mean().filter(regex="01a|02a").index.tolist(),
                                         y=results.mean().filter(regex="01a|02a").tolist())
 
@@ -429,18 +436,18 @@ with tab1:
                 )
 
                 wait_target_simple = go.Figure()
-                wait_target_simple.add_hrect(y0=0.85, y1=1, fillcolor="#5DFDA0", 
+                wait_target_simple.add_hrect(y0=0.85, y1=1, fillcolor="#5DFDA0",
                                           opacity=0.3, line_width=0)
-                
+
                 wait_target_simple.add_bar(x=results.median().filter(like="01c").index.tolist(),
                                         y=results.median().filter(like="01c").tolist())
 
                 wait_target_simple.update_xaxes(labelalias={
-                    "01c_examination_wait_target_met": "Examination Wait - Target Met" 
+                    "01c_examination_wait_target_met": "Examination Wait - Target Met"
                 }, tickangle=0)
                 # wait_fig_simple.data = wait_fig_simple.data[::-1]
                 wait_target_simple.update_yaxes(title_text='Average % of patients where 2 hour wait target met')
-                wait_target_simple.update_layout(margin=dict(l=0, r=0, t=0, b=0), 
+                wait_target_simple.update_layout(margin=dict(l=0, r=0, t=0, b=0),
                                                  yaxis_tickformat = '.0%')
 
                 st.plotly_chart(
@@ -457,7 +464,7 @@ with tab1:
                 # st.write(attribute_count_df)
 
                 attribute_count_fig = px.bar(
-                        attribute_count_df.reset_index(drop=False), 
+                        attribute_count_df.reset_index(drop=False),
                         x="rep", y="perc", color="event")
 
                 attribute_count_fig.add_hline(y=treat_p*100, line_dash="dash", line_color="#932727")
@@ -482,7 +489,7 @@ with tab1:
                     attribute_count_fig,
                         use_container_width=True
                         )
-                
+
                 del attribute_count_df
                 gc.collect()
 
@@ -492,9 +499,9 @@ with tab1:
 
             st.markdown(
             """
-            We can use **box plots** to help us understand the variation in each result during a model run. 
-            
-            Because of the variation in the patterns of arrivals, as well as the variation in the length of consultations, we may find that sometimes model runs fall within our desired ranges but other times, despite the parameters being the same, they don't. 
+            We can use **box plots** to help us understand the variation in each result during a model run.
+
+            Because of the variation in the patterns of arrivals, as well as the variation in the length of consultations, we may find that sometimes model runs fall within our desired ranges but other times, despite the parameters being the same, they don't.
 
             This gives us a better idea of how likely a redesigned system is to meet the targets.
             """
@@ -504,14 +511,14 @@ with tab1:
                         ### Utilisation
                         """)
             util_box = px.box(
-                    results.reset_index().melt(id_vars=["rep"]).set_index('variable').filter(like="util", axis=0).reset_index(), 
-                    y="variable", 
+                    results.reset_index().melt(id_vars=["rep"]).set_index('variable').filter(like="util", axis=0).reset_index(),
+                    y="variable",
                     x="value",
                     points="all",
                     range_x=[0, 1.1],
                     height=200)
-            
-            util_box.update_layout(yaxis_title="", 
+
+            util_box.update_layout(yaxis_title="",
                                    xaxis_title="Average Utilisation in Model Run",
                                    xaxis_tickformat = '.0%')
 
@@ -537,14 +544,14 @@ with tab1:
             st.plotly_chart(util_box,
                     use_container_width=True
                 )
-                
+
 
             st.markdown("""
                         ### Waits
                         """)
             wait_box = px.box(
-                    results.reset_index().melt(id_vars=["rep"]).set_index('variable').filter(regex="01a|02a", axis=0).reset_index(), 
-                    y="variable", 
+                    results.reset_index().melt(id_vars=["rep"]).set_index('variable').filter(regex="01a|02a", axis=0).reset_index(),
+                    y="variable",
                     x="value",
                     points="all",
                     height=200,
@@ -557,7 +564,7 @@ with tab1:
                 "01a_examination_wait": "Examination<br>(Nurses)"
                 }, tickangle=0)
 
-            wait_box.add_vrect(x0=0, x1=60*2, fillcolor="#5DFDA0", 
+            wait_box.add_vrect(x0=0, x1=60*2, fillcolor="#5DFDA0",
                                           opacity=0.3, line_width=0)
 
             st.plotly_chart(wait_box,
@@ -570,15 +577,15 @@ with tab1:
                         """)
 
             wait_target_box = px.box(
-                    results.reset_index().melt(id_vars=["rep"]).set_index('variable').filter(like="1c", axis=0).reset_index(), 
-                    y="variable", 
+                    results.reset_index().melt(id_vars=["rep"]).set_index('variable').filter(like="1c", axis=0).reset_index(),
+                    y="variable",
                     x="value",
                     points="all",
                     height=200,
                     range_x=[0, 1.1]
                     )
-            
-            wait_target_box.update_layout(yaxis_title="", 
+
+            wait_target_box.update_layout(yaxis_title="",
                                           xaxis_title="% of clients meeting waiting time target",
                                           xaxis_tickformat = '.0%')
 
@@ -590,26 +597,26 @@ with tab1:
             st.plotly_chart(wait_target_box,
                     use_container_width=True
                 )
- 
+
             st.markdown("""
                         ### Throughput
                         This is the percentage of clients who entered the system who had left by the time the model stopped running.
                         Higher values are better - low values suggest a big backlog of people getting stuck in the system for a long time.
-                        
+
                         Note that this isn't a good metric to compare across different lengths of model run, but can be useful to consider for the same length of run with different parameters.
                         """)
-            
+
             results['perc_throughput'] = results['09_throughput']/results['00_arrivals']
             throughput_box = px.box(
-                    results.reset_index().melt(id_vars=["rep"]).set_index('variable').filter(like="perc_throughput", axis=0).reset_index(), 
-                    y="variable", 
+                    results.reset_index().melt(id_vars=["rep"]).set_index('variable').filter(like="perc_throughput", axis=0).reset_index(),
+                    y="variable",
                     x="value",
                     points="all",
                     height=200,
                     range_x=[0, 1.1]
                     )
-            
-            throughput_box.update_layout(yaxis_title="", 
+
+            throughput_box.update_layout(yaxis_title="",
                                          xaxis_title="Throughput in Model Run",
                                          xaxis_tickformat = '.0%')
 
@@ -621,7 +628,7 @@ with tab1:
             st.plotly_chart(throughput_box,
                     use_container_width=True
                 )
-            
-            # Remove remaining objects we've finished with to minimize memory usage            
+
+            # Remove remaining objects we've finished with to minimize memory usage
             del results
             gc.collect()

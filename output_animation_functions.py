@@ -1,124 +1,152 @@
-import plotly.express as px
-import plotly.graph_objects as go
+import datetime as dt
+import gc
+import time
 import pandas as pd
 import numpy as np
-import datetime as dt
+import plotly.express as px
+import plotly.graph_objects as go
 
-def reshape_for_animations(full_event_log, every_x_minutes=10):
-    minute_dfs = list()
-    patient_dfs = list()
+def reshape_for_animations(event_log, 
+                           every_x_time_units=10,
+                           limit_duration=10*60*24,
+                           step_snapshot_max=50,
+                           debug_mode=False):
+    patient_dfs = []
 
-    for rep in range(1, max(full_event_log['rep'])+1):
-        # print("Rep {}".format(rep))
-        # Start by getting data for a single rep
-        filtered_log_rep = full_event_log[full_event_log['rep'] == rep].drop('rep', axis=1)
-        pivoted_log = filtered_log_rep.pivot_table(values="time", 
-                                            index=["patient","event_type","pathway"], 
-                                            columns="event").reset_index()
+    pivoted_log = event_log.pivot_table(values="time",
+                                        index=["patient","event_type","pathway"],
+                                        columns="event").reset_index()
+    
+    #TODO: Add in behaviour for if limit_duration is None
 
-        for minute in range(10*60*24):
-            # print(minute)
-            # Get patients who arrived before the current minute and who left the system after the current minute
-            # (or arrived but didn't reach the point of being seen before the model run ended)
-            # When turning this into a function, think we will want user to pass
-            # 'first step' and 'last step' or something similar
-            # and will want to reshape the event log for this so that it has a clear start/end regardless
-            # of pathway (move all the pathway stuff into a separate column?)
+    ################################################################################
+    # Iterate through every matching minute
+    # and generate snapshot df of position of any patients present at that moment
+    ################################################################################
+    for minute in range(limit_duration):
+        # print(minute)
+        # Get patients who arrived before the current minute and who left the system after the current minute
+        # (or arrived but didn't reach the point of being seen before the model run ended)
+        # When turning this into a function, think we will want user to pass
+        # 'first step' and 'last step' or something similar
+        # and will want to reshape the event log for this so that it has a clear start/end regardless
+        # of pathway (move all the pathway stuff into a separate column?)
 
-            # Think we maybe need a pathway order and pathway precedence column
-            # But what about shared elements of each pathway?
-            if minute % every_x_minutes == 0:
+        # Think we maybe need a pathway order and pathway precedence column
+        # But what about shared elements of each pathway?
+        if minute % every_x_time_units == 0:
+            try:
+                # Work out which patients - if any - were present in the simulation at the current time
+                # They will have arrived at or before the minute in question, and they will depart at
+                # or after the minute in question, or never depart during our model run
+                # (which can happen if they arrive towards the end, or there is a bottleneck)
+                current_patients_in_moment = pivoted_log[(pivoted_log['arrival'] <= minute) & 
+                            (
+                                (pivoted_log['depart'] >= minute) |
+                                (pivoted_log['depart'].isnull() )
+                            )]['patient'].values
+            except KeyError:
+                current_patients_in_moment = None
 
-                try:
-                    current_patients_in_moment = pivoted_log[(pivoted_log['arrival'] <= minute) & 
-                                (
-                                    (pivoted_log['depart'] >= minute) |
-                                    (pivoted_log['depart'].isnull() )
-                                )]['patient'].values
-                except KeyError:
-                    current_patients_in_moment = None
+            # If we do have any patients, they will have been passed as a list
+            # so now just filter our event log down to the events these patients have been
+            # involved in
+            if current_patients_in_moment is not None:
+                # Grab just those clients from the filtered log (the unpivoted version)
+                # Filter out any events that have taken place after the minute we are interested in
+
+                patient_minute_df = event_log[
+                    (event_log['patient'].isin(current_patients_in_moment)) &
+                    (event_log['time'] <= minute)
+                    ]
+                # Each person can only be in a single place at once, and we have filtered out
+                # events that occurred later than the current minute, so filter out any events
+                # then just take the latest event that has taken place for each client
+                most_recent_events_minute_ungrouped = patient_minute_df \
+                    .reset_index(drop=False) \
+                    .sort_values(['time', 'index'], ascending=True) \
+                    .groupby(['patient']) \
+                    .tail(1) 
+
+                # Now rank patients within a given event by the order in which they turned up to that event
+                most_recent_events_minute_ungrouped['rank'] = most_recent_events_minute_ungrouped \
+                              .groupby(['event'])['index'] \
+                              .rank(method='first')
+
                 
-                if current_patients_in_moment is not None:
-                    patient_minute_df = filtered_log_rep[filtered_log_rep['patient'].isin(current_patients_in_moment)]
-                    # print(len(patient_minute_df))
-                    # Grab just those clients from the filtered log (the unpivoted version)
-                    # Each person can only be in a single place at once, so filter out any events
-                    # that have taken place after the minute
-                    # then just take the latest event that has taken place for each client
-                    # most_recent_events_minute = patient_minute_df[patient_minute_df['time'] <= minute] \
-                    #     .sort_values('time', ascending=True) \
-                    #     .groupby(['patient',"event_type","pathway"]) \
-                    #     .tail(1)  
+                most_recent_events_minute_ungrouped['max'] = most_recent_events_minute_ungrouped.groupby('event')['rank'] \
+                                                             .transform('max')
 
-                    most_recent_events_minute_ungrouped = patient_minute_df[patient_minute_df['time'] <= minute].reset_index() \
-                        .sort_values(['time', 'index'], ascending=True) \
-                        .groupby(['patient']) \
-                        .tail(1) 
+                most_recent_events_minute_ungrouped = most_recent_events_minute_ungrouped[
+                    most_recent_events_minute_ungrouped['rank'] <= (step_snapshot_max + 1)
+                    ].copy()
 
-                    patient_dfs.append(most_recent_events_minute_ungrouped.assign(minute=minute, rep=rep))
+                maximum_row_per_event_df = most_recent_events_minute_ungrouped[
+                    most_recent_events_minute_ungrouped['rank'] == float(step_snapshot_max + 1)
+                    ].copy()
 
-                    # Now count how many people are in each state
-                    # CHECK - I THINK THIS IS PROBABLY DOUBLE COUNTING PEOPLE BECAUSE OF THE PATHWAY AND EVENT TYPE. JUST JOIN PATHWAY/EVENT TYPE BACK IN INSTEAD?
-                    state_counts_minute = most_recent_events_minute_ungrouped[['event']].value_counts().rename("count").reset_index().assign(minute=minute, rep=rep)
-                    
-                    minute_dfs.append(state_counts_minute)
+                maximum_row_per_event_df['additional'] = ''
 
+                if len(maximum_row_per_event_df) > 0:
+                    maximum_row_per_event_df['additional'] = maximum_row_per_event_df['max'] - maximum_row_per_event_df['rank']
+                    most_recent_events_minute_ungrouped = pd.concat(
+                        [most_recent_events_minute_ungrouped[most_recent_events_minute_ungrouped['rank'] != float(step_snapshot_max + 1)],
+                        maximum_row_per_event_df],
+                        ignore_index=True
+                    )
 
-    minute_counts_df = pd.concat(minute_dfs).merge(filtered_log_rep[['event','event_type', 'pathway']].drop_duplicates().reset_index(drop=True), on="event")
-    full_patient_df = pd.concat(patient_dfs).sort_values(["rep", "minute", "event"])
+                # Add this dataframe to our list of dataframes, and then return to the beginning
+                # of the loop and do this for the next minute of interest until we reach the end
+                # of the period of interest
+                patient_dfs.append(most_recent_events_minute_ungrouped
+                                   .drop(columns='max')
+                                   .assign(minute=minute))
+    if debug_mode:
+        print(f'Iteration through minute-by-minute logs complete {time.strftime("%H:%M:%S", time.localtime())}')
+
+    full_patient_df = (pd.concat(patient_dfs, ignore_index=True)).reset_index(drop=True)
+
+    if debug_mode:
+        print(f'Snapshot df concatenation complete at {time.strftime("%H:%M:%S", time.localtime())}')
+
+    del patient_dfs
+    gc.collect()
 
     # Add a final exit step for each client
-    final_step = full_patient_df.sort_values(["rep", "patient", "minute"], ascending=True).groupby(["rep", "patient"]).tail(1)
-    final_step['minute'] = final_step['minute'] + every_x_minutes
+    # This is helpful as it ensures all patients are visually seen to exit rather than 
+    # just disappearing after their final step
+    # It makes it easier to track the split of people going on to an optional step when
+    # this step is at the end of the pathway
+    # TODO: Fix so that everyone doesn't automatically exit at the end of the simulation run
+    final_step = full_patient_df.sort_values(["patient", "minute"], ascending=True) \
+                 .groupby(["patient"]) \
+                 .tail(1)
+
+    final_step['minute'] = final_step['minute'] + every_x_time_units
     final_step['event'] = "exit"
-    # final_step['event_type'] = "arrival_departure"
 
-    full_patient_df = full_patient_df.append(final_step)
+    full_patient_df = pd.concat([full_patient_df, final_step], ignore_index=True)
 
-    minute_counts_df_pivoted = minute_counts_df.pivot_table(values="count", 
-                                            index=["minute", "rep", "event_type", "pathway"], 
-                                            columns="event").reset_index().fillna(0)
+    del final_step
+    gc.collect()
 
-    minute_counts_df_complete = minute_counts_df_pivoted.melt(id_vars=["minute", "rep","event_type","pathway"])
+    return full_patient_df.sort_values(["minute", "event"]).reset_index(drop=True)
 
-    return {
-        "minute_counts_df": minute_counts_df,
-        "minute_counts_df_complete": minute_counts_df_complete,
-        "full_patient_df": full_patient_df.sort_values(["rep", "minute", "event"])
-        
-    }
-
-
-# ['TRAUMA_triage_wait_begins', 'TRAUMA_triage_begins', 'TRAUMA_triage_complete', 
-#                                     'TRAUMA_stabilisation_wait_begins', 'TRAUMA_stabilisation_begins', 'TRAUMA_stabilisation_complete', 
-#                                     'TRAUMA_treatment_wait_begins', 'TRAUMA_treatment_begins', 'TRAUMA_treatment_wait_begins'
-#                                     ]
-
-
-def animate_activity_log(
+def generate_animation_df(
         full_patient_df,
         event_position_df,
-        scenario,
-        rep=1,
-        plotly_height=900,
-        plotly_width=None,
-        wrap_queues_at=None,
-        include_play_button=True,
-        return_df_only=False,
-        add_background_image=None,
-        display_stage_labels=True,
-        icon_and_text_size=24,
-        override_x_max=None,
-        override_y_max=None,
-        time_display_units=None,
-        setup_mode=False,
-        frame_duration=400, #milliseconds
-        frame_transition_duration=600 #milliseconds
-        ):
+        wrap_queues_at=20,
+        step_snapshot_max=50,
+        gap_between_entities=10,
+        gap_between_resources=10,
+        gap_between_rows=30,
+        debug_mode=False
+):
     """_summary_
 
     Args:
         full_patient_df (pd.Dataframe): 
+            output of reshape_for_animation()
         
         event_position_dicts (pd.Dataframe): 
             dataframe with three cols - event, x and y
@@ -143,45 +171,53 @@ def animate_activity_log(
 
     # Filter to only a single replication
 
-    # TODO: Remove this from this function, and instead write a test
-    # to ensure that no patient ID appears in multiple places at a single minute
+    # TODO: Write a test  to ensure that no patient ID appears in multiple places at a single minute
     # and return an error if it does so
-    # Move the step of ensuring there's only a single model run involved to outside
-    # of this function as it's not really its job. 
 
-    full_patient_df = full_patient_df[full_patient_df['rep'] == rep].sort_values([
-        'event','minute','time'
-        ])
-
-    # full_patient_df['count'] = full_patient_df.groupby(['event','minute','rep'])['minute'] \
-    #                            .transform('count')
-    
     # Order patients within event/minute/rep to determine their eventual position in the line
-    full_patient_df['rank'] = full_patient_df.groupby(['event','minute','rep'])['minute'] \
+    full_patient_df['rank'] = full_patient_df.groupby(['event','minute'])['minute'] \
                               .rank(method='first')
 
     full_patient_df_plus_pos = full_patient_df.merge(event_position_df, on="event", how='left') \
-                             .sort_values(["rep", "event", "minute", "time"])
+                             .sort_values(["event", "minute", "time"])
 
     # Determine the position for any resource use steps
     resource_use = full_patient_df_plus_pos[full_patient_df_plus_pos['event_type'] == "resource_use"].copy()
-    resource_use['y_final'] =  resource_use['y']
-    resource_use['x_final'] = resource_use['x'] - resource_use['resource_id']*10
+    # resource_use['y_final'] =  resource_use['y']
+    
+    if len(resource_use) > 0:
+        resource_use = resource_use.rename(columns={"y": "y_final"})
+        resource_use['x_final'] = resource_use['x'] - resource_use['resource_id'] * gap_between_resources
 
     # Determine the position for any queuing steps
-    queues = full_patient_df_plus_pos[full_patient_df_plus_pos['event_type']=='queue']
-    queues['y_final'] =  queues['y']
-    queues['x_final'] = queues['x'] - queues['rank']*10
+    queues = full_patient_df_plus_pos[full_patient_df_plus_pos['event_type']=='queue'].copy()
+    # queues['y_final'] =  queues['y']
+    queues = queues.rename(columns={"y": "y_final"})
+    queues['x_final'] = queues['x'] - queues['rank'] * gap_between_entities
 
     # If we want people to wrap at a certain queue length, do this here
     # They'll wrap at the defined point and then the queue will start expanding upwards
     # from the starting row
     if wrap_queues_at is not None:
-        queues['row'] = np.floor((queues['rank']) / (wrap_queues_at+1))
-        queues['x_final'] = queues['x_final'] + (wrap_queues_at*queues['row']*10)
-        queues['y_final'] = queues['y_final'] + (queues['row'] * 30)
+        queues['row'] = np.floor((queues['rank'] - 1) / (wrap_queues_at))
+        queues['x_final'] = queues['x_final'] + (wrap_queues_at * queues['row'] * gap_between_entities) + gap_between_entities
+        queues['y_final'] = queues['y_final'] + (queues['row'] * gap_between_rows)
 
-    full_patient_df_plus_pos = pd.concat([queues, resource_use])
+    queues['x_final'] = np.where(queues['rank'] != step_snapshot_max + 1, 
+                                 queues['x_final'], 
+                                queues['x_final'] - (gap_between_entities * (wrap_queues_at/2)))
+   
+
+    if len(resource_use) > 0:
+        full_patient_df_plus_pos = pd.concat([queues, resource_use], ignore_index=True)
+        del resource_use, queues
+    else:
+        full_patient_df_plus_pos = queues.copy()
+        del queues
+   
+
+    if debug_mode:
+        print(f'Placement dataframe finished construction at {time.strftime("%H:%M:%S", time.localtime())}')
 
     # full_patient_df_plus_pos['icon'] = '🙍'
 
@@ -216,9 +252,49 @@ def animate_activity_log(
         pd.DataFrame({'patient':list(individual_patients),
                       'icon':full_icon_list}),
         on="patient")
+    
+    if 'additional' in full_patient_df_plus_pos.columns:
+        exceeded_snapshot_limit = full_patient_df_plus_pos[full_patient_df_plus_pos['additional'].notna()].copy()
+        exceeded_snapshot_limit['icon'] = exceeded_snapshot_limit['additional'].apply(lambda x: f"+ {int(x):5d} more")
+        full_patient_df_plus_pos = pd.concat(
+            [
+                full_patient_df_plus_pos[full_patient_df_plus_pos['additional'].isna()], exceeded_snapshot_limit
+            ],
+            ignore_index=True
+        )
 
-    if return_df_only:
-        return full_patient_df_plus_pos
+    return full_patient_df_plus_pos
+
+
+
+def generate_animation(
+        full_patient_df_plus_pos,
+        event_position_df,
+        scenario=None,
+        plotly_height=900,
+        plotly_width=None,
+        include_play_button=True,
+        add_background_image=None,
+        display_stage_labels=True,
+        icon_and_text_size=24,
+        override_x_max=None,
+        override_y_max=None,
+        time_display_units=None,
+        start_date=None,
+        resource_opacity=0.8,
+        custom_resource_icon=None,
+        gap_between_resources=10,
+        setup_mode=False,
+        frame_duration=400, #milliseconds
+        frame_transition_duration=600, #milliseconds
+        debug_mode=False
+):
+    """_summary_
+
+    Args:
+        full_patient_df_plus_post (pd.Dataframe): 
+            generate_animation_df()
+    """
 
     if override_x_max is not None:
         x_max = override_x_max
@@ -248,16 +324,31 @@ def animate_activity_log(
         full_patient_df_plus_pos['minute'] = full_patient_df_plus_pos['minute'].apply(
             lambda x: dt.datetime.strftime(x, '%Y-%m-%d %H:%M')
             )
+    if time_display_units == "d":
+        if start_date is None:
+            full_patient_df_plus_pos['minute'] = dt.date.today() + pd.DateOffset(days=165) +  pd.TimedeltaIndex(full_patient_df_plus_pos['minute'], unit='d')
+        else:
+            full_patient_df_plus_pos['minute'] = dt.datetime.strptime(start_date, "%Y-%m-%d") +  pd.TimedeltaIndex(full_patient_df_plus_pos['minute'], unit='d')
+
+        full_patient_df_plus_pos['minute_display'] = full_patient_df_plus_pos['minute'].apply(
+            lambda x: dt.datetime.strftime(x, '%A %d %B %Y')
+            )
+        full_patient_df_plus_pos['minute'] = full_patient_df_plus_pos['minute'].apply(
+            lambda x: dt.datetime.strftime(x, '%Y-%m-%d')
+            )
     else:
         full_patient_df_plus_pos['minute_display'] = full_patient_df_plus_pos['minute']
-
-    # full_patient_df_plus_pos['size'] = 24
 
     # We are effectively making use of an animated plotly express scatterploy
     # to do all of the heavy lifting
     # Because of the way plots animate in this, it deals with all of the difficulty
     # of paths between individual positions - so we just have to tell it where to put
     # people at each defined step of the process, and the scattergraph will move them
+    if scenario is not None:
+        hovers = ["patient", "pathway", "time", "minute", "resource_id"]
+    else:
+        hovers = ["patient", "pathway", "time", "minute"]
+
 
     fig = px.scatter(
             full_patient_df_plus_pos.sort_values('minute'),
@@ -269,24 +360,14 @@ def animate_activity_log(
             # Important to group by patient here
             animation_group="patient",
             text="icon",
-            # Can't have colours because it causes bugs with
-            # lots of points failing to appear
-            #color="event",
             hover_name="event",
-            hover_data=["patient", "pathway", "time", "minute", "resource_id"],
-            # The approach of putting in the people as symbols didn't work
-            # Went with making emoji text labels instead - this works better!
-            # But leaving in as a reminder that the symbol approach doens't work.
-            #symbol="rep",
-            #symbol_sequence=["⚽"],
-            #symbol_map=dict(rep_choice = "⚽"),
+            hover_data=hovers,
             range_x=[0, x_max],
             range_y=[0, y_max],
             height=plotly_height,
             width=plotly_width,
             # This sets the opacity of the points that sit behind
             opacity=0
-            #    size="size"
             )
 
     # Now add labels identifying each stage (optional - can either be used
@@ -308,39 +389,66 @@ def animate_activity_log(
     # represent our people!
     fig.update_traces(textfont_size=icon_and_text_size)
 
-    # Finally add in icons to indicate the available resources
+    #############################################
+    # Add in icons to indicate the available resources
+    #############################################
+
     # Make an additional dataframe that has one row per resource type
     # Then, starting from the initial position, make that many large circles
     # make them semi-transparent or you won't see the people using them! 
-    events_with_resources = event_position_df[event_position_df['resource'].notnull()].copy()
-    events_with_resources['resource_count'] = events_with_resources['resource'].apply(lambda x: getattr(scenario, x))
+    if scenario is not None:
+        events_with_resources = event_position_df[event_position_df['resource'].notnull()].copy()
+        events_with_resources['resource_count'] = events_with_resources['resource'].apply(lambda x: getattr(scenario, x))
 
-    events_with_resources = events_with_resources.join(events_with_resources.apply(
-        lambda r: pd.Series({'x_final': [r['x']-(10*(i+1)) for i in range(r['resource_count'])]}), axis=1).explode('x_final'),
-        how='right')
+        events_with_resources = events_with_resources.join(events_with_resources.apply(
+            lambda r: pd.Series({'x_final': [r['x']-(gap_between_resources*(i+1)) for i in range(r['resource_count'])]}), axis=1).explode('x_final'),
+            how='right')
 
-    # This just adds an additional scatter trace that creates large dots
-    # that represent the individual resources
-    fig.add_trace(go.Scatter(
-        x=events_with_resources['x_final'].to_list(),
-        # Place these slightly below the y position for each entity
-        # that will be using the resource
-        y=[i-10 for i in events_with_resources['y'].to_list()],
-        mode="markers",
-        # Define what the marker will look like
-        marker=dict(
-            color='LightSkyBlue',
-            size=15),
-        opacity=0.8,
-        hoverinfo='none'
-    ))
+        # This just adds an additional scatter trace that creates large dots
+        # that represent the individual resources
+        #TODO: Add ability to pass in 'icon' column as part of the event_position_df that
+        # can then be used to provide custom icons per resource instead of a single custom
+        # icon for all resources
+        if custom_resource_icon is not None:
+            fig.add_trace(go.Scatter(
+                x=events_with_resources['x_final'].to_list(),
+                # Place these slightly below the y position for each entity
+                # that will be using the resource
+                y=[i-10 for i in events_with_resources['y'].to_list()],
+                mode="markers+text",
+                text=custom_resource_icon,
+                # Make the actual marker invisible
+                marker=dict(opacity=0),
+                # Set opacity of the icon
+                opacity=0.8,
+                hoverinfo='none'
+            ))
+        else:
+            fig.add_trace(go.Scatter(
+                x=events_with_resources['x_final'].to_list(),
+                # Place these slightly below the y position for each entity
+                # that will be using the resource
+                y=[i-10 for i in events_with_resources['y'].to_list()],
+                mode="markers",
+                # Define what the marker will look like
+                marker=dict(
+                    color='LightSkyBlue',
+                    size=15),
+                opacity=resource_opacity,
+                hoverinfo='none'
+            ))
 
+    #############################################
     # Optional step to add a background image
+    #############################################
+
     # This can help to better visualise the layout/structure of a pathway
     # Simple FOSS tool for creating these background images is draw.io
+    
     # Ideally your queueing steps should always be ABOVE your resource use steps
     # as this then results in people nicely flowing from the front of the queue 
     # to the next stage
+
     if add_background_image is not None:
         fig.add_layout_image(
             dict(
@@ -359,8 +467,8 @@ def animate_activity_log(
     )
 
     # We don't need any gridlines or tickmarks for the final output, so remove
-    # However, can be useful for the initial setup phase of the outputs, so give the 
-    # option to inlcude
+    # However, can be useful for the initial setup phase of the outputs, so give
+    # the option to inlcude
     if not setup_mode:
         fig.update_xaxes(showticklabels=False, showgrid=False, zeroline=False, 
                          # Prevent zoom
@@ -383,24 +491,88 @@ def animate_activity_log(
     # Adjust speed of animation
     fig.layout.updatemenus[0].buttons[0].args[1]['frame']['duration'] = frame_duration
     fig.layout.updatemenus[0].buttons[0].args[1]['transition']['duration'] = frame_transition_duration
+    if debug_mode:
+        print(f'Output animation generation complete at {time.strftime("%H:%M:%S", time.localtime())}')
 
     return fig
 
+def animate_activity_log(
+        event_log,
+        event_position_df,
+        scenario,
+        every_x_time_units=10,
+        wrap_queues_at=20,
+        step_snapshot_max=50,
+        limit_duration=10*60*24,
+        plotly_height=900,
+        plotly_width=None,
+        include_play_button=True,
+        add_background_image=None,
+        display_stage_labels=True,
+        icon_and_text_size=24,
+        gap_between_entities=10,
+        gap_between_rows=30,
+        gap_between_resources=10,
+        resource_opacity=0.8,
+        custom_resource_icon=None,
+        override_x_max=None,
+        override_y_max=None,
+        time_display_units=None,
+        setup_mode=False,
+        frame_duration=400, #milliseconds
+        frame_transition_duration=600, #milliseconds
+        debug_mode=False
+        ):
+    
+    if debug_mode:
+        start_time_function = time.perf_counter()
+        print(f'Animation function called at {time.strftime("%H:%M:%S", time.localtime())}')
 
-def animate_queue_activity_bar_chart(minute_counts_df_complete,
-                                     event_order,
-                                     rep=1):
-    # Downsample to only include a snapshot every 10 minutes (else it falls over completely)
-    # For runs of more days will have to downsample more aggressively - every 10 minutes works for 15 days
-    fig = px.bar(minute_counts_df_complete[minute_counts_df_complete["rep"] == int(rep)].sort_values('minute'),
-                x="event",
-                y="value",
-                animation_frame="minute",
-                range_y=[0,minute_counts_df_complete['value'].max()*1.1])
+    full_patient_df = reshape_for_animations(event_log, 
+                                             every_x_time_units=every_x_time_units,
+                                             limit_duration=limit_duration,
+                                             step_snapshot_max=step_snapshot_max,
+                                             debug_mode=debug_mode)
+    
+    if debug_mode:
+        print(f'Reshaped animation dataframe finished construction at {time.strftime("%H:%M:%S", time.localtime())}')
+    
 
-    fig.update_xaxes(categoryorder='array',
-                    categoryarray= event_order)
 
-    fig["layout"].pop("updatemenus")
+    full_patient_df_plus_pos = generate_animation_df(
+                                full_patient_df=full_patient_df,
+                                event_position_df=event_position_df,
+                                wrap_queues_at=wrap_queues_at,
+                                step_snapshot_max=step_snapshot_max,
+                                gap_between_entities=gap_between_entities,
+                                gap_between_resources=gap_between_resources,
+                                gap_between_rows=gap_between_rows,
+                                debug_mode=debug_mode
+                        )
+    
+    animation = generate_animation(
+        full_patient_df_plus_pos=full_patient_df_plus_pos,
+        event_position_df=event_position_df,
+        scenario=scenario,
+        plotly_height=plotly_height,
+        plotly_width=plotly_width,
+        include_play_button=include_play_button,
+        add_background_image=add_background_image,
+        display_stage_labels=display_stage_labels,
+        icon_and_text_size=icon_and_text_size,
+        override_x_max=override_x_max,
+        override_y_max=override_y_max,
+        time_display_units=time_display_units,
+        setup_mode=setup_mode,
+        resource_opacity=resource_opacity,
+        custom_resource_icon=custom_resource_icon,
+        frame_duration=frame_duration, #milliseconds
+        frame_transition_duration=frame_transition_duration, #milliseconds
+        debug_mode=debug_mode
+    )
 
-    return fig
+    if debug_mode:
+        end_time_function = time.perf_counter()
+        print(f'Total Time Elapsed: {(end_time_function - start_time_function):.2f} seconds')
+
+    return animation
