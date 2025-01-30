@@ -42,6 +42,7 @@ st.markdown(
     """
 )
 
+st.divider()
 
 st.subheader("Where Can I Find Out More?")
 
@@ -70,14 +71,18 @@ with col3:
     st.video("https://www.youtube.com/watch?v=FBVBKtVkayA")
 
 
+st.divider()
+
 st.header("The DES Book")
 
-image_col, text_col = st.columns([0.4, 0.6])
+book_text_col, book_blank_col_1, book_image_col, book_blank_col_2 = st.columns([0.6, 0.1, 0.2, 0.1])
 
-with image_col:
+with book_image_col:
     st.image("https://raw.githubusercontent.com/hsma-programme/Teaching_DES_Concepts_Streamlit/refs/heads/main/resources/des_cover_image.jpeg")
 
-with text_col:
+
+
+with book_text_col:
     st.markdown("""
     There's so much to teach you about DES that we just couldn't fit it all into our sessions - so we wrote a book!
 
@@ -86,15 +91,19 @@ with text_col:
     We'd love to hear from you if you find the book useful, or if there are additional concepts you would like it to cover.
     """)
 
-st.header("HSMA DES Projects")
+    st.divider()
 
-st.markdown(
-    """
-    Several HSMA projects have made use of discrete event simulation to motivate incredible changes in health systems.
+    st.header("HSMA DES Projects")
 
-    You can view some of them on our [projects page](https://hsma.co.uk/previous_projects/projects_by_methods.html#discrete-event-simulation)
-    """
-)
+    st.markdown(
+        """
+        Several HSMA projects have made use of discrete event simulation to motivate incredible changes in health systems.
+
+        You can view some of them on our [projects page](https://hsma.co.uk/previous_projects/projects_by_methods.html#discrete-event-simulation)
+        """
+    )
+
+st.divider()
 
 st.header("Building Web Apps Like This One")
 
@@ -110,8 +119,12 @@ st.markdown(
     """
 )
 
+st.divider()
+
 st.subheader("Where Can I Find the Code for this Model?")
 
 st.markdown("All of the code used to make this model, the visualisation and the streamlit app can be found in [this GitHub repository](https://github.com/hsma-programme/Teaching_DES_Concepts_Streamlit).")
 
 st.markdown("The code is available under the MIT licence so may be freely used and adapted - though we'd love to hear about it if you do use the app or code!")
+
+st.markdown("If you want to create an animated visualisation like the ones used here, check out the [vidigi](https://bergam0t.github.io/vidigi/vidigi_docs/) package")
