@@ -127,6 +127,6 @@ st.subheader("Where Can I Find the Code for this Model?")
 
 st.markdown("All of the code used to make this model, the visualisation and the streamlit app can be found in [this GitHub repository](https://github.com/hsma-programme/Teaching_DES_Concepts_Streamlit).")
 
-st.markdown("The code is available under the MIT licence so may be freely used and adapted - though we'd love to hear about it if you do use the app or code!")
+st.markdown("The code is available under the MIT licence so may be freely used and adapted - though we'd love to [hear about it](mailto:info@hsma.co.uk) if you do use the app or code!")
 
 st.markdown("If you want to create an animated visualisation like the ones used here, check out the [vidigi](https://bergam0t.github.io/vidigi/vidigi_docs/) package")
