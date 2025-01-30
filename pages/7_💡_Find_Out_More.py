@@ -86,9 +86,11 @@ with book_text_col:
     st.markdown("""
     There's so much to teach you about DES that we just couldn't fit it all into our sessions - so we wrote a book!
 
+    You can read it at [des.hsma.co.uk](https://des.hsma.co.uk)
+
     The DES book is a free eBook that takes you from your first models through to much more complex modelling concepts than we cover in the taught sessions.
 
-    We'd love to hear from you if you find the book useful, or if there are additional concepts you would like it to cover.
+    We'd love to [hear from you](mailto:info@hsma.co.uk) if you find the book useful, or if there are additional concepts you would like it to cover.
     """)
 
     st.divider()
