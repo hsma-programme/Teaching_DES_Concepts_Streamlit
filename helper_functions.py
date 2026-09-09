@@ -2,8 +2,9 @@ import urllib.request as request
 import streamlit as st
 import streamlit.components.v1 as components
 
+
 def read_file_contents(file_name):
-    ''''
+    """'
     Read the contents of a file.
 
     Params:
@@ -14,10 +15,10 @@ def read_file_contents(file_name):
     Returns:
     -------
     str
-    '''
+    """
     with open(file_name) as f:
         return f.read()
-    
+
 
 def read_file_contents_web(path):
     """
@@ -40,14 +41,15 @@ def read_file_contents_web(path):
     response = request.urlopen(path)
     return response.read().decode("utf-8")
 
+
 def add_logo():
-    '''
+    """
     Add a logo at the top of the page navigation sidebar
 
     Approach written by blackary on
     https://discuss.streamlit.io/t/put-logo-and-title-above-on-top-of-page-navigation-in-sidebar-of-multipage-app/28213/5
-    
-    '''
+
+    """
     st.markdown(
         """
         <style>
@@ -71,29 +73,13 @@ def add_logo():
         unsafe_allow_html=True,
     )
 
-# From https://discuss.streamlit.io/t/st-markdown-does-not-render-mermaid-graphs/25576/3
-def mermaid(code: str, height=600) -> None:
-    components.html(
-        f"""
-    <link href='http://fonts.googleapis.com/css?family=Lexend' rel='stylesheet' type='text/css'>
-
-        <pre class="mermaid">
-            {code}
-        </pre>
-
-        <script type="module">
-            import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
-            mermaid.initialize({{ startOnLoad: true }});
-        </script>
-        """,
-        height=height
-    )
 
 def center_running():
     """
     Have the "running man" animation in the center of the screen instead of the top right corner.
     """
-    st.markdown("""
+    st.markdown(
+        """
 <style>
 
 div[class*="StatusWidget"]{
@@ -109,5 +95,6 @@ div[class*="StatusWidget"]{
 }
 
 </style>
-""", 
-                unsafe_allow_html=True)
+""",
+        unsafe_allow_html=True,
+    )
