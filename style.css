@@ -30,7 +30,6 @@ h1, h2, h3, h4 {
 
 h1 {
 	padding: 0.25rem 0px 1rem;
-	font-size: 1.75rem !important;
 }
 
 .block-container {
@@ -41,50 +40,33 @@ h1 {
 }
 
 
+/* None of these work! */
 
-/* ---- Tighten the sliders in the sidebar ---- */
+/* [id^='mermaid'] [id$='pointEnd'] .marker .flowchart {
+	fill: #FFF !important;
+	stroke: #FFF !important;
+} */
 
-/* Less space between each widget in the sidebar. */
-section[data-testid="stSidebar"] [data-testid="stVerticalBlock"] {
-	gap: 0.6rem;
-}
+/* [class$="flowchart-pointEnd"]  {
+	fill: #FFF !important;
+	stroke: #FFF !important;
+} */
 
-/* Trim the large vertical padding baked into every slider. Keep enough
-	headroom above for the always-visible value, and enough below the track
-	for the min/max range labels that appear on hover. */
-section[data-testid="stSidebar"] [data-testid="stSlider"] > div:last-child > div {
-	padding-top: 1.35rem !important;
-	padding-bottom: 0.7rem !important;
-}
+/* #mermaid-1698413512501 .marker {
+	fill: #FFF;
+	stroke: #FFF;
+} */
 
-/* Pull each slider a little closer to its label (but leave room for the
-	value that sits just above the track). */
-section[data-testid="stSidebar"] [data-testid="stWidgetLabel"] {
-	margin-bottom: 0.35rem;
-}
+/* #arrowhead {
+    fill: #FFF !important;
+  }
 
-/* Tighten the gap above and below the divider between the two groups. */
-section[data-testid="stSidebar"] hr {
-	margin-top: 0.8rem;
-	margin-bottom: 0.8rem;
-}
+.loopLine {
+stroke-width: 2;
+stroke-dasharray: "2 2";
+marker-end: "url(#arrowhead)";
+stroke: #CCCCFF;
+} */
 
-/* ---- Big call-to-action button on the "Run" tab ---- */
-.st-key-animate_button button {
-	min-height: 3.5rem;
-	font-weight: 600;
-	background-color: #076b72;
-	border-color: #076b72;
-	color: #ffffff;
-}
-
-.st-key-animate_button button p {
-	font-size: 1.25rem !important;
-}
-
-.st-key-animate_button button:hover,
-.st-key-animate_button button:focus:not(:active) {
-	background-color: #076b72;
-	border-color: #076b72;
-	color: #ffffff;
-}
+/* https://github.com/mermaid-js/mermaid/issues/1236 */
+/* #flowchart-pointEnd { stroke:#0f0 !important; fill:#f00 !important; stroke-width:3px !important; } */
