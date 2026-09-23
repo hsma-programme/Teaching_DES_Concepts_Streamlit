@@ -187,10 +187,10 @@ with tab1:
     with col2:
         st.subheader("Trauma Pathway")
         n_trauma = st.slider(
-            "👨‍⚕️👩‍⚕️ Number of Trauma Bays for Stabilisation", 1, 10, step=1, value=6
+            "👨‍⚕️👩‍⚕️ Number of Stabilisation Bays", 1, 10, step=1, value=6
         )
         n_cubicles_2 = st.slider(
-            "👨‍⚕️👩‍⚕️ Number of Treatment Cubicles for Trauma", 1, 10, step=1, value=6
+            "👨‍⚕️👩‍⚕️ Number of Trauma Treatment Cubicles", 1, 10, step=1, value=6
         )
 
     with col3:
@@ -199,7 +199,7 @@ with tab1:
             "👨‍⚕️👩‍⚕️ Number of Registration Cubicles", 1, 10, step=1, value=3
         )
         n_exam = st.slider(
-            "👨‍⚕️👩‍⚕️ Number of Examination Rooms for non-trauma patients",
+            "👨‍⚕️👩‍⚕️ Number of Examination Rooms",
             1,
             10,
             step=1,
@@ -209,7 +209,7 @@ with tab1:
     with col4:
         st.subheader("Non-Trauma Treatment")
         n_cubicles_1 = st.slider(
-            "👨‍⚕️👩‍⚕️ Number of Treatment Cubicles for Non-Trauma", 1, 10, step=1, value=2
+            "👨‍⚕️👩‍⚕️ Number of Non-Trauma Treatment Cubicles", 1, 10, step=1, value=2
         )
         non_trauma_treat_p = st.slider(
             "🤕 Probability that a non-trauma patient will need treatment",
