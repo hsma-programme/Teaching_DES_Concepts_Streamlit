@@ -76,7 +76,7 @@ with tab3:
             H --> I[Non-Trauma Treatment]
             I --> F
 
-            C -.-> Z([Stabilisation Bay\n<b>RESOURCE</b>])
+            C -.-> Z([Trauma Bay\n<b>RESOURCE</b>])
             Z -.-> C
 
             E -.-> Y([Trauma Treatment Cubicle\n<b>RESOURCE</b>])

@@ -91,7 +91,7 @@ with tab4:
         H --> I[Non-Trauma Treatment]
         I --> F
 
-        C -.-> Z([Stabilisation Bay\n<b>RESOURCE</b>])
+        C -.-> Z([Trauma Bay\n<b>RESOURCE</b>])
         Z -.-> C
 
         E -.-> Y([Trauma Treatment Cubicle\n<b>RESOURCE</b>])
@@ -187,7 +187,7 @@ with tab1:
     with col2:
         st.subheader("Trauma Pathway")
         n_trauma = st.slider(
-            "👨‍⚕️👩‍⚕️ Number of Stabilisation Bays", 1, 10, step=1, value=6
+            "👨‍⚕️👩‍⚕️ Number of Trauma Bays for Stabilisation", 1, 10, step=1, value=6
         )
         n_cubicles_2 = st.slider(
             "👨‍⚕️👩‍⚕️ Number of Trauma Treatment Cubicles", 1, 10, step=1, value=6
