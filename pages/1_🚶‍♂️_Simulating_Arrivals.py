@@ -56,9 +56,13 @@ with tab3:
             %%{ init: {  'flowchart': { 'curve': 'step'} } }%%
             %%{ init: {  'theme': 'base', 'themeVariables': {'lineColor': '#b4b4b4'} } }%%
             flowchart LR
-            A[Arrival] --> B{Trauma or non-trauma}
-            B --> B1{Trauma Pathway}
-            B --> B2{Non-Trauma Pathway}
+            A[Arrival] --> BX[Triage]
+            BX -.-> T([Triage Cubicle\n<b>RESOURCE</b>])
+            T -.-> BX
+
+            BX --> BY{Trauma or non-trauma}
+            BY ----> B1{Trauma Pathway}
+            BY ----> B2{Non-Trauma Pathway}
 
             B1 --> C[Stabilisation]
             C --> E[Treatment]
@@ -72,19 +76,19 @@ with tab3:
             H --> I[Non-Trauma Treatment]
             I --> F
 
-            C -.-> Z([Triage Cubicle])
+            C -.-> Z([Stabilisation Bay\n<b>RESOURCE</b>])
             Z -.-> C
 
-            E -.-> Y([Trauma Treatment Cubicle])
+            E -.-> Y([Trauma Treatment Cubicle\n<b>RESOURCE</b>])
             Y -.-> E
 
-            D -.-> X([Registration Cubicle])
+            D -.-> X([Registration Cubicle\n<b>RESOURCE</b>])
             X -.-> D
 
-            G -.-> W([Examination Room])
+            G -.-> W([Examination Room\n<b>RESOURCE</b>])
             W -.-> G
 
-            I -.-> V([Non-Trauma Treatment Cubicle])
+            I -.-> V([Non-Trauma Treatment Cubicle\n<b>RESOURCE</b>])
             V -.-> I
 
             classDef highlight fill:#02CD55,stroke:#E8AD02,stroke-width:4px,color:#0C0D11,font-size:12pt,font-family:lexend;

@@ -12,14 +12,14 @@ st.set_page_config(
 add_logo()
 
 with open("style.css") as css:
-    st.markdown( f'<style>{css.read()}</style>' , unsafe_allow_html= True)
+    st.markdown(f"<style>{css.read()}</style>", unsafe_allow_html=True)
 
 st.title("Welcome to the Discrete Event Simulation Playground! 👋")
 
 gc.collect()
 
 st.markdown(
-"""
+    """
 This is a discrete event simulation playground based on the Monks et al (2022), which is itself an implementation of the Treatment Centre Model from Nelson (2013).
 
 By working through the pages on the left in order, you will
@@ -32,14 +32,19 @@ The treatment centre we want to build a model of looks like this:
 )
 
 
-mermaid(height=450, code=
-"""
+mermaid(
+    height=450,
+    code="""
     %%{ init: { 'flowchart': { 'curve': 'step'} } }%%
     %%{ init: {  'theme': 'base', 'themeVariables': {'lineColor': '#b4b4b4'} } }%%
     flowchart LR
-        A[Arrival] --> B{Trauma or non-trauma}
-        B --> B1{Trauma Pathway}
-        B --> B2{Non-Trauma Pathway}
+        A[Arrival] --> BX[Triage]
+        BX -.-> T([Triage Cubicle\n<b>RESOURCE</b>])
+        T -.-> BX
+
+        BX --> BY{Trauma or non-trauma}
+        BY ----> B1{Trauma Pathway}
+        BY ----> B2{Non-Trauma Pathway}
 
         B1 --> C[Stabilisation]
         C --> E[Treatment]
@@ -53,19 +58,19 @@ mermaid(height=450, code=
         H --> I[Non-Trauma Treatment]
         I --> F
 
-        C -.-> Z([Trauma Room\n<b>RESOURCE</b>])
+        C -.-> Z([Stabilisation Bay\n<b>RESOURCE</b>])
         Z -.-> C
 
-        E -.-> Y([Cubicle - 1\n<b>RESOURCE</b>])
+        E -.-> Y([Trauma Treatment Cubicle\n<b>RESOURCE</b>])
         Y -.-> E
 
-        D -.-> X([Clerks\n<b>RESOURCE</b>])
+        D -.-> X([Registration Cubicle\n<b>RESOURCE</b>])
         X -.-> D
 
-        G -.-> W([Exam Room\n<b>RESOURCE</b>])
+        G -.-> W([Examination Room\n<b>RESOURCE</b>])
         W -.-> G
 
-        I -.-> V([Cubicle - 2\n<b>RESOURCE</b>])
+        I -.-> V([Non-Trauma Treatment Cubicle\n<b>RESOURCE</b>])
         V -.-> I
 
         E ----> F[Discharge]
@@ -83,11 +88,11 @@ mermaid(height=450, code=
         class X,W ZZ3a
         class Z,Y ZZ2a
         class I,V ZZ4;
-    """
+    """,
 )
 
 st.markdown(
-"""
+    """
 ## References
 
 1. *Monks.T, Harper.A, Anagnoustou. A, Allen.M, Taylor.S. (2022) Open Science for Computer Simulation*; [Repository Link](https://github.com/TomMonks/treatment-centre-sim/tree/main)
