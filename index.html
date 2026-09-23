@@ -61,9 +61,13 @@ mermaid(height=450, code=
     %%{ init: { 'flowchart': { 'curve': 'step'} } }%%
     %%{ init: {  'theme': 'base', 'themeVariables': {'lineColor': '#b4b4b4'} } }%%
     flowchart LR
-        A[Arrival] --> B{Trauma or non-trauma}
-        B --> B1{Trauma Pathway}
-        B --> B2{Non-Trauma Pathway}
+        A[Arrival] --> BX[Triage]
+        BX -.-> T([Triage Cubicle\n<b>RESOURCE</b>])
+        T -.-> BX
+
+        BX --> BY{Trauma or non-trauma}
+        BY ----> B1{Trauma Pathway}
+        BY ----> B2{Non-Trauma Pathway}
 
         B1 --> C[Stabilisation]
         C --> E[Treatment]
@@ -77,22 +81,23 @@ mermaid(height=450, code=
         H --> I[Non-Trauma Treatment]
         I --> F
 
-        C -.-> Z([Trauma Room\n<b>RESOURCE</b>])
+        C -.-> Z([Stabilisation Bay\n<b>RESOURCE</b>])
         Z -.-> C
 
-        E -.-> Y([Cubicle - 1\n<b>RESOURCE</b>])
+        E -.-> Y([Trauma Treatment Cubicle\n<b>RESOURCE</b>])
         Y -.-> E
 
-        D -.-> X([Clerks\n<b>RESOURCE</b>])
+        D -.-> X([Registration Cubicle\n<b>RESOURCE</b>])
         X -.-> D
 
-        G -.-> W([Exam Room\n<b>RESOURCE</b>])
+        G -.-> W([Examination Room\n<b>RESOURCE</b>])
         W -.-> G
 
-        I -.-> V([Cubicle - 2\n<b>RESOURCE</b>])
+        I -.-> V([Non-Trauma Treatment Cubicle\n<b>RESOURCE</b>])
         V -.-> I
 
         E ----> F[Discharge]
+
 
         classDef ZZ1 fill:#47D7FF,font-family:lexend
         classDef ZZ2 fill:#5DFDA0,font-family:lexend
